@@ -26,10 +26,10 @@ class TrackPageViews
         }
 
         try {
-            $visitorId = $request->cookie('cctv_vid');
+            $visitorId = $request->cookie('op_vid');
             if (! $visitorId) {
                 $visitorId = (string) Str::uuid();
-                Cookie::queue('cctv_vid', $visitorId, 60 * 24 * 365);
+                Cookie::queue('op_vid', $visitorId, 60 * 24 * 365);
             }
 
             $userAgent = $request->header('User-Agent', '');
@@ -157,8 +157,7 @@ class TrackPageViews
         if (Str::startsWith($path, 'magazin/comanda')) return 'Confirmare Comandă';
         if (Str::startsWith($path, 'magazin/')) return 'Produs Magazin';
         if ($path === 'servicii') return 'Servicii';
-        if ($path === 'configurator') return 'Configurator';
-        if ($path === 'calculator-cablu') return 'Calculator Cablu';
+        if ($path === 'cerere-deviz') return 'Cerere de deviz';
         if ($path === 'contact') return 'Contact';
         if ($path === 'despre') return 'Despre Noi';
         if ($path === 'blog') return 'Blog';

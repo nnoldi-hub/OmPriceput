@@ -28,7 +28,7 @@
     <table class="header" cellspacing="0" cellpadding="0">
         <tr>
             <td style="width: 55%;">
-                <img class="logo" src="{{ public_path('branding/logo-negru.png') }}" alt="{{ $settings['company_name'] }}">
+                <img class="logo" src="{{ public_path('branding/op-logo.png') }}" alt="{{ $settings['company_name'] }}">
                 <div class="brand-line">SIGURANTA INCEPE CU VIZIBILITATE.</div>
             </td>
             <td style="width: 45%; text-align: right;">
@@ -40,7 +40,7 @@
     </table>
 
     <div class="section">
-        <div class="section-title">{{ $installation->type === 'interventie' ? 'Interventie' : 'Instalare' }} #{{ $installation->id }}</div>
+        <div class="section-title">{{ $installation->typeLabel() }} #{{ $installation->id }}</div>
         <div class="info-card">
         <table style="margin-top: 0;">
             <tr>

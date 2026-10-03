@@ -92,7 +92,7 @@ class TicketController extends Controller
         ]);
         $this->notifyClient($ticket, 'Statusul cererii a fost actualizat la '.$data['status'].'.');
         if ($ticket->client->phone) {
-            $sms->send($ticket->client->phone, "CCTV: Cererea #{$ticket->id} are statusul {$data['status']}.");
+            $sms->send($ticket->client->phone, "Cererea #{$ticket->id} are statusul {$data['status']}.");
         }
 
         return back()->with('success', 'Status tichet actualizat.');
@@ -115,7 +115,7 @@ class TicketController extends Controller
         ]);
         $this->notifyClient($ticket, 'Ai primit un răspuns nou la cererea ta.');
         if ($ticket->client->phone) {
-            $sms->send($ticket->client->phone, "CCTV: Ai primit un raspuns la cererea #{$ticket->id}.");
+            $sms->send($ticket->client->phone, "Ai primit un raspuns la cererea #{$ticket->id}.");
         }
 
         return back()->with('success', 'Comentariu adaugat.');

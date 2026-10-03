@@ -1,11 +1,17 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import { usePermissions } from '@/Composables/usePermissions';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { computed, reactive } from 'vue';
 
+const { canManage } = usePermissions();
+
 const props = defineProps({
     installation: Object,
+    types: Object,
 });
+
+const typeLabel = computed(() => props.types?.[props.installation.type] ?? props.installation.type);
 
 const pendingChecklistIndexes = reactive(new Set());
 
@@ -78,19 +84,19 @@ function money(value) {
 </script>
 
 <template>
-    <Head :title="`${installation.type === 'interventie' ? 'Interventie' : 'Instalare'} #${installation.id}`" />
+    <Head :title="`${typeLabel} #${installation.id}`" />
 
     <AuthenticatedLayout>
         <template #header>
             <div class="flex items-center justify-between">
                 <h2 class="text-xl font-semibold leading-tight text-gray-800">
-                    {{ installation.type === 'interventie' ? 'Interventie' : 'Instalare' }} #{{ installation.id }} - {{ installation.client.name }}
+                    {{ typeLabel }} #{{ installation.id }} - {{ installation.client.name }}
                 </h2>
                 <div class="flex gap-2">
                     <a :href="route('technical.installations.pdf', installation.id)" target="_blank" class="rounded-md border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
                         Raport PDF
                     </a>
-                    <Link v-if="!isFinalized" :href="route('technical.installations.edit', installation.id)" class="rounded-md border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
+                    <Link v-if="canManage('installations') && !isFinalized" :href="route('technical.installations.edit', installation.id)" class="rounded-md border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
                         Editeaza
                     </Link>
                 </div>
@@ -159,7 +165,7 @@ function money(value) {
                         <span class="mt-2 inline-block rounded-full px-2 py-1 text-xs font-medium" :class="statusClasses[installation.status]">
                             {{ statusOptions.find((s) => s.value === installation.status)?.label }}
                         </span>
-                        <div class="mt-3 flex flex-wrap gap-2">
+                        <div v-if="canManage('installations')" class="mt-3 flex flex-wrap gap-2">
                             <button
                                 v-for="option in statusOptions"
                                 :key="option.value"
@@ -195,7 +201,7 @@ function money(value) {
                                     <input
                                         type="checkbox"
                                         :checked="item.done"
-                                        :disabled="pendingChecklistIndexes.has(index)"
+                                        :disabled="!canManage('installations') || pendingChecklistIndexes.has(index)"
                                         class="rounded border-slate-300 text-blue-600 focus:ring-blue-500 disabled:opacity-50"
                                         @change="toggleItem(index)"
                                     />
@@ -254,7 +260,7 @@ function money(value) {
                     <div class="rounded-lg bg-white p-6 shadow-sm">
                         <div class="flex items-center justify-between">
                             <h3 class="text-sm font-semibold text-slate-500">Tichete asociate ({{ installation.tickets.length }})</h3>
-                            <Link :href="route('technical.tickets.create', { client_id: installation.client.id })" class="text-sm text-blue-600 hover:text-blue-500">
+                            <Link v-if="canManage('tickets')" :href="route('technical.tickets.create', { client_id: installation.client.id })" class="text-sm text-blue-600 hover:text-blue-500">
                                 Deschide tichet nou
                             </Link>
                         </div>

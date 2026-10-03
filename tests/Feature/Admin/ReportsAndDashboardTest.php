@@ -138,8 +138,8 @@ class ReportsAndDashboardTest extends TestCase
 
     public function test_dashboard_and_reports_use_remaining_invoice_balance(): void
     {
-        Invoice::factory()->create(['status' => 'unpaid', 'amount' => 1000, 'paid_amount' => 300]);
-        Invoice::factory()->create(['status' => 'overdue', 'amount' => 800, 'paid_amount' => 200]);
+        Invoice::factory()->create(['status' => 'unpaid', 'amount' => 1000, 'paid_amount' => 300, 'due_at' => now()->addDays(15)]);
+        Invoice::factory()->create(['status' => 'overdue', 'amount' => 800, 'paid_amount' => 200, 'due_at' => now()->subDays(5)]);
 
         $this->actingAs($this->adminUser)
             ->get(route('admin.dashboard'))

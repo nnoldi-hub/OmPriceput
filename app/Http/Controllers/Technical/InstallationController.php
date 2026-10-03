@@ -18,6 +18,7 @@ use Illuminate\Http\Response as HttpResponse;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -25,19 +26,33 @@ class InstallationController extends Controller
 {
     public function index(Request $request): Response
     {
+        $scheduling = $request->string('programare')->toString();
+
         $installations = Installation::query()
-            ->with(['client:id,name', 'technician:id,name'])
+            ->with(['client:id,name', 'technician:id,name,trade'])
             ->when($request->string('status')->toString(), fn ($query, $status) => $query->where('status', $status))
             ->when($request->string('type')->toString(), fn ($query, $type) => $query->where('type', $type))
             ->when($request->integer('technician_id'), fn ($query, $id) => $query->where('technician_id', $id))
+            ->when($request->integer('trade'), fn ($query, $trade) => $query->whereHas(
+                'technician',
+                fn ($q) => $q->where('trade', $trade),
+            ))
+            ->when(
+                $scheduling === 'neprogramate',
+                fn ($query) => $query->whereNull('scheduled_at')->where('status', 'scheduled'),
+            )
+            ->orderByRaw('scheduled_at is null desc')
             ->orderBy('scheduled_at')
             ->paginate(15)
             ->withQueryString();
 
         return Inertia::render('Technical/Installations/Index', [
             'installations' => $installations,
-            'filters' => $request->only('status', 'type', 'technician_id'),
-            'technicians' => User::role('tehnic')->orderBy('name')->get(['id', 'name']),
+            'filters' => $request->only('status', 'type', 'technician_id', 'trade', 'programare'),
+            'types' => Installation::TYPE_LABELS,
+            'statuses' => Installation::STATUSES,
+            'trades' => Service::TRADES,
+            'technicians' => User::role('tehnic')->orderBy('name')->get(['id', 'name', 'trade']),
             'equipment' => Equipment::where('is_active', true)->where('stock_quantity', '>', 0)->orderBy('name')->get(['id', 'name', 'sku', 'unit', 'stock_quantity']),
             'services' => Service::where('is_active', true)->orderBy('name')->get(['id', 'name', 'unit']),
         ]);
@@ -96,7 +111,9 @@ class InstallationController extends Controller
         return Inertia::render('Technical/Installations/Create', [
             'clients' => Client::orderBy('name')->get(['id', 'name', 'address', 'city']),
             'offers' => Offer::with('client:id,name')->where('status', 'accepted')->get(['id', 'client_id', 'title']),
-            'technicians' => User::role('tehnic')->orderBy('name')->get(['id', 'name']),
+            'technicians' => User::role('tehnic')->orderBy('name')->get(['id', 'name', 'trade']),
+            'types' => Installation::TYPE_LABELS,
+            'statuses' => Installation::STATUSES,
             'equipment' => Equipment::where('is_active', true)->where('stock_quantity', '>', 0)->orderBy('name')->get(['id', 'name', 'sku', 'unit', 'stock_quantity']),
             'services' => Service::where('is_active', true)->orderBy('name')->get(['id', 'name', 'unit']),
             'preselectedClientId' => $request->integer('client_id') ?: null,
@@ -107,7 +124,7 @@ class InstallationController extends Controller
     {
         $data = $this->validateData($request);
         $this->ensureTechnicianAvailability($data);
-        $data['checklist'] = Installation::defaultChecklist();
+        $data['checklist'] = Installation::defaultChecklist($data['type']);
         $data = $this->processExecutionDetails($request, $data);
 
         $installation = DB::transaction(function () use ($data) {
@@ -124,10 +141,12 @@ class InstallationController extends Controller
 
     public function show(Installation $installation): Response
     {
-        $installation->load(['client', 'offer', 'technician:id,name', 'tickets']);
+        $installation->load(['client', 'offer', 'technician:id,name,trade', 'tickets']);
 
         return Inertia::render('Technical/Installations/Show', [
             'installation' => $installation,
+            'types' => Installation::TYPE_LABELS,
+            'statuses' => Installation::STATUSES,
         ]);
     }
 
@@ -137,7 +156,9 @@ class InstallationController extends Controller
             'installation' => $installation,
             'clients' => Client::orderBy('name')->get(['id', 'name', 'address', 'city']),
             'offers' => Offer::with('client:id,name')->where('status', 'accepted')->get(['id', 'client_id', 'title']),
-            'technicians' => User::role('tehnic')->orderBy('name')->get(['id', 'name']),
+            'technicians' => User::role('tehnic')->orderBy('name')->get(['id', 'name', 'trade']),
+            'types' => Installation::TYPE_LABELS,
+            'statuses' => Installation::STATUSES,
             'equipment' => Equipment::orderBy('name')->get(['id', 'name', 'sku', 'unit', 'stock_quantity']),
             'services' => Service::where('is_active', true)->orderBy('name')->get(['id', 'name', 'unit']),
         ]);
@@ -168,7 +189,7 @@ class InstallationController extends Controller
 
         if ($this->installationIsFinalized($installation) && $data['status'] !== 'completed') {
             throw ValidationException::withMessages([
-                'status' => 'Instalarea este finalizata si nu mai poate reveni la un status anterior.',
+                'status' => 'Lucrarea este finalizata si nu mai poate reveni la un status anterior.',
             ]);
         }
 
@@ -239,7 +260,7 @@ class InstallationController extends Controller
             'installation' => $installation,
             'settings' => Setting::allSettings(),
         ])
-            ->stream("raport-instalare-{$installation->id}.pdf");
+            ->stream("proces-verbal-{$installation->id}.pdf");
     }
 
     private function validateData(Request $request): array
@@ -248,7 +269,8 @@ class InstallationController extends Controller
             'client_id' => ['required', 'exists:clients,id'],
             'offer_id' => ['nullable', 'exists:offers,id'],
             'technician_id' => ['nullable', 'exists:users,id'],
-            'type' => ['required', 'in:instalare,interventie'],
+            'type' => ['required', Rule::in(Installation::TYPES)],
+            'requested_type' => ['nullable', Rule::in(Installation::TYPES)],
             'address' => ['nullable', 'string', 'max:255'],
             'latitude' => ['nullable', 'numeric'],
             'longitude' => ['nullable', 'numeric'],
@@ -291,7 +313,7 @@ class InstallationController extends Controller
 
         if ($conflict) {
             throw ValidationException::withMessages([
-                'scheduled_at' => 'Tehnicianul are deja o programare activa la aceasta data si ora.',
+                'scheduled_at' => 'Meserasul are deja o programare activa la aceasta data si ora.',
             ]);
         }
     }
@@ -391,7 +413,7 @@ class InstallationController extends Controller
     {
         if ($this->installationIsFinalized($installation)) {
             throw ValidationException::withMessages([
-                'installation' => 'Instalarea este finalizata si nu mai poate fi modificata.',
+                'installation' => 'Lucrarea este finalizata si nu mai poate fi modificata.',
             ]);
         }
     }

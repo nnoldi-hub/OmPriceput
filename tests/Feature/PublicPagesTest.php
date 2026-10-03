@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Client;
 use App\Models\Equipment;
 use App\Models\Post;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -26,18 +27,41 @@ class PublicPagesTest extends TestCase
         $this->get(route('public.services'))->assertOk();
     }
 
-    public function test_configurator_page_loads(): void
+    public function test_quote_request_page_loads(): void
     {
-        Equipment::factory()->create(['category' => 'camera']);
-        Equipment::factory()->create(['category' => 'nvr']);
-        Equipment::factory()->create(['category' => 'accessory', 'sku' => 'HDD-1TB']);
+        Equipment::factory()->create(['category' => 'consumabil']);
+        Equipment::factory()->create(['category' => 'scula']);
+        Equipment::factory()->create(['category' => ' piesa', 'sku' => 'Piesa-1']);
 
-        $this->get(route('public.configurator'))->assertOk();
+        $this->get(route('public.quote'))->assertOk();
     }
 
-    public function test_cable_calculator_page_loads(): void
+    public function test_quote_request_creates_client_and_scheduled_visit(): void
     {
-        $this->get(route('public.cable-calculator'))->assertOk();
+        $response = $this->post(route('public.lead.store'), [
+            'name' => 'Ana Popescu',
+            'phone' => '0721123456',
+            'address' => 'Str. Valea Rosie 12, Bucuresti',
+            'job_type' => 'reparatie',
+            'notes' => 'Chiuvita scurge sub chiuvita.',
+            'privacy_consent' => '1',
+        ]);
+
+        $response->assertRedirect();
+
+        $client = Client::where('phone', '0721123456')->firstOrFail();
+
+        $this->assertDatabaseHas('installations', [
+            'client_id' => $client->id,
+            'type' => 'verificare',
+            'requested_type' => 'reparatie',
+            'status' => 'scheduled',
+        ]);
+
+        $this->assertDatabaseHas('installations', [
+            'client_id' => $client->id,
+            'scheduled_at' => null,
+        ]);
     }
 
     public function test_contact_page_loads(): void

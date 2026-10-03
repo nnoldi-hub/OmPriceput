@@ -39,7 +39,7 @@ return [
         'driver' => env('SMS_DRIVER', 'log'),
         'api_url' => env('SMS_API_URL'),
         'api_key' => env('SMS_API_KEY'),
-        'sender' => env('SMS_SENDER', 'CCTV'),
+        'sender' => env('SMS_SENDER', 'OP'),
     ],
 
     'fgo' => [

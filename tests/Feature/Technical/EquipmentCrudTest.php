@@ -45,14 +45,14 @@ class EquipmentCrudTest extends TestCase
     public function test_technician_can_create_equipment(): void
     {
         $this->actingAs($this->techUser)->post(route('technical.equipment.store'), [
-            'name' => 'Camera test 4K',
-            'category' => 'camera',
+            'name' => 'Tablou electric completat',
+            'category' => 'instalatii',
             'unit' => 'buc',
             'unit_price' => 350,
             'stock_quantity' => 10,
         ])->assertRedirect(route('technical.equipment.index'));
 
-        $this->assertDatabaseHas('equipment', ['name' => 'Camera test 4K']);
+        $this->assertDatabaseHas('equipment', ['name' => 'Tablou electric completat']);
     }
 
     public function test_technician_can_adjust_stock(): void

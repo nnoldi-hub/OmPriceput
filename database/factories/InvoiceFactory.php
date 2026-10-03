@@ -20,7 +20,7 @@ class InvoiceFactory extends Factory
     {
         return [
             'client_id' => Client::factory(),
-            'invoice_number' => 'CCTV-'.now()->format('Y').'-'.fake()->unique()->numberBetween(1000, 9999),
+            'invoice_number' => 'OP-'.now()->format('Y').'-'.fake()->unique()->numberBetween(1000, 9999),
             'amount' => fake()->randomFloat(2, 200, 6000),
             'status' => fake()->randomElement(['unpaid', 'paid', 'cancelled']),
             'issued_at' => now()->subDays(fake()->numberBetween(0, 60)),

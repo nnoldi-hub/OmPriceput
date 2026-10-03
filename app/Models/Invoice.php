@@ -60,7 +60,7 @@ class Invoice extends Model
 
     public static function nextInvoiceNumber(): string
     {
-        $series = Setting::get('invoice_series', 'CCTV');
+        $series = Setting::get('invoice_series', 'OP');
         $count = self::count() + 1;
 
         return sprintf('%s-%s-%04d', $series, now()->format('Y'), $count);

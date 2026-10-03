@@ -6,8 +6,9 @@
 
         <title inertia>{{ config('app.name', 'Laravel') }}</title>
 
-        <link rel="icon" type="image/png" sizes="192x192" href="/branding/logo-cctv.png?v=2">
-        <link rel="alternate icon" type="image/png" href="/branding/logo-cctv.png?v=2">
+        <link rel="icon" type="image/png" sizes="96x96" href="/branding/op-icon.png?v=1">
+        <link rel="apple-touch-icon" href="/branding/op-icon.png?v=1">
+        <link rel="alternate icon" type="image/png" href="/branding/op-icon.png?v=1">
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">

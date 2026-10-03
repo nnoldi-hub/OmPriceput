@@ -39,6 +39,7 @@ class OfferCrudTest extends TestCase
             'client_id' => $client->id,
             'title' => 'Oferta test',
             'status' => 'draft',
+            'job_type' => 'reparatie',
             'items' => [
                 ['equipment_id' => $equipment->id, 'description' => $equipment->name, 'quantity' => 3, 'unit_price' => 200],
                 ['equipment_id' => null, 'description' => 'Manopera', 'quantity' => 1, 'unit_price' => 150],
@@ -120,8 +121,8 @@ class OfferCrudTest extends TestCase
     public function test_accepting_an_offer_imports_materials_and_services_into_installation(): void
     {
         $client = Client::factory()->create();
-        $equipment = Equipment::factory()->create(['name' => 'Camera IP', 'unit' => 'buc']);
-        $service = Service::create(['name' => 'Montaj camera', 'unit' => 'serviciu']);
+        $equipment = Equipment::factory()->create(['name' => 'Tablou electric', 'unit' => 'buc']);
+        $service = Service::create(['name' => 'Montaj prize', 'unit' => 'ora']);
         $offer = Offer::factory()->create([
             'client_id' => $client->id,
             'user_id' => $this->salesUser->id,
@@ -163,6 +164,7 @@ class OfferCrudTest extends TestCase
     public function test_marking_offer_as_sent_notifies_the_client_by_email(): void
     {
         Notification::fake();
+        config(['notifications.mail_enabled' => true]);
 
         $client = Client::factory()->create(['email' => 'client@example.com']);
         $offer = Offer::factory()->create(['client_id' => $client->id, 'user_id' => $this->salesUser->id, 'status' => 'draft']);
@@ -170,7 +172,24 @@ class OfferCrudTest extends TestCase
         $this->actingAs($this->salesUser)
             ->patch(route('sales.offers.status', $offer), ['status' => 'sent']);
 
-        Notification::assertSentOnDemand(OfferSent::class);
+        Notification::assertSentOnDemand(OfferSent::class, function (OfferSent $notification, array $channels, object $notifiable) use ($client, $offer) {
+            return $notifiable->routes['mail'] === $client->email
+                && $notification->offer->is($offer);
+        });
+    }
+
+    public function test_offer_sent_notification_is_not_emailed_when_mail_is_disabled(): void
+    {
+        Notification::fake();
+        config(['notifications.mail_enabled' => false]);
+
+        $client = Client::factory()->create(['email' => 'client@example.com']);
+        Offer::factory()->create(['client_id' => $client->id, 'user_id' => $this->salesUser->id, 'status' => 'draft']);
+
+        $this->actingAs($this->salesUser)
+            ->patch(route('sales.offers.status', $client->offers()->first(), ['status' => 'sent']));
+
+        Notification::assertNothingSent();
     }
 
     public function test_client_accepting_an_offer_notifies_the_offer_owner_and_creates_installation(): void

@@ -1,6 +1,6 @@
 import { reactive, watch, computed } from 'vue';
 
-const STORAGE_KEY = 'cctv_shop_cart';
+const STORAGE_KEY = 'op_shop_cart';
 
 function loadInitial() {
     try {

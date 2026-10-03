@@ -69,11 +69,11 @@ class OperationalRemindersTest extends TestCase
         $admin->assignRole('admin');
 
         $this->actingAs($admin)->put(route('admin.settings.update'), [
-            'company_name' => 'CCTV Security',
-            'company_email' => 'contact@cctv.ro',
+            'company_name' => 'Omul Potrivit',
+            'company_email' => 'contact@omulpotrivit.ro',
             'company_phone' => '0722000000',
             'company_hours' => 'Luni - Vineri',
-            'invoice_series' => 'CCTV',
+            'invoice_series' => 'OP',
             'vat_percentage' => 19,
             'minimum_profit_margin' => 20,
             'operational_reminders_email_enabled' => true,

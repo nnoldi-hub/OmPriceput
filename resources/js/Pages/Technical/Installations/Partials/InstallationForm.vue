@@ -8,6 +8,8 @@ const props = defineProps({
     technicians: Array,
     equipment: Array,
     services: Array,
+    types: Object,
+    statuses: Object,
 });
 
 const filteredOffers = computed(() => props.offers.filter((o) => o.client_id === props.form.client_id));
@@ -54,14 +56,21 @@ function removeService(index) {
             </select>
         </div>
         <div>
-            <label class="block text-sm font-medium text-slate-700">Tip</label>
+            <label class="block text-sm font-medium text-slate-700">Tip lucrare</label>
             <select v-model="form.type" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                <option value="instalare">Instalare</option>
-                <option value="interventie">Interventie</option>
+                <option v-for="(label, value) in types" :key="value" :value="value">{{ label }}</option>
+            </select>
+            <p v-if="form.errors.type" class="mt-1 text-sm text-red-600">{{ form.errors.type }}</p>
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-slate-700">Tip cerut de client</label>
+            <select v-model="form.requested_type" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                <option :value="null">Nu stiu / n-a precizat</option>
+                <option v-for="(label, value) in types" :key="value" :value="value">{{ label }}</option>
             </select>
         </div>
         <div>
-            <label class="block text-sm font-medium text-slate-700">Tehnician</label>
+            <label class="block text-sm font-medium text-slate-700">Meseras</label>
             <select v-model.number="form.technician_id" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                 <option :value="null">Neasignat</option>
                 <option v-for="tech in technicians" :key="tech.id" :value="tech.id">{{ tech.name }}</option>

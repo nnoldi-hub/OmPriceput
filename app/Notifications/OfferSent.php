@@ -3,6 +3,7 @@
 namespace App\Notifications;
 
 use App\Models\Offer;
+use App\Models\Setting;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
@@ -32,19 +33,19 @@ class OfferSent extends Notification
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject('Oferta ta de la CCTV Security')
+            ->subject('Devizul tau de la '.Setting::get('company_name'))
             ->view('emails.offer-sent', [
                 'recipientName' => $this->offer->client->name,
                 'offer' => $this->offer,
-                'logoUrl' => asset('branding/logo-cctv.png'),
+                'logoUrl' => asset('branding/op-logo.png'),
             ]);
     }
 
     public function toDatabase(object $notifiable): array
     {
         return [
-            'title' => 'Oferta noua',
-            'message' => 'Ai primit oferta „'.$this->offer->title.'”.',
+            'title' => 'Deviz nou',
+            'message' => 'Ai primit devizul „'.$this->offer->title.'”.',
             'offer_id' => $this->offer->id,
         ];
     }

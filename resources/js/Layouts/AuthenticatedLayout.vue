@@ -19,13 +19,13 @@ const sections = [
         name: 'Vanzari',
         icon: 'briefcase',
         roles: ['admin', 'vanzari'],
-        permissions: ['clients.view', 'clients.manage', 'offers.view', 'offers.manage'],
+        permissions: ['clients.view', 'clients.manage', 'offers.view', 'offers.manage', 'activities.view', 'activities.manage'],
         items: [
-            { name: 'Clienti', route: 'sales.clients.index' },
-            { name: 'Lead-uri', route: 'sales.clients.index', query: { status: 'lead' } },
-            { name: 'Oferte', route: 'sales.offers.index' },
-            { name: 'Oferte acceptate', route: 'sales.offers.index', query: { status: 'accepted' } },
-            { name: 'Activitati', route: 'sales.activities.index' },
+            { name: 'Clienti', route: 'sales.clients.index', permissions: ['clients.view', 'clients.manage'] },
+            { name: 'Lead-uri', route: 'sales.clients.index', query: { status: 'lead' }, permissions: ['clients.view', 'clients.manage'] },
+            { name: 'Oferte', route: 'sales.offers.index', permissions: ['offers.view', 'offers.manage'] },
+            { name: 'Oferte acceptate', route: 'sales.offers.index', query: { status: 'accepted' }, permissions: ['offers.view', 'offers.manage'] },
+            { name: 'Activitati', route: 'sales.activities.index', permissions: ['activities.view', 'activities.manage'] },
         ],
     },
     {
@@ -44,16 +44,16 @@ const sections = [
         name: 'Tehnic',
         icon: 'wrench',
         roles: ['admin', 'tehnic', 'suport'],
-        permissions: ['equipment.view', 'equipment.manage', 'installations.view', 'installations.manage'],
+        permissions: ['equipment.view', 'equipment.manage', 'installations.view', 'installations.manage', 'tickets.view', 'tickets.manage'],
         items: [
-            { name: 'Echipamente', route: 'technical.equipment.index', roles: ['admin', 'tehnic'], permissions: ['equipment.view', 'equipment.manage'] },
-            { name: 'Furnizori / Import materiale', route: 'technical.suppliers.index', roles: ['admin', 'tehnic'], permissions: ['equipment.view', 'equipment.manage'] },
-            { name: 'Comenzi furnizori', route: 'technical.purchase-orders.index', roles: ['admin', 'tehnic'], permissions: ['equipment.view', 'equipment.manage'] },
-            { name: 'Servicii', route: 'technical.services.index', roles: ['admin', 'tehnic'], permissions: ['equipment.view', 'equipment.manage'] },
-            { name: 'Stoc scazut', route: 'technical.equipment.index', query: { low_stock: 1 }, roles: ['admin', 'tehnic'], permissions: ['equipment.view', 'equipment.manage'] },
-            { name: 'Instalari', route: 'technical.installations.index', roles: ['admin', 'tehnic'], permissions: ['installations.view', 'installations.manage'] },
-            { name: 'Calendar programari', route: 'technical.installations.calendar', roles: ['admin', 'tehnic'], permissions: ['installations.view', 'installations.manage'] },
-            { name: 'Tichete', route: 'technical.tickets.index', roles: ['admin', 'tehnic', 'suport'] },
+            { name: 'Echipamente', route: 'technical.equipment.index', permissions: ['equipment.view'] },
+            { name: 'Furnizori / Import materiale', route: 'technical.suppliers.index', permissions: ['equipment.view'] },
+            { name: 'Comenzi furnizori', route: 'technical.purchase-orders.index', permissions: ['equipment.view'] },
+            { name: 'Servicii', route: 'technical.services.index', permissions: ['equipment.view'] },
+            { name: 'Stoc scazut', route: 'technical.equipment.index', query: { low_stock: 1 }, permissions: ['equipment.view'] },
+            { name: 'Instalari', route: 'technical.installations.index', permissions: ['installations.view'] },
+            { name: 'Calendar programari', route: 'technical.installations.calendar', permissions: ['installations.view'] },
+            { name: 'Tichete', route: 'technical.tickets.index', permissions: ['tickets.view'] },
         ],
     },
     {
@@ -166,8 +166,8 @@ const mobileOpen = ref(false);
             <div class="flex h-20 flex-shrink-0 items-center gap-2 border-b border-white/10 px-4">
                 <Link :href="route('dashboard')" class="flex min-w-0 items-center gap-2">
                     <img
-                        src="/branding/logo-cctv.png"
-                        alt="CCTV Security"
+                        src="/branding/op-logo.png"
+                        alt="Omul Potrivit"
                         class="h-12 w-auto max-w-[190px] flex-shrink-0 object-contain"
                     />
                 </Link>

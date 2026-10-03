@@ -37,7 +37,7 @@ function submit() {
 </script>
 
 <template>
-    <SeoHead title="Cosul de cumparaturi" description="Finalizeaza comanda din magazinul online CCTV Security." />
+    <SeoHead title="Cosul de cumparaturi" description="Finalizeaza comanda din magazinul Omul Potrivit." />
 
     <PublicLayout>
         <section class="mx-auto max-w-4xl px-4 py-16 sm:px-6 lg:px-8">
@@ -127,7 +127,7 @@ function submit() {
                     </div>
                     <div class="flex items-center gap-2 sm:col-span-2">
                         <input id="wants_installation" v-model="form.wants_installation" type="checkbox" class="rounded border-slate-300" />
-                        <label for="wants_installation" class="text-sm text-slate-600">Doresc montaj de catre echipa CCTV Security (va fi discutat separat)</label>
+                        <label for="wants_installation" class="text-sm text-slate-600">Doresc montaj de catre un meseras Omul Potrivit (se discuta separat)</label>
                     </div>
                     <div class="sm:col-span-2">
                         <button type="submit" class="w-full rounded-lg bg-brand-navy px-6 py-3 font-semibold text-white hover:bg-slate-800" :disabled="form.processing">

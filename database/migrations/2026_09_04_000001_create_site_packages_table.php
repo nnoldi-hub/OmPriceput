@@ -14,9 +14,9 @@ return new class extends Migration
             $table->string('key')->unique();
             $table->string('name');
             $table->decimal('price_from', 10, 2)->default(0);
-            $table->unsignedInteger('cameras')->default(0);
-            $table->string('resolution')->nullable();
-            $table->unsignedInteger('storage_days')->nullable();
+            $table->unsignedInteger('vizite_an')->default(0);
+            $table->string('timp_raspuns')->nullable();
+            $table->string('prioritate')->nullable();
             $table->json('features');
             $table->boolean('highlight')->default(false);
             $table->boolean('active')->default(true);
@@ -29,9 +29,9 @@ return new class extends Migration
                 'key' => $package['key'],
                 'name' => $package['name'],
                 'price_from' => $package['price_from'],
-                'cameras' => $package['cameras'],
-                'resolution' => $package['resolution'],
-                'storage_days' => $package['storage_days'],
+                'vizite_an' => $package['vizite_an'],
+                'timp_raspuns' => $package['timp_raspuns'],
+                'prioritate' => $package['prioritate'],
                 'features' => json_encode($package['features']),
                 'highlight' => $package['highlight'] ?? false,
                 'active' => true,

@@ -1,9 +1,0 @@
-<svg viewBox="0 0 272 56" xmlns="http://www.w3.org/2000/svg">
-    <g transform="translate(4,4)" fill="#0B1320">
-        <rect x="4" y="30" width="7" height="9" rx="2"/>
-        <rect x="2" y="37" width="11" height="4" rx="2"/>
-        <rect x="8" y="15" width="27" height="17" rx="8.5"/>
-        <circle cx="34.5" cy="23.5" r="9.5"/>
-    </g>
-    <text x="66" y="37" font-family="Inter, Arial, sans-serif" font-size="27" font-weight="700" letter-spacing="-0.5" fill="#0B1320">CCTV Security</text>
-</svg>

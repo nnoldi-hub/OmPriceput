@@ -15,7 +15,9 @@ return new class extends Migration
             $table->id();
             $table->foreignId('client_id')->constrained()->cascadeOnDelete();
             $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
+            $table->unsignedBigInteger('visit_id')->nullable()->index();
             $table->string('title');
+            $table->string('job_type')->default('instalare');
             $table->enum('status', ['draft', 'sent', 'accepted', 'rejected', 'expired'])->default('draft');
             $table->decimal('total_amount', 10, 2)->default(0);
             $table->date('valid_until')->nullable();

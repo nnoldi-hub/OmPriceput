@@ -27,24 +27,24 @@ class ServiceCrudTest extends TestCase
     {
         $this->actingAs($this->techUser)
             ->post(route('technical.services.store'), [
-                'name' => 'Montaj camera',
+                'name' => 'Montaj mobila',
                 'category' => 'montaj',
-                'unit' => 'camera',
+                'unit' => 'ora',
                 'cost_price' => 80,
                 'sale_price' => 150,
-                'description' => 'Montaj si configurare camera.',
+                'description' => 'Montaj si reglare mobilier.',
                 'is_active' => true,
             ])
             ->assertRedirect(route('technical.services.index'));
 
-        $service = Service::firstWhere('name', 'Montaj camera');
+        $service = Service::firstWhere('name', 'Montaj mobila');
         $this->assertNotNull($service);
 
         $this->actingAs($this->techUser)
             ->put(route('technical.services.update', $service), [
-                'name' => 'Montaj camera 4MP',
+                'name' => 'Montaj mobila complexa',
                 'category' => 'montaj',
-                'unit' => 'camera',
+                'unit' => 'ora',
                 'cost_price' => 90,
                 'sale_price' => 175,
                 'description' => 'Actualizat.',
@@ -54,7 +54,7 @@ class ServiceCrudTest extends TestCase
 
         $this->assertDatabaseHas('services', [
             'id' => $service->id,
-            'name' => 'Montaj camera 4MP',
+            'name' => 'Montaj mobila complexa',
             'sale_price' => 175,
         ]);
     }

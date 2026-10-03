@@ -1,7 +1,6 @@
 <?php
 
 use App\Http\Controllers\Public\BlogController;
-use App\Http\Controllers\Public\ConfiguratorController;
 use App\Http\Controllers\Public\ContactController;
 use App\Http\Controllers\Public\HomeController;
 use App\Http\Controllers\Public\LegalController;
@@ -14,12 +13,11 @@ Route::name('public.')->middleware('track.views')->group(function () {
     Route::get('/', HomeController::class)->name('home');
     Route::get('/despre', [PageController::class, 'about'])->name('about');
     Route::get('/servicii', [PageController::class, 'services'])->name('services');
-    Route::get('/configurator', [ConfiguratorController::class, 'index'])->name('configurator');
-    Route::get('/calculator-cablu', [ConfiguratorController::class, 'cable'])->name('cable-calculator');
+    Route::get('/cerere-deviz', [ContactController::class, 'quote'])->name('quote');
     Route::get('/contact', [ContactController::class, 'index'])->name('contact');
     Route::get('/termeni', [LegalController::class, 'terms'])->name('terms');
     Route::get('/confidentialitate', [LegalController::class, 'privacy'])->name('privacy');
-    Route::post('/cerere-oferta', [ContactController::class, 'store'])
+    Route::post('/cerere-deviz', [ContactController::class, 'store'])
         ->middleware('throttle:6,1')
         ->name('lead.store');
     Route::get('/blog', [BlogController::class, 'index'])->name('blog.index');

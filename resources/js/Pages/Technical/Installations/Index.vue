@@ -1,17 +1,24 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import { usePermissions } from '@/Composables/usePermissions';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { reactive, watch } from 'vue';
+
+const { canManage } = usePermissions();
 
 const props = defineProps({
     installations: Object,
     filters: Object,
     technicians: Array,
+    types: Object,
+    trades: Object,
 });
 
 const form = reactive({
     status: props.filters.status ?? '',
     type: props.filters.type ?? '',
+    trade: props.filters.trade ?? '',
+    programare: props.filters.programare ?? '',
     technician_id: props.filters.technician_id ?? '',
 });
 
@@ -41,7 +48,7 @@ const statusLabels = {
         <template #header>
             <div class="flex items-center justify-between">
                 <h2 class="text-xl font-semibold leading-tight text-gray-800">Instalari si interventii</h2>
-                <Link :href="route('technical.installations.create')" class="rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-500">
+                <Link v-if="canManage('installations')" :href="route('technical.installations.create')" class="rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-500">
                     Programare noua
                 </Link>
             </div>
@@ -49,7 +56,7 @@ const statusLabels = {
 
         <div class="py-8">
             <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
-                <div class="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
+                <div class="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-5">
                     <select v-model="form.status" class="rounded-md border-slate-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500">
                         <option value="">Toate statusurile</option>
                         <option value="scheduled">Programata</option>
@@ -59,11 +66,19 @@ const statusLabels = {
                     </select>
                     <select v-model="form.type" class="rounded-md border-slate-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500">
                         <option value="">Toate tipurile</option>
-                        <option value="instalare">Instalare</option>
-                        <option value="interventie">Interventie</option>
+                        <option v-for="(label, value) in types" :key="value" :value="value">{{ label }}</option>
+                    </select>
+                    <select v-model="form.trade" class="rounded-md border-slate-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        <option value="">Toate meseriile</option>
+                        <option v-for="(label, value) in trades" :key="value" :value="value">{{ label }}</option>
+                    </select>
+                    <select v-model="form.programare" class="rounded-md border-slate-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        <option value="">Programare si constatare</option>
+                        <option value="programate">Cu data si ora</option>
+                        <option value="neprogramate">De programat</option>
                     </select>
                     <select v-model="form.technician_id" class="rounded-md border-slate-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                        <option value="">Toti tehnicienii</option>
+                        <option value="">Toti meserasii</option>
                         <option v-for="tech in technicians" :key="tech.id" :value="tech.id">{{ tech.name }}</option>
                     </select>
                 </div>
@@ -76,7 +91,7 @@ const statusLabels = {
                                 <th class="px-4 py-3 text-left text-xs font-medium uppercase text-slate-500">Client</th>
                                 <th class="px-4 py-3 text-left text-xs font-medium uppercase text-slate-500">Tip</th>
                                 <th class="px-4 py-3 text-left text-xs font-medium uppercase text-slate-500">Data</th>
-                                <th class="px-4 py-3 text-left text-xs font-medium uppercase text-slate-500">Tehnician</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium uppercase text-slate-500">Meseras</th>
                                 <th class="px-4 py-3 text-left text-xs font-medium uppercase text-slate-500">Status</th>
                             </tr>
                         </thead>
@@ -87,11 +102,16 @@ const statusLabels = {
                                         {{ installation.client.name }}
                                     </Link>
                                 </td>
-                                <td class="px-4 py-3 text-sm capitalize text-slate-600">{{ installation.type }}</td>
                                 <td class="px-4 py-3 text-sm text-slate-600">
-                                    {{ installation.scheduled_at ? new Date(installation.scheduled_at).toLocaleString('ro-RO') : 'Neprogramata' }}
+                                    {{ types[installation.type] ?? installation.type }}
+                                    <span v-if="installation.requested_type" class="block text-xs text-slate-400">
+                                        cerut: {{ types[installation.requested_type] ?? installation.requested_type }}
+                                    </span>
                                 </td>
-                                <td class="px-4 py-3 text-sm text-slate-600">{{ installation.technician?.name ?? '-' }}</td>
+                                <td class="px-4 py-3 text-sm text-slate-600">
+                                    {{ installation.scheduled_at ? new Date(installation.scheduled_at).toLocaleString('ro-RO') : 'De programat' }}
+                                </td>
+                                <td class="px-4 py-3 text-sm text-slate-600">{{ installation.technician?.name ?? 'De repartizat' }}</td>
                                 <td class="px-4 py-3">
                                     <span class="rounded-full px-2 py-1 text-xs font-medium" :class="statusClasses[installation.status]">
                                         {{ statusLabels[installation.status] }}

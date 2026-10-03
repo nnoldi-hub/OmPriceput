@@ -9,9 +9,9 @@ import PublicLayout from '@/Layouts/PublicLayout.vue';
             <p class="mt-4 text-sm text-slate-500">Ultima actualizare: 10 septembrie 2026</p>
             <div class="prose prose-slate mt-8 max-w-none">
                 <h2>1. Informatii generale</h2>
-                <p>Platforma CCTV Security prezinta servicii de proiectare, furnizare si instalare a sistemelor de supraveghere video.</p>
-                <h2>2. Oferte si comenzi</h2>
-                <p>Informatiile transmise prin site reprezinta o solicitare de oferta. O comanda devine ferma dupa acceptarea ofertei si confirmarea detaliilor de executie.</p>
+                <p>Platforma Omul Potrivit prezinta servicii de reparatii, montaje si intretinere pentru locuinte, apartamente si spatii comerciale.</p>
+                <h2>2. Cereri de deviz si comenzi</h2>
+                <p>Informatiile transmise prin site reprezinta o solicitare de deviz, nu o comanda ferma. Devizul se intocmeste dupa constatarea la locul lucrarii si devine ferma doar dupa acceptarea lui de catre client.</p>
                 <h2>3. Responsabilitati</h2>
                 <p>Clientul furnizeaza informatii corecte si asigura accesul la locatia lucrarii. Compania comunica in timp util orice modificare de pret, termen sau configuratie.</p>
                 <h2>4. Contact</h2>

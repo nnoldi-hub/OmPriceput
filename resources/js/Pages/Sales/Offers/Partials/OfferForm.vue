@@ -6,6 +6,8 @@ const props = defineProps({
     clients: Array,
     equipment: Array,
     services: Array,
+    types: Object,
+    visits: { type: Array, default: () => [] },
 });
 
 function addItem() {
@@ -23,14 +25,14 @@ function applyEquipment(item) {
         item.description = eq.name;
         item.unit_price = Number(eq.unit_price);
     }
+}
 
-    function applyService(item) {
-        item.equipment_id = null;
-        const service = props.services.find((s) => s.id === item.service_id);
-        if (service) {
-            item.description = service.name;
-            item.unit_price = Number(service.sale_price);
-        }
+function applyService(item) {
+    item.equipment_id = null;
+    const service = props.services.find((s) => s.id === item.service_id);
+    if (service) {
+        item.description = service.name;
+        item.unit_price = Number(service.sale_price);
     }
 }
 
@@ -57,13 +59,30 @@ function money(value) {
                 <p v-if="form.errors.client_id" class="mt-1 text-sm text-red-600">{{ form.errors.client_id }}</p>
             </div>
             <div>
-                <label class="block text-sm font-medium text-slate-700">Titlu oferta *</label>
+                <label class="block text-sm font-medium text-slate-700">Titlu deviz *</label>
                 <input v-model="form.title" type="text" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" />
                 <p v-if="form.errors.title" class="mt-1 text-sm text-red-600">{{ form.errors.title }}</p>
             </div>
             <div>
+                <label class="block text-sm font-medium text-slate-700">Tip lucrare *</label>
+                <select v-model="form.job_type" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    <option v-for="(label, value) in types" :key="value" :value="value">{{ label }}</option>
+                </select>
+                <p v-if="form.errors.job_type" class="mt-1 text-sm text-red-600">{{ form.errors.job_type }}</p>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-slate-700">Constatare asociata</label>
+                <select v-model.number="form.visit_id" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    <option :value="null">Fara constatare</option>
+                    <option v-for="visit in visits" :key="visit.id" :value="visit.id">
+                        {{ visit.label ?? `Constatare #${visit.id}` }}
+                    </option>
+                </select>
+                <p v-if="form.errors.visit_id" class="mt-1 text-sm text-red-600">{{ form.errors.visit_id }}</p>
+            </div>
+            <div>
                 <label class="block text-sm font-medium text-slate-700">Status</label>
-                <p class="mt-2 text-sm text-slate-600">Oferta se salveaza ca draft si se trimite separat clientului.</p>
+                <p class="mt-2 text-sm text-slate-600">Devizul se salveaza ca draft si se trimite separat clientului.</p>
             </div>
             <div>
                 <label class="block text-sm font-medium text-slate-700">Valabila pana la</label>

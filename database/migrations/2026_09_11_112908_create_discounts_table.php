@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('name');
             $table->enum('scope', ['product', 'category'])->default('product');
             $table->foreignId('equipment_id')->nullable()->constrained('equipment')->nullOnDelete();
-            $table->enum('category', ['camera', 'dvr', 'nvr', 'cable', 'accessory', 'other'])->nullable();
+            $table->enum('category', ['consumabil', 'scula', 'piesa', 'instalatii', 'altele'])->nullable();
             $table->enum('type', ['percent', 'fixed'])->default('percent');
             $table->decimal('value', 10, 2);
             $table->timestamp('starts_at')->nullable();

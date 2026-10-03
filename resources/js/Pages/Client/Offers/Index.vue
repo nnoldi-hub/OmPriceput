@@ -10,7 +10,7 @@ function money(value) {
 
 function respond(offer, status) {
     const message = window.prompt(status === 'accepted'
-        ? 'Mesaj optional pentru echipa CCTV:'
+        ? 'Mesaj optional pentru echipa:'
         : 'Spune-ne, te rog, de ce respingi oferta (optional):', '');
     if (message === null) return;
     useForm({ status, message }).patch(route('client.offers.status', offer.id), { preserveScroll: true });

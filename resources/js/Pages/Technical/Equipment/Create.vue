@@ -4,7 +4,7 @@ import { Head, useForm } from '@inertiajs/vue3';
 
 const form = useForm({
     name: '',
-    category: 'camera',
+    category: 'consumabil',
     sku: '',
     unit: 'buc',
     unit_price: 0,
@@ -19,7 +19,7 @@ const form = useForm({
     shop_description: '',
     image: null,
 });
-const props = defineProps({ suppliers: Array });
+const props = defineProps({ suppliers: Array, categories: Object, units: Array });
 
 function submit() {
     form.post(route('technical.equipment.store'));
@@ -46,12 +46,7 @@ function submit() {
                         <div>
                             <label class="block text-sm font-medium text-slate-700">Categorie</label>
                             <select v-model="form.category" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                                <option value="camera">Camera</option>
-                                <option value="dvr">DVR</option>
-                                <option value="nvr">NVR</option>
-                                <option value="cable">Cablu</option>
-                                <option value="accessory">Accesoriu</option>
-                                <option value="other">Altele</option>
+                                <option v-for="(label, value) in categories" :key="value" :value="value">{{ label }}</option>
                             </select>
                         </div>
                         <div>

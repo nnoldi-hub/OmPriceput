@@ -14,7 +14,9 @@ class Offer extends Model
     protected $fillable = [
         'client_id',
         'user_id',
+        'visit_id',
         'title',
+        'job_type',
         'status',
         'total_amount',
         'valid_until',
@@ -38,6 +40,11 @@ class Offer extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function visit(): BelongsTo
+    {
+        return $this->belongsTo(Installation::class, 'visit_id');
+    }
+
     public function items(): HasMany
     {
         return $this->hasMany(OfferItem::class);
@@ -46,6 +53,11 @@ class Offer extends Model
     public function installations(): HasMany
     {
         return $this->hasMany(Installation::class);
+    }
+
+    public function jobTypeLabel(): string
+    {
+        return Installation::TYPE_LABELS[$this->job_type] ?? $this->job_type;
     }
 
     public function invoices(): HasMany

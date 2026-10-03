@@ -31,7 +31,7 @@ class EquipmentImport implements ToCollection, WithHeadingRow
                 [
                     'name' => $name,
                     'category' => $this->category($this->value($row, 'category')),
-                    'unit' => $this->value($row, 'unit') ?: 'buc',
+                    'unit' => in_array($unit = $this->value($row, 'unit'), Equipment::UNITS, true) ? $unit : 'buc',
                     'cost_price' => $cost,
                     'unit_price' => $sale,
                     'markup_percent' => $this->markup,
@@ -56,6 +56,6 @@ class EquipmentImport implements ToCollection, WithHeadingRow
 
     private function category(string $value): string
     {
-        return in_array($value, ['camera', 'dvr', 'nvr', 'cable', 'accessory', 'other'], true) ? $value : 'other';
+        return in_array($value, array_keys(Equipment::CATEGORIES), true) ? $value : 'altele';
     }
 }

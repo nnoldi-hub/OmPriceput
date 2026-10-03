@@ -19,7 +19,7 @@ class EquipmentFactory extends Factory
     {
         return [
             'name' => fake()->words(3, true),
-            'category' => fake()->randomElement(['camera', 'nvr', 'cable', 'accessory', 'other']),
+            'category' => fake()->randomElement(array_keys(Equipment::CATEGORIES)),
             'sku' => fake()->unique()->bothify('SKU-####??'),
             'unit' => 'buc',
             'unit_price' => fake()->randomFloat(2, 20, 1500),

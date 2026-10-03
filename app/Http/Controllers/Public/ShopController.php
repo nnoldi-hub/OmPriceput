@@ -18,15 +18,6 @@ use Spatie\Permission\Models\Role;
 
 class ShopController extends Controller
 {
-    public const CATEGORIES = [
-        'camera' => 'Camere',
-        'dvr' => 'DVR',
-        'nvr' => 'NVR',
-        'cable' => 'Cabluri',
-        'accessory' => 'Accesorii',
-        'other' => 'Diverse',
-    ];
-
     public function index(Request $request): Response
     {
         $this->ensureShopEnabled();
@@ -42,7 +33,7 @@ class ShopController extends Controller
         return Inertia::render('Public/Shop/Index', [
             'products' => $products,
             'filters' => $request->only('category', 'search'),
-            'categories' => self::CATEGORIES,
+            'categories' => Equipment::CATEGORIES,
         ]);
     }
 
@@ -206,7 +197,7 @@ class ShopController extends Controller
             'name' => $equipment->name,
             'slug' => $equipment->slug,
             'category' => $equipment->category,
-            'category_label' => self::CATEGORIES[$equipment->category] ?? $equipment->category,
+            'category_label' => Equipment::CATEGORIES[$equipment->category] ?? $equipment->category,
             'unit' => $equipment->unit,
             'unit_price' => (float) $equipment->unit_price,
             'shop_price' => $equipment->shop_price,

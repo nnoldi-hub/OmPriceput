@@ -1,7 +1,10 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import { usePermissions } from '@/Composables/usePermissions';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { reactive, watch } from 'vue';
+
+const { canManage } = usePermissions();
 
 const props = defineProps({
     clients: Object,
@@ -69,7 +72,7 @@ function destroy(client) {
                     <a :href="exportUrl()" class="rounded-md border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
                         Export Excel
                     </a>
-                    <Link :href="route('sales.clients.create')" class="rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-500">
+                    <Link v-if="canManage('clients')" :href="route('sales.clients.create')" class="rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-500">
                         Client nou
                     </Link>
                 </div>
@@ -138,8 +141,10 @@ function destroy(client) {
                                 </td>
                                 <td class="px-4 py-3 text-sm text-slate-600">{{ client.assigned_to?.name ?? '-' }}</td>
                                 <td class="px-4 py-3 text-right text-sm">
-                                    <Link :href="route('sales.clients.edit', client.id)" class="text-slate-500 hover:text-slate-700">Editeaza</Link>
-                                    <button class="ml-3 text-red-500 hover:text-red-700" @click="destroy(client)">Sterge</button>
+                                    <template v-if="canManage('clients')">
+                                        <Link :href="route('sales.clients.edit', client.id)" class="text-slate-500 hover:text-slate-700">Editeaza</Link>
+                                        <button class="ml-3 text-red-500 hover:text-red-700" @click="destroy(client)">Sterge</button>
+                                    </template>
                                 </td>
                             </tr>
                             <tr v-if="!clients.data.length">
@@ -160,9 +165,10 @@ function destroy(client) {
                             <div v-for="client in stageClients(stage.key)" :key="client.id" class="rounded-md bg-white p-3 shadow-sm">
                                 <Link :href="route('sales.clients.show', client.id)" class="font-medium text-blue-600 hover:text-blue-500">{{ client.name }}</Link>
                                 <div v-if="client.company_name" class="mt-1 text-xs text-slate-400">{{ client.company_name }}</div>
-                                <select :value="client.pipeline_stage" class="mt-3 w-full rounded border-slate-300 text-xs" @change="updateStage(client, $event)">
+                                <select v-if="canManage('clients')" :value="client.pipeline_stage" class="mt-3 w-full rounded border-slate-300 text-xs" @change="updateStage(client, $event)">
                                     <option v-for="option in stages" :key="option.key" :value="option.key">{{ option.label }}</option>
                                 </select>
+                                <p v-else class="mt-3 text-xs font-medium text-slate-500">{{ stageLabels[client.pipeline_stage] }}</p>
                                 <div v-if="client.pipeline_stage === 'lost' && client.lost_reason" class="mt-2 text-xs text-red-600">{{ client.lost_reason }}</div>
                             </div>
                             <div v-if="!stageClients(stage.key).length" class="py-5 text-center text-xs text-slate-400">Niciun lead</div>

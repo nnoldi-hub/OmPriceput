@@ -62,7 +62,7 @@ class InstallationCrudTest extends TestCase
         $response = $this->actingAs($this->techUser)->post(route('technical.installations.store'), [
             'client_id' => $client->id,
             'technician_id' => $technician->id,
-            'type' => 'interventie',
+            'type' => 'reparatie',
             'scheduled_at' => '2026-09-15 10:00:00',
             'status' => 'scheduled',
             'material_items' => [],
@@ -287,9 +287,9 @@ class InstallationCrudTest extends TestCase
     {
         $equipment = Equipment::factory()->create(['cost_price' => 150]);
         $service = Service::create([
-            'name' => 'Montaj',
-            'category' => 'manopera',
-            'unit' => 'serviciu',
+            'name' => 'Montaj prize',
+            'category' => 'electrice',
+            'unit' => 'ora',
             'cost_price' => 200,
             'sale_price' => 500,
             'is_active' => true,
@@ -310,10 +310,10 @@ class InstallationCrudTest extends TestCase
     public function test_installations_can_be_filtered_by_type(): void
     {
         Installation::factory()->create(['type' => 'instalare']);
-        Installation::factory()->create(['type' => 'interventie']);
+        Installation::factory()->create(['type' => 'reparatie']);
 
         $response = $this->actingAs($this->techUser)
-            ->get(route('technical.installations.index', ['type' => 'interventie']));
+            ->get(route('technical.installations.index', ['type' => 'reparatie']));
 
         $response->assertInertia(fn ($page) => $page
             ->component('Technical/Installations/Index')

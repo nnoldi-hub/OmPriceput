@@ -50,7 +50,7 @@
         </thead>
         <tbody>
             <tr>
-                <td>{{ $invoice->offer->title ?? 'Servicii sistem de supraveghere video' }}</td>
+                <td>{{ $invoice->offer->title ?? 'Servicii si manopera' }}</td>
                 <td class="text-right">{{ number_format($invoice->amount, 2) }} lei</td>
             </tr>
             <tr class="total-row">

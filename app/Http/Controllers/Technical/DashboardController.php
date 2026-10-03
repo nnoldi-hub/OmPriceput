@@ -16,16 +16,25 @@ class DashboardController extends Controller
         return Inertia::render('Technical/Dashboard', [
             'stats' => [
                 'equipment' => Equipment::count(),
-                'lowStock' => Equipment::where('stock_quantity', '<', 5)->count(),
+                'lowStock' => Equipment::query()
+                    ->whereColumn('stock_quantity', '<=', 'minimum_stock')
+                    ->count(),
                 'scheduled' => Installation::where('status', 'scheduled')->count(),
                 'inProgress' => Installation::where('status', 'in_progress')->count(),
                 'openTickets' => Ticket::whereIn('status', ['open', 'in_progress'])->count(),
             ],
-            'upcomingInstallations' => Installation::with('client:id,name')
+            'pendingVisits' => Installation::with('client:id,name')
+                ->whereNull('scheduled_at')
+                ->where('status', 'scheduled')
+                ->latest('id')
+                ->take(5)
+                ->get(['id', 'client_id', 'type', 'requested_type', 'scheduled_at', 'status']),
+            'upcomingInstallations' => Installation::with('client:id,name', 'technician:id,name')
                 ->whereIn('status', ['scheduled', 'in_progress'])
+                ->whereNotNull('scheduled_at')
                 ->orderBy('scheduled_at')
                 ->take(5)
-                ->get(['id', 'client_id', 'type', 'scheduled_at', 'status']),
+                ->get(['id', 'client_id', 'technician_id', 'type', 'scheduled_at', 'status']),
             'openTicketsList' => Ticket::with('client:id,name')
                 ->whereIn('status', ['open', 'in_progress'])
                 ->latest()

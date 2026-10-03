@@ -12,7 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('installations', function (Blueprint $table) {
-            $table->enum('type', ['instalare', 'interventie'])->default('instalare')->after('offer_id');
+            $table->enum('type', ['instalare', 'reparatie', 'mentenanta', 'verificare', 'urgenta'])->default('instalare')->after('offer_id');
+            $table->string('requested_type')->nullable()->after('type');
             $table->json('checklist')->nullable()->after('notes');
         });
     }
@@ -23,7 +24,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('installations', function (Blueprint $table) {
-            $table->dropColumn(['type', 'checklist']);
+            $table->dropColumn(['type', 'requested_type', 'checklist']);
         });
     }
 };

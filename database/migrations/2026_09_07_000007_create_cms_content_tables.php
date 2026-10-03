@@ -44,7 +44,7 @@ return new class extends Migration
         DB::table('pages')->insert([
             ['slug' => 'acasa', 'title' => 'Acasa', 'subtitle' => 'Pagina principala', 'status' => 'published', 'created_at' => now(), 'updated_at' => now()],
             ['slug' => 'despre', 'title' => 'Despre noi', 'subtitle' => 'Cine suntem', 'status' => 'published', 'created_at' => now(), 'updated_at' => now()],
-            ['slug' => 'servicii', 'title' => 'Servicii', 'subtitle' => 'Solutii CCTV', 'status' => 'published', 'created_at' => now(), 'updated_at' => now()],
+            ['slug' => 'servicii', 'title' => 'Servicii', 'subtitle' => 'Electric, sanit, montaj, vopsire', 'status' => 'published', 'created_at' => now(), 'updated_at' => now()],
             ['slug' => 'contact', 'title' => 'Contact', 'subtitle' => 'Ia legatura cu noi', 'status' => 'published', 'created_at' => now(), 'updated_at' => now()],
         ]);
     }

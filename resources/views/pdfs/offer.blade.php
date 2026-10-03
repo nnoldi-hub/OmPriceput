@@ -33,11 +33,11 @@
     <table class="header" cellspacing="0" cellpadding="0">
         <tr>
             <td style="width: 55%;">
-                <img class="logo" src="{{ public_path('branding/logo-negru.png') }}" alt="CCTV Security">
-                <div class="brand-line">SIGURANTA INCEPE CU VIZIBILITATE.</div>
+                <img class="logo" src="{{ public_path('branding/op-logo.png') }}" alt="Omul Potrivit">
+                <div class="brand-line">REPARAM. MONTAM. LASAM TOTUL CA ATUNCI.</div>
             </td>
             <td style="width: 45%; text-align: right;">
-                <div class="document-title">OFERTA #{{ $offer->id }}</div>
+                <div class="document-title">DEVIZ #{{ $offer->id }}</div>
                 <div class="muted">Data: {{ $offer->created_at->format('d.m.Y') }}</div>
                 @if ($offer->valid_until)
                     <div class="muted">Valabila pana la: {{ $offer->valid_until->format('d.m.Y') }}</div>
@@ -93,8 +93,8 @@
     @endif
 
     <div class="footer muted">
-        Oferta generata prin platforma CCTV Security. Preturile sunt exprimate in lei si pot fi supuse
-        conditiilor mentionate in oferta. Pentru clarificari, va rugam sa ne contactati.
+        Deviz generat prin platforma Omul Potrivit. Preturile sunt exprimate in lei si includ manopera si
+        materialele listate mai sus. Lucrarea se considera acceptata dupa semnarea devizului.
     </div>
 </body>
 </html>

@@ -26,8 +26,8 @@ class OfferStatusChanged extends Notification
     public function toDatabase(object $notifiable): array
     {
         return [
-            'title' => 'Raspuns client la oferta',
-            'message' => 'Oferta „'.$this->offer->title.'” a fost '.($this->status === 'accepted' ? 'acceptata' : 'respinsa').'.',
+            'title' => 'Raspuns client la deviz',
+            'message' => 'Devizul „'.$this->offer->title.'” a fost '.($this->status === 'accepted' ? 'acceptat' : 'respins').'.',
             'offer_id' => $this->offer->id,
         ];
     }
@@ -35,14 +35,14 @@ class OfferStatusChanged extends Notification
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject('Raspuns client la oferta #'.$this->offer->id)
+            ->subject('Raspuns client la deviz #'.$this->offer->id)
             ->view('emails.offer-status-changed', [
                 'recipientName' => $notifiable->name,
                 'offer' => $this->offer,
                 'status' => $this->status,
                 'clientMessage' => $this->message,
                 'offerUrl' => route('sales.offers.show', $this->offer),
-                'logoUrl' => asset('branding/logo-cctv.png'),
+                'logoUrl' => asset('branding/op-logo.png'),
             ]);
     }
 }

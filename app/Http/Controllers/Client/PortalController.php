@@ -129,7 +129,7 @@ class PortalController extends Controller
         $staff = \App\Models\User::role(['admin', 'tehnic', 'suport'])->get();
         Notification::send($staff, new TicketUpdated($ticket, 'A fost creată o cerere nouă de către '.$ticket->client->name.'.'));
         if ($ticket->client->phone) {
-            $sms->send($ticket->client->phone, "CCTV: Cererea #{$ticket->id} a fost inregistrata.");
+            $sms->send($ticket->client->phone, "Cererea #{$ticket->id} a fost inregistrata.");
         }
 
         return back()->with('success', 'Cererea a fost trimisa.');
@@ -252,13 +252,16 @@ class PortalController extends Controller
 
         $offer->load(['items.equipment', 'items.service']);
 
+        $type = in_array($offer->job_type, Installation::TYPES, true) ? $offer->job_type : 'instalare';
+
         Installation::create([
             'client_id' => $offer->client_id,
             'offer_id' => $offer->id,
-            'type' => 'instalare',
+            'type' => $type,
+            'requested_type' => $type,
             'address' => trim(($offer->client->address ?? '').' '.($offer->client->city ?? '')),
             'status' => 'scheduled',
-            'checklist' => Installation::defaultChecklist(),
+            'checklist' => Installation::defaultChecklist($type),
             'material_items' => $offer->items->whereNotNull('equipment_id')->map(fn ($item) => [
                 'equipment_id' => $item->equipment_id,
                 'name' => $item->equipment?->name ?? $item->description,
@@ -268,10 +271,10 @@ class PortalController extends Controller
             'service_items' => $offer->items->whereNotNull('service_id')->map(fn ($item) => [
                 'service_id' => $item->service_id,
                 'name' => $item->service?->name ?? $item->description,
-                'unit' => $item->service?->unit ?? 'serviciu',
+                'unit' => $item->service?->unit ?? 'ora',
                 'quantity' => (int) $item->quantity,
             ])->values()->all(),
-            'notes' => "Generata automat la acceptarea ofertei #{$offer->id}.",
+            'notes' => 'Lucrare generata automat la acceptarea devizului #'.$offer->id.'.',
         ]);
     }
 }

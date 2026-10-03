@@ -15,14 +15,14 @@ function formatDate(value) {
 <template>
     <SeoHead
         title="Blog"
-        description="Articole si ghiduri despre sisteme de supraveghere video: alegerea camerelor, costuri, tehnologii si sfaturi de instalare."
+        description="Articole si ghiduri despre reparatii, instalatii electrice si sanitare, zugarevaila si intretinerea casei."
     />
 
     <PublicLayout>
         <section class="mx-auto max-w-5xl px-4 py-16 sm:px-6 lg:px-8">
             <div class="text-center">
                 <h1 class="font-display text-3xl font-bold text-slate-900">Blog</h1>
-                <p class="mt-3 text-slate-500">Ghiduri si sfaturi despre sisteme de supraveghere video.</p>
+                <p class="mt-3 text-slate-500">Ghiduri si sfaturi de intretinere a casei si a instalatiilor tale.</p>
             </div>
 
             <div class="mt-10 grid grid-cols-1 gap-8 sm:grid-cols-2">

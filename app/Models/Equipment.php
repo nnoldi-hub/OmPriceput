@@ -11,6 +11,16 @@ class Equipment extends Model
 {
     use HasFactory;
 
+    public const CATEGORIES = [
+        'consumabil' => 'Consumabile',
+        'scula' => 'Scule',
+        'piesa' => 'Piese de schimb',
+        'instalatii' => 'Instalatii si aparate',
+        'altele' => 'Diverse',
+    ];
+
+    public const UNITS = ['buc', 'metru', 'm2', 'kg', 'set', 'litru', 'ora'];
+
     protected $fillable = [
         'name',
         'category',

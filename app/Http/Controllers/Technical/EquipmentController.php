@@ -8,6 +8,7 @@ use App\Models\Supplier;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -33,6 +34,8 @@ class EquipmentController extends Controller
             'equipment' => $equipment,
             'suppliers' => Supplier::orderBy('name')->get(['id', 'name']),
             'filters' => $request->only('search', 'category', 'low_stock', 'shop_visible'),
+            'categories' => Equipment::CATEGORIES,
+            'units' => Equipment::UNITS,
         ]);
     }
 
@@ -40,6 +43,8 @@ class EquipmentController extends Controller
     {
         return Inertia::render('Technical/Equipment/Create', [
             'suppliers' => Supplier::orderBy('name')->get(['id', 'name']),
+            'categories' => Equipment::CATEGORIES,
+            'units' => Equipment::UNITS,
         ]);
     }
 
@@ -62,6 +67,8 @@ class EquipmentController extends Controller
         return Inertia::render('Technical/Equipment/Edit', [
             'equipment' => $equipment,
             'suppliers' => Supplier::orderBy('name')->get(['id', 'name']),
+            'categories' => Equipment::CATEGORIES,
+            'units' => Equipment::UNITS,
         ]);
     }
 
@@ -79,7 +86,7 @@ class EquipmentController extends Controller
 
         $equipment->update($data);
 
-        return redirect()->route('technical.equipment.index')->with('success', 'Echipament actualizat.');
+        return redirect()->route('technical.equipment.index')->with('success', 'Articol actualizat.');
     }
 
     public function adjustStock(Request $request, Equipment $equipment): RedirectResponse
@@ -99,7 +106,7 @@ class EquipmentController extends Controller
     {
         $equipment->delete();
 
-        return redirect()->route('technical.equipment.index')->with('success', 'Echipament sters.');
+        return redirect()->route('technical.equipment.index')->with('success', 'Articol sters din stoc.');
     }
 
     private function validateData(Request $request): array
@@ -114,9 +121,9 @@ class EquipmentController extends Controller
 
         return $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'category' => ['required', 'in:camera,dvr,nvr,cable,accessory,other'],
+            'category' => ['required', Rule::in(array_keys(Equipment::CATEGORIES))],
             'sku' => ['nullable', 'string', 'max:100'],
-            'unit' => ['required', 'string', 'max:50'],
+            'unit' => ['required', Rule::in(Equipment::UNITS)],
             'unit_price' => ['required', 'numeric', 'min:0'],
             'cost_price' => ['required', 'numeric', 'min:0'],
             'markup_percent' => ['required', 'numeric', 'min:0', 'max:1000'],

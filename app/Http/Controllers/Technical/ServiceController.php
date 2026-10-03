@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Service;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -23,12 +24,16 @@ class ServiceController extends Controller
         return Inertia::render('Technical/Services/Index', [
             'services' => $services,
             'filters' => $request->only('search', 'active'),
+            'trades' => Service::TRADES,
         ]);
     }
 
     public function create(): Response
     {
-        return Inertia::render('Technical/Services/Create');
+        return Inertia::render('Technical/Services/Create', [
+            'trades' => Service::TRADES,
+            'units' => Service::UNITS,
+        ]);
     }
 
     public function store(Request $request): RedirectResponse
@@ -40,7 +45,11 @@ class ServiceController extends Controller
 
     public function edit(Service $service): Response
     {
-        return Inertia::render('Technical/Services/Edit', ['service' => $service]);
+        return Inertia::render('Technical/Services/Edit', [
+            'service' => $service,
+            'trades' => Service::TRADES,
+            'units' => Service::UNITS,
+        ]);
     }
 
     public function update(Request $request, Service $service): RedirectResponse
@@ -61,8 +70,8 @@ class ServiceController extends Controller
     {
         return $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'category' => ['required', 'string', 'max:100'],
-            'unit' => ['required', 'string', 'max:50'],
+            'category' => ['required', Rule::in(array_keys(Service::TRADES))],
+            'unit' => ['required', Rule::in(Service::UNITS)],
             'cost_price' => ['required', 'numeric', 'min:0'],
             'sale_price' => ['required', 'numeric', 'min:0'],
             'description' => ['nullable', 'string', 'max:1000'],

@@ -22,7 +22,7 @@ class OfferFactory extends Factory
         return [
             'client_id' => Client::factory(),
             'user_id' => User::factory(),
-            'title' => 'Oferta sistem CCTV - '.fake()->words(2, true),
+            'title' => 'Oferta interventie - '.fake()->words(2, true),
             'status' => fake()->randomElement(['draft', 'sent', 'accepted', 'rejected', 'expired']),
             'total_amount' => fake()->randomFloat(2, 500, 8000),
             'valid_until' => now()->addDays(30),

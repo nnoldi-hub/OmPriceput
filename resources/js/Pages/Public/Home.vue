@@ -12,8 +12,8 @@ const props = defineProps({
     stats: Array,
     page: Object,
 });
-const heroTitle = computed(() => props.page?.content?.hero_title || 'Siguranta incepe cu');
-const heroIntro = computed(() => props.page?.content?.intro || 'Proiectam si instalam sisteme complete de supraveghere video pentru case, firme si spatii comerciale. Consultanta gratuita, echipamente de calitate si suport tehnic dupa instalare.');
+const heroTitle = computed(() => props.page?.content?.hero_title || 'Reparam. Montam. Lasam totul ca atunci.');
+const heroIntro = computed(() => props.page?.content?.intro || 'Lucrari de electrician, instalator, zugarev si montaj pentru casa si apartament. Trimite cererea, venim la constatare si iti lasam devizul scris inainte sa incepem.');
 const sections = computed(() => props.page?.sections || []);
 const hasSection = (type) => sections.value.some((section) => section.content?.type === type || section.section_key === type);
 const sectionContent = (section) => section.content || {};
@@ -23,24 +23,24 @@ function formatDate(value) {
 }
 
 const fallbackStats = [
-    { icon: 'clock', value: '10+', label: 'Ani experienta' },
-    { icon: 'home', value: '500+', label: 'Instalari finalizate' },
-    { icon: 'shield', value: '36 luni', label: 'Garantie' },
-    { icon: 'bolt', value: '24-48h', label: 'Interventie' },
+    { icon: 'clock', value: '24h', label: 'Raspuns la cerere' },
+    { icon: 'home', value: '1 zi', label: 'Programare constatare' },
+    { icon: 'shield', value: 'Scris', label: 'Deviz inainte de lucrare' },
+    { icon: 'bolt', value: 'Fara surprize', label: 'Pret final la locul lucrarii' },
 ];
 
 const steps = [
-    { icon: 'clipboard', title: 'Cerere oferta', text: 'Ne trimiti detalii despre proprietate si nevoile tale.' },
-    { icon: 'truck', title: 'Vizita tehnica', text: 'Evaluam locatia si stabilim configuratia optima.' },
-    { icon: 'wrench', title: 'Instalare', text: 'Montam si configuram sistemul complet.' },
-    { icon: 'lifebuoy', title: 'Suport', text: 'Oferim mentenanta si interventie rapida.' },
+    { icon: 'clipboard', title: 'Cerere si poze', text: 'Ne spui ce ai nevoie si trimite cateva fotografii.' },
+    { icon: 'truck', title: 'Constatare', text: 'Venim sa vedem problema si sa stabilim materialele.' },
+    { icon: 'wrench', title: 'Deviz scris', text: 'Primesti pretul cu manopera si materialele separate.' },
+    { icon: 'lifebuoy', title: 'Lucrare', text: 'Accepti fara grabire, programam si remediem problema.' },
 ];
 </script>
 
 <template>
     <SeoHead
-        title="Sisteme de supraveghere video CCTV"
-        description="Instalam sisteme de supraveghere video (CCTV) pentru locuinte si firme: camere IP/analogice, NVR, mentenanta si suport tehnic."
+        title="Reparatii, montaje si intretinere"
+        description="Omul Potrivit: lucrari de electrician, instalator, zugarev si montaj. Trimite cererea, primesti deviz scris dupa constatarea gratuita."
     />
 
     <PublicLayout>
@@ -53,30 +53,30 @@ const steps = [
                 <div class="max-w-xl">
                     <span class="inline-flex items-center gap-2 rounded-full border border-orange-400/40 bg-orange-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-orange-300">
                         <Icon name="sparkles" class="h-3.5 w-3.5" />
-                        Consultanta &amp; instalare in toata tara
+                        Lucrari pentru casa si apartament
                     </span>
                     <div class="mt-4 flex items-center gap-2 text-white/90">
-                        <img src="/branding/logo-cctv.png" alt="CCTV Security" class="h-20 w-auto max-w-[440px] object-contain sm:h-24 lg:h-28" />
+                        <img src="/branding/op-logo.png" alt="Omul Potrivit" class="h-12 w-auto max-w-[260px] object-contain sm:h-14 lg:h-16" />
                     </div>
                     <h1 class="mt-6 font-display text-5xl font-extrabold tracking-[-0.05em] text-white sm:text-7xl">
-                        Siguranta incepe cu
-                        <span class="block text-orange-500">vizibilitate.</span>
+                        Reparam. Montam.
+                        <span class="block text-orange-500">Lasam totul ca atunci.</span>
                     </h1>
                     <p class="mt-6 max-w-[620px] text-lg leading-8 text-slate-300">
-                        Proiectam si instalam sisteme complete de supraveghere video pentru case, firme si spatii comerciale. Consultanta gratuita, echipamente de calitate si suport tehnic dupa instalare.
+                        Lucrari de electrician, instalator, zugarev si montaj pentru casa si apartament. Trimite cererea, venim la constatare si iti lasam devizul scris inainte sa incepem.
                     </p>
                     <div class="mt-8 flex flex-wrap gap-4">
                         <Link
-                            :href="route('public.contact')"
+                            :href="route('public.quote')"
                             class="rounded-md bg-orange-500 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-orange-500/25 transition hover:bg-orange-400"
                         >
-                            Cere oferta gratuita
+                            Cere deviz gratuit
                         </Link>
                         <Link
-                            :href="route('public.configurator')"
+                            :href="route('public.services')"
                             class="rounded-md border border-slate-600 px-6 py-3 text-sm font-semibold text-white transition hover:border-slate-400 hover:bg-white/5"
                         >
-                            Configureaza-ti sistemul
+                            Ce facem
                         </Link>
                     </div>
                 </div>
@@ -104,7 +104,7 @@ const steps = [
         </section>
         <section v-if="hasSection('packages')" class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
             <div v-for="section in sections.filter((item) => (item.content?.type || item.section_key) === 'packages')" :key="section.id">
-                <div class="text-center"><h2 class="font-display text-3xl font-bold text-slate-900">{{ sectionContent(section).title || 'Pachete CCTV' }}</h2></div>
+                <div class="text-center"><h2 class="font-display text-3xl font-bold text-slate-900">{{ sectionContent(section).title || 'Pachete de intretinere' }}</h2></div>
                 <div class="mt-10 grid grid-cols-1 gap-8 lg:grid-cols-3"><PackageCard v-for="pkg in packages.filter((item) => !sectionContent(section).items?.length || sectionContent(section).items.includes(item.id))" :key="pkg.key" :pkg="pkg" /></div>
             </div>
         </section>
@@ -115,15 +115,15 @@ const steps = [
             </div>
         </section>
         <section v-for="section in sections.filter((item) => ['cta', 'text_image', 'gallery', 'html'].includes(item.content?.type || item.section_key))" :key="section.id" class="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-            <div v-if="(section.content?.type || section.section_key) === 'cta'" class="rounded-2xl bg-brand-navy p-10 text-center text-white"><h2 class="text-3xl font-bold">{{ sectionContent(section).title }}</h2><p class="mx-auto mt-3 max-w-2xl text-slate-300">{{ sectionContent(section).text }}</p><Link :href="sectionContent(section).button_link || route('public.contact')" class="mt-6 inline-block rounded-md bg-orange-500 px-5 py-3 font-semibold">{{ sectionContent(section).button_text || 'Contacteaza-ne' }}</Link></div>
+            <div v-if="(section.content?.type || section.section_key) === 'cta'" class="rounded-2xl bg-brand-navy p-10 text-center text-white"><h2 class="text-3xl font-bold">{{ sectionContent(section).title }}</h2><p class="mx-auto mt-3 max-w-2xl text-slate-300">{{ sectionContent(section).text }}</p><Link :href="sectionContent(section).button_link || route('public.quote')" class="mt-6 inline-block rounded-md bg-orange-500 px-5 py-3 font-semibold">{{ sectionContent(section).button_text || 'Contacteaza-ne' }}</Link></div>
             <div v-else-if="(section.content?.type || section.section_key) === 'text_image'" class="grid items-center gap-8 md:grid-cols-2"><div><h2 class="text-3xl font-bold text-slate-900">{{ sectionContent(section).title }}</h2><p class="mt-4 whitespace-pre-line text-slate-600">{{ sectionContent(section).text }}</p></div><img v-if="sectionContent(section).image" :src="sectionContent(section).image" :alt="sectionContent(section).image_alt || sectionContent(section).title" class="rounded-xl object-cover" /></div>
             <div v-else-if="(section.content?.type || section.section_key) === 'gallery'" class="grid grid-cols-2 gap-4 md:grid-cols-4"><img v-for="image in sectionContent(section).images" :key="image" :src="image" alt="" class="h-40 w-full rounded-lg object-cover" /></div>
             <div v-else class="prose max-w-none" v-html="sectionContent(section).html"></div>
         </section>
         <section v-if="!hasSection('packages')" class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
             <div class="text-center">
-                <h2 class="font-display text-3xl font-bold text-slate-900">Pachete CCTV</h2>
-                <p class="mt-3 text-slate-500">Alege un pachet orientativ sau cere o oferta personalizata.</p>
+                <h2 class="font-display text-3xl font-bold text-slate-900">Pachete de intretinere</h2>
+                <p class="mt-3 text-slate-500">Alege un pachet cu numar fix de vizite sau cere un deviz dupa constatare.</p>
             </div>
             <div class="mt-10 grid grid-cols-1 gap-8 lg:grid-cols-3">
                 <PackageCard v-for="pkg in packages" :key="pkg.key" :pkg="pkg" />
@@ -166,7 +166,7 @@ const steps = [
                     class="group block overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl"
                 >
                     <div class="flex h-28 items-center justify-center bg-gradient-to-br from-brand-navy via-blue-900 to-brand-navy">
-                        <Icon name="camera" class="h-9 w-9 text-orange-400/80" />
+                        <Icon name="wrench" class="h-9 w-9 text-orange-400/80" />
                     </div>
                     <div class="p-6">
                         <time class="text-xs font-medium uppercase tracking-wide text-orange-600">{{ formatDate(post.published_at) }}</time>

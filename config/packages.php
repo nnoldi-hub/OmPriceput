@@ -4,61 +4,60 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Pachete CCTV
+    | Pachete de intretinere - Omul Potrivit
     |--------------------------------------------------------------------------
     |
-    | Pachete standard afisate pe site-ul public. Preturile sunt orientative
-    | ("de la") - oferta finala se stabileste dupa vizita tehnica.
+    | Pachete afisate pe site-ul public. Sunt abonamente de intretinere cu
+    | pret fix (fara TVA aplicat separat), pentru clientii care nu vor sa
+    | cheme un meșter la fiecare problema.
     |
     */
 
     'tiers' => [
         [
-            'key' => 'entry',
-            'name' => 'Entry',
-            'price_from' => 1490,
-            'cameras' => 4,
-            'resolution' => '2MP Full HD',
-            'storage_days' => 15,
+            'key' => 'basic',
+            'name' => 'Basic',
+            'price_from' => 1190,
+            'vizite_an' => 2,
+            'timp_raspuns' => '72 ore',
+            'prioritate' => 'Standard',
             'features' => [
-                '4 camere 2MP (interior/exterior)',
-                'NVR 4 canale cu HDD 1TB',
-                'Vizualizare live pe telefon',
-                'Instalare si configurare incluse',
-                'Garantie 12 luni',
+                '2 vizite de intretinere pe an',
+                'Verificare instalatii electrice si sanitare',
+                'Inlocuirea consumabilelor uzuale',
+                'Discount 5% la piesele de schimb',
+                'Raport scris dupa fiecare vizita',
             ],
         ],
         [
-            'key' => 'medium',
-            'name' => 'Medium',
-            'price_from' => 2890,
-            'cameras' => 8,
-            'resolution' => '4MP',
-            'storage_days' => 30,
+            'key' => 'plus',
+            'name' => 'Plus',
+            'price_from' => 2490,
+            'vizite_an' => 4,
+            'timp_raspuns' => '24 ore',
+            'prioritate' => 'Prioritar',
             'features' => [
-                '8 camere 4MP (interior/exterior)',
-                'NVR 8 canale cu HDD 2TB',
-                'Detectie miscare inteligenta',
-                'Vizualizare live + notificari push',
-                'Instalare si configurare incluse',
-                'Garantie 24 luni',
+                '4 vizite pe an, programare la ora exacta',
+                'Verificare completa: electric, sanit, scari, calorifer',
+                'Reparatii mici incluse, manopera',
+                'Discount 10% la piese si consumabile',
+                'Interventii de urgenta cu pret preferential',
             ],
             'highlight' => true,
         ],
         [
             'key' => 'premium',
             'name' => 'Premium',
-            'price_from' => 5490,
-            'cameras' => 16,
-            'resolution' => '4K',
-            'storage_days' => 60,
+            'price_from' => 4490,
+            'vizite_an' => 8,
+            'timp_raspuns' => '12 ore',
+            'prioritate' => 'Maxim',
             'features' => [
-                '16 camere 4K (interior/exterior)',
-                'NVR 16 canale cu HDD 4TB',
-                'Recunoastere faciala si numere inmatriculare',
-                'Acces remote securizat pe termen lung',
-                'Mentenanta preventiva inclusa 1 an',
-                'Garantie 36 luni',
+                '8 vizite pe an, inclusiv seara',
+                'Mentenanta completa pentru casa sau apartamentul',
+                'Reparatii mici fara cost de manopera',
+                'Discount 15% la toate produsele din magazin',
+                'Un singur meșter de contact pentru toate cererile',
             ],
         ],
     ],

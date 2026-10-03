@@ -1,7 +1,7 @@
 <script setup>
 import SeoHead from '@/Components/SeoHead.vue';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
-import { useForm, usePage } from '@inertiajs/vue3';
+import { Link, useForm, usePage } from '@inertiajs/vue3';
 
 const page = usePage();
 const params = new URLSearchParams(window.location.search);
@@ -25,17 +25,23 @@ function submit() {
 
 <template>
     <SeoHead
-        title="Contact - cere o oferta"
-        description="Contacteaza-ne pentru o oferta personalizata de instalare sistem de supraveghere video. Raspundem in cel mai scurt timp."
+        title="Contact"
+        description="Contacteaza Omul Potrivit pentru reparatii, montaje si intretinere. Raspundem in cel mai scurt timp."
     />
 
     <PublicLayout>
         <section class="mx-auto max-w-3xl px-4 py-16 sm:px-6 lg:px-8">
             <div class="text-center">
-                <h1 class="font-display text-3xl font-bold text-slate-900">Cere o oferta</h1>
+                <h1 class="font-display text-3xl font-bold text-slate-900">Contact</h1>
                 <p class="mt-3 text-slate-500">
-                    Completeaza formularul si te contactam in cel mai scurt timp pentru a stabili detaliile.
+                    Ai o intrebare sau vrei doar sa stii daca putem ajuta? Scrie-ne si te raspundem.
                 </p>
+                <Link
+                    :href="route('public.quote')"
+                    class="mt-4 inline-flex rounded-md bg-orange-500 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-orange-400"
+                >
+                    Vreau deviz pentru o lucrare
+                </Link>
             </div>
 
             <div
@@ -74,7 +80,7 @@ function submit() {
                     </div>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-slate-700">Detalii (numar camere, tip proprietate, etc.)</label>
+                    <label class="block text-sm font-medium text-slate-700">Cum te poate ajuta un meseras</label>
                     <textarea v-model="form.notes" rows="4" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" />
                     <p v-if="form.errors.notes" class="mt-1 text-sm text-red-600">{{ form.errors.notes }}</p>
                 </div>
@@ -83,7 +89,7 @@ function submit() {
                     :disabled="form.processing"
                     class="w-full rounded-md bg-orange-500 px-4 py-3 text-sm font-semibold text-white shadow-sm hover:bg-orange-400 disabled:opacity-50"
                 >
-                    Trimite cererea
+                    Trimite mesajul
                 </button>
             </form>
 
@@ -94,7 +100,7 @@ function submit() {
                 </div>
                 <div>
                     <div class="font-semibold text-slate-900">Email</div>
-                    {{ page.props.siteSettings?.company_email || 'contact@cctv-security.test' }}
+                    {{ page.props.siteSettings?.company_email || 'contact@omulpotrivit.test' }}
                 </div>
                 <div>
                     <div class="font-semibold text-slate-900">Program</div>

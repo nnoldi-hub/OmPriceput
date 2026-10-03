@@ -2,16 +2,9 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 
-defineProps({ discounts: Object });
+const props = defineProps({ discounts: Object, categories: Object });
 
-const categoryLabels = {
-    camera: 'Camere',
-    dvr: 'DVR',
-    nvr: 'NVR',
-    cable: 'Cabluri',
-    accessory: 'Accesorii',
-    other: 'Diverse',
-};
+const categoryLabels = props.categories ?? {};
 
 function destroy(discount) {
     if (confirm(`Stergi reducerea "${discount.name}"?`)) {

@@ -18,30 +18,53 @@ class DatabaseSeeder extends Seeder
         $this->call(RolesAndPermissionsSeeder::class);
 
         $admin = User::factory()->create([
-            'name' => 'Admin',
-            'email' => 'admin@cctv.test',
+            'name' => 'Patron',
+            'email' => 'admin@omulpotrivit.test',
+            'phone' => '0700 111 222',
+            'trade' => 'general',
         ]);
         $admin->assignRole('admin');
 
         $sales = User::factory()->create([
-            'name' => 'Agent Vanzari',
-            'email' => 'vanzari@cctv.test',
+            'name' => 'Agent Programari',
+            'email' => 'programari@omulpotrivit.test',
+            'phone' => '0700 111 223',
         ]);
         $sales->assignRole('vanzari');
 
-        $tech = User::factory()->create([
-            'name' => 'Tehnician',
-            'email' => 'tehnic@cctv.test',
+        $electrician = User::factory()->create([
+            'name' => 'Meseras Electrician',
+            'email' => 'electrician@omulpotrivit.test',
+            'phone' => '0700 111 224',
+            'trade' => 'electric',
         ]);
-        $tech->assignRole('tehnic');
+        $electrician->assignRole('tehnic');
+
+        $plumber = User::factory()->create([
+            'name' => 'Meseras Sanitar',
+            'email' => 'sanitar@omulpotrivit.test',
+            'phone' => '0700 111 225',
+            'trade' => 'sanitar',
+        ]);
+        $plumber->assignRole('tehnic');
+
+        $painter = User::factory()->create([
+            'name' => 'Meseras Vopsire',
+            'email' => 'vopsire@omulpotrivit.test',
+            'phone' => '0700 111 226',
+            'trade' => 'vopsire',
+        ]);
+        $painter->assignRole('tehnic');
 
         $support = User::factory()->create([
-            'name' => 'Suport',
-            'email' => 'suport@cctv.test',
+            'name' => 'Suport Clienti',
+            'email' => 'suport@omulpotrivit.test',
+            'phone' => '0700 111 227',
         ]);
         $support->assignRole('suport');
 
         $this->call([
+            ServiceSeeder::class,
             EquipmentSeeder::class,
             PostSeeder::class,
         ]);

@@ -10,15 +10,15 @@ class Setting extends Model
     protected $fillable = ['key', 'value'];
 
     public const DEFAULTS = [
-        'company_name' => 'CCTV Security',
-        'company_email' => 'contact@cctv-security.test',
+        'company_name' => 'Omul Potrivit',
+        'company_email' => 'contact@omulpotrivit.test',
         'company_phone' => '0700 000 000',
         'company_address' => '',
-        'company_hours' => 'Luni - Vineri, 09:00 - 18:00',
+        'company_hours' => 'Luni - Vineri, 08:00 - 19:00',
         'social_facebook' => '',
         'social_instagram' => '',
         'social_linkedin' => '',
-        'invoice_series' => 'CCTV',
+        'invoice_series' => 'OP',
         'vat_percentage' => '19',
         'minimum_profit_margin' => '20',
         'operational_reminders_email_enabled' => '0',

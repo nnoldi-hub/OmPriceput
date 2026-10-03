@@ -20,7 +20,8 @@ class InstallationFactory extends Factory
     {
         return [
             'client_id' => Client::factory(),
-            'type' => fake()->randomElement(['instalare', 'interventie']),
+            'type' => fake()->randomElement(Installation::TYPES),
+            'requested_type' => null,
             'address' => fake()->address(),
             'scheduled_at' => now()->addDays(fake()->numberBetween(1, 14)),
             'status' => 'scheduled',

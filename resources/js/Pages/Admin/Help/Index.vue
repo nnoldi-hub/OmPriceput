@@ -32,7 +32,7 @@ const guides = [
         steps: [
             'Accesează Sistem → Setări din meniul stânga.',
             'Completează Numele firmei, Emailul oficial, Telefonul, Adresa și Programul de lucru.',
-            'Alege Seria implicită de facturare (ex: CCTV), Cota TVA (ex: 19%) și Marja minimă de profit recomandată (ex: 20%).',
+            'Alege Seria implicită de facturare (ex: OP), Cota TVA (ex: 19%) și Marja minimă de profit recomandată (ex: 20%).',
             'Apasă "Salvează setările". Toate facturile și PDF-urile generate vor prelua automat aceste date.',
         ],
         proTip: 'Dacă folosești integrarea cu FGO, asigură-te că seria de factură din aplicație se potrivește cu seria configurată în contul FGO.',
@@ -228,9 +228,9 @@ const guides = [
         title: 'Administrarea pachetelor promoționale, paginilor publice și articolelor de Blog',
         summary: 'Actualizează conținutul public al site-ului și menține un blog activ pentru SEO.',
         steps: [
-            'Pachete site: În Site & Conținut → Pachete site poți edita sistemele CCTV promoționale afișate pe prima pagină (prețuri, piese incluse, caracteristici).',
+            'Pachete site: În Site & Conținut → Pachete site poți edita pachetele de întreținere promoționale afișate pe prima pagină (vizite pe an, timp de răspuns, prețuri).',
             'Pagini publice: Gestionează paginile Despre noi, Servicii și Termeni & Condiții.',
-            'Blog: Adaugă articole despre securitate video, noutăți tehnice sau sfaturi utile pentru a atrage trafic din Google.',
+            'Blog: Adaugă articole despre reparatii, intretinere sau sfaturi utile pentru a atrage trafic din Google.',
         ],
         proTip: 'Fiecare articol de blog are câmpuri dedicate pentru titlu SEO, Meta Description și imagine reprezentativă.',
         route: 'admin.blog.index',

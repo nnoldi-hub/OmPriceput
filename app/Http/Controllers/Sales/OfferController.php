@@ -19,6 +19,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response as HttpResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 use Maatwebsite\Excel\Facades\Excel;
@@ -60,11 +61,22 @@ class OfferController extends Controller
 
     public function create(Request $request): Response
     {
+        $visit = null;
+        if ($request->integer('visit_id')) {
+            $visit = Installation::with('client:id,name,company_name')->find($request->integer('visit_id'));
+        }
+
         return Inertia::render('Sales/Offers/Create', [
             'clients' => Client::orderBy('name')->get(['id', 'name', 'company_name']),
             'equipment' => Equipment::orderBy('name')->get(['id', 'name', 'unit_price', 'unit']),
             'services' => Service::where('is_active', true)->orderBy('name')->get(['id', 'name', 'sale_price', 'unit']),
-            'preselectedClientId' => $request->integer('client_id') ?: null,
+            'types' => Installation::TYPE_LABELS,
+            'preselectedClientId' => $visit?->client_id ?: ($request->integer('client_id') ?: null),
+            'preselectedVisit' => $visit ? [
+                'id' => $visit->id,
+                'label' => 'Constatare #'.$visit->id.' - '.($visit->client?->name ?? ''),
+            ] : null,
+            'preselectedJobType' => $visit?->requested_type ?: ($request->string('job_type')->toString() ?: 'instalare'),
         ]);
     }
 
@@ -76,7 +88,9 @@ class OfferController extends Controller
             $offer = Offer::create([
                 'client_id' => $data['client_id'],
                 'user_id' => $request->user()->id,
+                'visit_id' => $data['visit_id'] ?? null,
                 'title' => $data['title'],
+                'job_type' => $data['job_type'],
                 'status' => 'draft',
                 'valid_until' => $data['valid_until'] ?? null,
                 'notes' => $data['notes'] ?? null,
@@ -92,7 +106,7 @@ class OfferController extends Controller
             $this->notifySentOffer($offer, $request->user());
         }
 
-        return redirect()->route('sales.offers.show', $offer)->with('success', 'Oferta creata cu succes.');
+        return redirect()->route('sales.offers.show', $offer)->with('success', 'Deviz creat cu succes.');
     }
 
     public function show(Offer $offer): Response
@@ -114,6 +128,14 @@ class OfferController extends Controller
             'clients' => Client::orderBy('name')->get(['id', 'name', 'company_name']),
             'equipment' => Equipment::orderBy('name')->get(['id', 'name', 'unit_price', 'unit']),
             'services' => Service::where('is_active', true)->orderBy('name')->get(['id', 'name', 'sale_price', 'unit']),
+            'types' => Installation::TYPE_LABELS,
+            'visits' => $offer->client_id
+                ? Installation::where('client_id', $offer->client_id)
+                    ->where('type', 'verificare')
+                    ->latest('id')
+                    ->limit(50)
+                    ->get(['id', 'scheduled_at'])
+                : collect(),
         ]);
     }
 
@@ -124,7 +146,9 @@ class OfferController extends Controller
         DB::transaction(function () use ($data, $offer) {
             $offer->update([
                 'client_id' => $data['client_id'],
+                'visit_id' => $data['visit_id'] ?? null,
                 'title' => $data['title'],
+                'job_type' => $data['job_type'],
                 'status' => in_array($offer->status, ['sent', 'accepted', 'rejected'], true) ? 'draft' : $data['status'],
                 'valid_until' => $data['valid_until'] ?? null,
                 'notes' => $data['notes'] ?? null,
@@ -135,7 +159,7 @@ class OfferController extends Controller
             $offer->items()->createMany($data['items']);
         });
 
-        return redirect()->route('sales.offers.show', $offer)->with('success', 'Oferta actualizata cu succes.');
+        return redirect()->route('sales.offers.show', $offer)->with('success', 'Deviz actualizat cu succes.');
     }
 
     public function updateStatus(Request $request, Offer $offer, SmsService $sms): RedirectResponse
@@ -189,13 +213,16 @@ class OfferController extends Controller
             return;
         }
 
+        $type = in_array($offer->job_type, Installation::TYPES, true) ? $offer->job_type : 'instalare';
+
         Installation::create([
             'client_id' => $offer->client_id,
             'offer_id' => $offer->id,
-            'type' => 'instalare',
+            'type' => $type,
+            'requested_type' => $type,
             'address' => trim(($offer->client->address ?? '').' '.($offer->client->city ?? '')),
             'status' => 'scheduled',
-            'checklist' => Installation::defaultChecklist(),
+            'checklist' => Installation::defaultChecklist($type),
             'material_items' => $offer->items->whereNotNull('equipment_id')->map(fn ($item) => [
                 'equipment_id' => $item->equipment_id,
                 'name' => $item->equipment?->name ?? $item->description,
@@ -205,10 +232,10 @@ class OfferController extends Controller
             'service_items' => $offer->items->whereNotNull('service_id')->map(fn ($item) => [
                 'service_id' => $item->service_id,
                 'name' => $item->service?->name ?? $item->description,
-                'unit' => $item->service?->unit ?? 'serviciu',
+                'unit' => $item->service?->unit ?? 'ora',
                 'quantity' => (int) $item->quantity,
             ])->values()->all(),
-            'notes' => "Generata automat la acceptarea ofertei #{$offer->id}.",
+            'notes' => 'Lucrare generata automat la acceptarea devizului #'.$offer->id.'.',
         ]);
     }
 
@@ -230,7 +257,9 @@ class OfferController extends Controller
     {
         return $request->validate([
             'client_id' => ['required', 'exists:clients,id'],
+            'visit_id' => ['nullable', 'exists:installations,id'],
             'title' => ['required', 'string', 'max:255'],
+            'job_type' => ['required', Rule::in(Installation::TYPES)],
             'status' => ['required', 'in:draft,sent,accepted,rejected,expired'],
             'valid_until' => ['nullable', 'date'],
             'notes' => ['nullable', 'string', 'max:2000'],

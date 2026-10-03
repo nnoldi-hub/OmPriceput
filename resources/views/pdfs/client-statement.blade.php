@@ -35,7 +35,7 @@
     <table class="header" cellspacing="0" cellpadding="0">
         <tr>
             <td style="width: 55%;">
-                <img class="logo" src="{{ public_path('branding/logo-negru.png') }}" alt="{{ $settings['company_name'] }}">
+                <img class="logo" src="{{ public_path('branding/op-logo.png') }}" alt="{{ $settings['company_name'] }}">
                 <div class="brand-line">SIGURANTA INCEPE CU VIZIBILITATE.</div>
             </td>
             <td style="width: 45%; text-align: right;">

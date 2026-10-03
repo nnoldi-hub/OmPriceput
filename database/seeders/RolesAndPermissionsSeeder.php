@@ -17,8 +17,10 @@ class RolesAndPermissionsSeeder extends Seeder
         $permissions = [
             'clients.view', 'clients.manage',
             'offers.view', 'offers.manage',
+            'activities.view', 'activities.manage',
             'equipment.view', 'equipment.manage',
             'installations.view', 'installations.manage',
+            'tickets.view', 'tickets.manage',
             'invoices.view', 'invoices.manage',
             'users.manage',
             'settings.manage',
@@ -32,9 +34,22 @@ class RolesAndPermissionsSeeder extends Seeder
 
         $roles = [
             'admin' => $permissions,
-            'vanzari' => ['clients.view', 'clients.manage', 'offers.view', 'offers.manage'],
-            'tehnic' => ['clients.view', 'equipment.view', 'equipment.manage', 'installations.view', 'installations.manage'],
-            'suport' => ['clients.view', 'installations.view'],
+            'vanzari' => [
+                'clients.view', 'clients.manage',
+                'offers.view', 'offers.manage',
+                'activities.view', 'activities.manage',
+            ],
+            'tehnic' => [
+                'clients.view',
+                'equipment.view', 'equipment.manage',
+                'installations.view', 'installations.manage',
+                'tickets.view', 'tickets.manage',
+            ],
+            'suport' => [
+                'clients.view',
+                'installations.view',
+                'tickets.view', 'tickets.manage',
+            ],
             'client' => [],
             'client-manager' => [],
         ];

@@ -28,7 +28,7 @@ function destroy(pkg) {
                     <table class="min-w-full divide-y divide-slate-200">
                         <thead class="bg-slate-50"><tr>
                             <th class="px-4 py-3 text-left text-xs font-medium uppercase text-slate-500">Pachet</th>
-                            <th class="px-4 py-3 text-right text-xs font-medium uppercase text-slate-500">Pret de la</th>
+                            <th class="px-4 py-3 text-right text-xs font-medium uppercase text-slate-500">Pret pe an</th>
                             <th class="px-4 py-3 text-left text-xs font-medium uppercase text-slate-500">Detalii</th>
                             <th class="px-4 py-3 text-left text-xs font-medium uppercase text-slate-500">Status</th>
                             <th class="px-4 py-3"></th>
@@ -37,7 +37,7 @@ function destroy(pkg) {
                             <tr v-for="pkg in packages" :key="pkg.id" class="hover:bg-slate-50">
                                 <td class="px-4 py-3"><div class="font-medium text-slate-900">{{ pkg.name }}</div><div class="text-xs text-slate-500">{{ pkg.key }}</div></td>
                                 <td class="px-4 py-3 text-right text-sm">{{ Number(pkg.price_from).toLocaleString('ro-RO') }} lei</td>
-                                <td class="px-4 py-3 text-sm text-slate-600">{{ pkg.cameras }} camere · {{ pkg.resolution || '-' }}</td>
+                                <td class="px-4 py-3 text-sm text-slate-600">{{ pkg.vizite_an }} {{ pkg.vizite_an === 1 ? 'vizita' : 'vizite' }}/an &middot; {{ pkg.timp_raspuns || '-' }} &middot; {{ pkg.prioritate || '-' }}</td>
                                 <td class="px-4 py-3"><span class="rounded-full px-2 py-1 text-xs font-medium" :class="pkg.active ? 'bg-green-100 text-green-800' : 'bg-slate-100 text-slate-500'">{{ pkg.active ? 'Activ' : 'Ascuns' }}</span></td>
                                 <td class="px-4 py-3 text-right text-sm"><Link :href="route('admin.site-packages.edit', pkg.id)" class="text-slate-500 hover:text-slate-700">Editeaza</Link><button class="ml-3 text-red-500 hover:text-red-700" @click="destroy(pkg)">Sterge</button></td>
                             </tr>

@@ -33,7 +33,7 @@ class TrafficAnalyticsTest extends TestCase
         $response = $this->get('/servicii?utm_source=google&utm_medium=cpc&utm_campaign=promo2026');
 
         $response->assertOk();
-        $response->assertCookie('cctv_vid');
+        $response->assertCookie('op_vid');
 
         $this->assertDatabaseHas('page_views', [
             'path' => '/servicii',
@@ -103,12 +103,12 @@ class TrafficAnalyticsTest extends TestCase
     public function test_admin_can_save_analytics_and_pixel_ids(): void
     {
         $this->actingAs($this->adminUser)->put(route('admin.settings.update'), [
-            'company_name' => 'CCTV Security',
-            'company_email' => 'contact@cctv.test',
+            'company_name' => 'Omul Potrivit',
+            'company_email' => 'contact@omulpotrivit.test',
             'company_phone' => '0700000000',
             'company_address' => 'Str. Test 1',
             'company_hours' => 'Luni - Vineri, 09:00 - 18:00',
-            'invoice_series' => 'CCTV',
+            'invoice_series' => 'OP',
             'vat_percentage' => 19,
             'minimum_profit_margin' => 20,
             'google_analytics_id' => 'G-ABC1234567',

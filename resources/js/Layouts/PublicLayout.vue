@@ -13,7 +13,7 @@ const nav = computed(() => {
         { name: 'Acasa', href: () => route('public.home') },
         { name: 'Despre noi', href: () => route('public.about') },
         { name: 'Servicii & pachete', href: () => route('public.services') },
-        { name: 'Configurator', href: () => route('public.configurator') },
+        { name: 'Cerere de deviz', href: () => route('public.quote') },
     ];
 
     if (page.props.siteSettings?.shop_enabled === '1') {
@@ -28,6 +28,7 @@ const nav = computed(() => {
 
 const currentYear = new Date().getFullYear();
 const settings = page.props.siteSettings ?? {};
+const companyName = settings.company_name || 'Omul Potrivit';
 const companyAddress = settings.company_address || 'Str. Petre Ionel nr. 205, Branesti, Ilfov, 077030';
 const mapSrc = `https://maps.google.com/maps?q=${encodeURIComponent(companyAddress)}&z=15&output=embed`;
 </script>
@@ -37,7 +38,7 @@ const mapSrc = `https://maps.google.com/maps?q=${encodeURIComponent(companyAddre
         <header class="sticky top-0 z-30 border-b border-slate-700/80 bg-[#021a2d]">
             <nav class="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
                 <Link :href="route('public.home')" class="flex items-center gap-2 text-white">
-                    <img src="/branding/logo-cctv.png" alt="CCTV Security" class="h-10 w-auto max-w-[220px] object-contain sm:h-12" />
+                    <img src="/branding/op-logo.png" :alt="companyName" class="h-9 w-auto max-w-[200px] object-contain sm:h-10" />
                 </Link>
 
                 <div class="hidden items-center gap-7 lg:flex">
@@ -75,10 +76,10 @@ const mapSrc = `https://maps.google.com/maps?q=${encodeURIComponent(companyAddre
                         Autentificare
                     </Link>
                     <Link
-                        :href="route('public.contact')"
+                        :href="route('public.quote')"
                         class="rounded-md bg-orange-500 px-4 py-2 text-sm font-semibold text-white shadow-sm shadow-orange-500/25 transition hover:bg-orange-400"
                     >
-                        Cere oferta
+                        Cere deviz
                     </Link>
                 </div>
 
@@ -139,10 +140,10 @@ const mapSrc = `https://maps.google.com/maps?q=${encodeURIComponent(companyAddre
                     Autentificare
                 </Link>
                 <Link
-                    :href="route('public.contact')"
+                    :href="route('public.quote')"
                     class="mt-2 block rounded-md bg-orange-500 px-4 py-2 text-center text-sm font-semibold text-white hover:bg-orange-400"
                 >
-                    Cere oferta
+                    Cere deviz
                 </Link>
             </div>
         </header>
@@ -157,11 +158,11 @@ const mapSrc = `https://maps.google.com/maps?q=${encodeURIComponent(companyAddre
                     <div class="grid grid-cols-1 gap-8 sm:grid-cols-3">
                         <div>
                             <div class="flex items-center gap-2 text-white">
-                                <img src="/branding/logo-cctv.png" alt="CCTV Security" class="h-6 w-auto max-w-[150px] object-contain" />
+                                <img src="/branding/op-logo.png" :alt="companyName" class="h-6 w-auto max-w-[160px] object-contain" />
                             </div>
                             <p class="mt-3 text-sm">
-                                Sisteme de supraveghere video pentru locuinte si firme.
-                                Consultanta, instalare si mentenanta.
+                                Reparatii, montaje si intretinere pentru casa si apartament.
+                                Lucrez eu sau trimit meserasul potrivit lucrarii.
                             </p>
                         </div>
                         <div>
@@ -176,7 +177,7 @@ const mapSrc = `https://maps.google.com/maps?q=${encodeURIComponent(companyAddre
                             <h3 class="text-sm font-semibold text-white">Contact</h3>
                             <ul class="mt-3 space-y-2 text-sm">
                                 <li>Telefon: {{ settings.company_phone || '0700 000 000' }}</li>
-                                <li>Email: {{ settings.company_email || 'contact@cctv-security.test' }}</li>
+                                <li>Email: {{ settings.company_email || 'contact@omulpotrivit.test' }}</li>
                                 <li>Program: {{ settings.company_hours || 'Luni - Vineri, 09:00 - 18:00' }}</li>
                                 <li>{{ companyAddress }}</li>
                                 <li class="flex gap-3 pt-2">
@@ -197,7 +198,7 @@ const mapSrc = `https://maps.google.com/maps?q=${encodeURIComponent(companyAddre
                     </div>
                 </div>
                 <div class="mt-8 border-t border-slate-800 pt-6 text-xs">
-                    &copy; {{ currentYear }} CCTV Security. Toate drepturile rezervate.
+                    &copy; {{ currentYear }} {{ companyName }}. Toate drepturile rezervate.
                 </div>
             </div>
         </footer>

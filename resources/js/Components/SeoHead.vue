@@ -6,7 +6,7 @@ const props = defineProps({
     description: { type: String, default: '' },
 });
 
-const fullTitle = `${props.title} - CCTV Security`;
+const fullTitle = `${props.title} - Omul Potrivit`;
 </script>
 
 <template>

@@ -10,9 +10,9 @@ class SitePackage extends Model
         'key',
         'name',
         'price_from',
-        'cameras',
-        'resolution',
-        'storage_days',
+        'vizite_an',
+        'timp_raspuns',
+        'prioritate',
         'features',
         'highlight',
         'active',
@@ -21,6 +21,7 @@ class SitePackage extends Model
 
     protected $casts = [
         'price_from' => 'decimal:2',
+        'vizite_an' => 'integer',
         'features' => 'array',
         'highlight' => 'boolean',
         'active' => 'boolean',

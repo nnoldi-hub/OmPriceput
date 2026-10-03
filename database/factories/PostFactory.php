@@ -27,6 +27,7 @@ class PostFactory extends Factory
             'body' => fake()->paragraphs(4, true),
             'meta_title' => $title,
             'meta_description' => fake()->sentence(20),
+            'status' => 'published',
             'published_at' => now(),
         ];
     }

@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('equipment', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->enum('category', ['camera', 'dvr', 'nvr', 'cable', 'accessory', 'other'])->default('other');
+            $table->enum('category', ['consumabil', 'scula', 'piesa', 'instalatii', 'altele'])->default('consumabil');
             $table->string('sku')->unique()->nullable();
             $table->string('unit')->default('buc');
             $table->decimal('unit_price', 10, 2)->default(0);

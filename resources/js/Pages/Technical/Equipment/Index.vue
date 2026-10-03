@@ -6,6 +6,7 @@ import { reactive, watch } from 'vue';
 const props = defineProps({
     equipment: Object,
     filters: Object,
+    categories: Object,
 });
 
 const form = reactive({
@@ -68,12 +69,7 @@ function destroy(item) {
                     <input v-model="form.search" type="text" placeholder="Cauta dupa nume sau SKU..." class="rounded-md border-slate-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500" />
                     <select v-model="form.category" class="rounded-md border-slate-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500">
                         <option value="">Toate categoriile</option>
-                        <option value="camera">Camera</option>
-                        <option value="dvr">DVR</option>
-                        <option value="nvr">NVR</option>
-                        <option value="cable">Cablu</option>
-                        <option value="accessory">Accesoriu</option>
-                        <option value="other">Altele</option>
+                        <option v-for="(label, value) in categories" :key="value" :value="value">{{ label }}</option>
                     </select>
                     <label class="flex items-center gap-2 text-sm text-slate-600">
                         <input v-model="form.low_stock" type="checkbox" class="rounded border-slate-300 text-blue-600 focus:ring-blue-500" />

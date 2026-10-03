@@ -2,13 +2,13 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, useForm } from '@inertiajs/vue3';
 
-const props = defineProps({ discount: Object, equipment: Array });
+const props = defineProps({ discount: Object, equipment: Array, categories: Object });
 
 const form = useForm({
     name: props.discount.name,
     scope: props.discount.scope,
     equipment_id: props.discount.equipment_id ?? '',
-    category: props.discount.category ?? 'camera',
+    category: props.discount.category ?? 'consumabil',
     type: props.discount.type,
     value: Number(props.discount.value),
     starts_at: props.discount.starts_at ? props.discount.starts_at.substring(0, 10) : '',
@@ -58,12 +58,7 @@ function submit() {
                     <div v-else>
                         <label class="block text-sm font-medium text-slate-700">Categorie</label>
                         <select v-model="form.category" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm">
-                            <option value="camera">Camere</option>
-                            <option value="dvr">DVR</option>
-                            <option value="nvr">NVR</option>
-                            <option value="cable">Cabluri</option>
-                            <option value="accessory">Accesorii</option>
-                            <option value="other">Diverse</option>
+                            <option v-for="(label, value) in categories" :key="value" :value="value">{{ label }}</option>
                         </select>
                     </div>
 

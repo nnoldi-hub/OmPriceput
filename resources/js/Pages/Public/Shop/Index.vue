@@ -33,14 +33,14 @@ function addToCart(product) {
 <template>
     <SeoHead
         title="Magazin online"
-        description="Camere video, DVR/NVR, cabluri si accesorii pentru sisteme de supraveghere, disponibile la comanda online."
+        description="Materiale, consumabile, scule si piese de schimb pentru lucrarile tale, disponibile la comanda online."
     />
 
     <PublicLayout>
         <section class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
             <div class="text-center">
                 <h1 class="font-display text-3xl font-bold text-slate-900">Magazin online</h1>
-                <p class="mt-3 text-slate-500">Echipamente de supraveghere video disponibile la comanda.</p>
+                <p class="mt-3 text-slate-500">Materiale, consumabile si piese de schimb, disponibile la comanda.</p>
             </div>
 
             <div class="mt-8 flex flex-wrap items-center justify-center gap-3">

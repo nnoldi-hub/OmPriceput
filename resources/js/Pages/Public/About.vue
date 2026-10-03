@@ -11,7 +11,7 @@ const bodyHtml = computed(() => props.page?.content?.body_html || '');
 <template>
     <SeoHead
         :title="pageTitle"
-        description="Firma specializata in proiectare, instalare si mentenanta de sisteme CCTV pentru rezidential si comercial, cu peste 10 ani de experienta."
+        description="Omul Potrivit: lucrari de reparatii, montaje si intretinere pentru casa si apartament. Deviz scris inainte de lucrare."
     />
 
     <PublicLayout>
@@ -20,38 +20,38 @@ const bodyHtml = computed(() => props.page?.content?.body_html || '');
             <p class="mt-2 text-slate-500">{{ pageSubtitle }}</p>
             <div v-if="bodyHtml" class="prose mt-6 max-w-none text-slate-600" v-html="bodyHtml"></div>
             <p v-else class="mt-6 text-slate-600">
-                Suntem o echipa de tehnicieni si consultanti specializati in sisteme de
-                supraveghere video, cu peste 10 ani de experienta in proiecte rezidentiale
-                si comerciale. Am instalat peste 500 de sisteme CCTV, de la locuinte
-                individuale la spatii comerciale si industriale.
+                Omul Potrivit este un service pentru casa si apartament: lucrez eu la lucrarile mele
+                si trimit meserasi din echipa mea atunci cand ai nevoie de o specialitate precisa.
+                Pentru fiecare lucrare vedem problema la loc, scriem ce materiale sunt necesare si
+                cat costa, si abia dupa acceptarea ta incepem.
             </p>
             <p v-if="!bodyHtml" class="mt-4 text-slate-600">
-                Misiunea noastra este sa oferim solutii de securitate accesibile si
-                fiabile, adaptate fiecarui client in parte. Lucram doar cu echipamente
-                verificate si oferim garantie extinsa pentru toate instalatiile noastre.
+                Nu preturi din catalog la ghicit. Devizul se face dupa ce am vazut problema, pentru ca
+                unele reparatii par usoare si ascund altele. Iti spunem si daca merita sa schimbi
+                ceva, chiar daca pot sa-l repar cu bucati obisnuite.
             </p>
 
             <div class="mt-12 grid grid-cols-1 gap-8 sm:grid-cols-3">
                 <div class="rounded-xl border border-slate-200 p-6 text-center">
-                    <div class="text-3xl font-bold text-blue-600">10+</div>
-                    <div class="mt-2 text-sm text-slate-500">Ani de experienta</div>
+                    <div class="text-3xl font-bold text-blue-600">Gratuit</div>
+                    <div class="mt-2 text-sm text-slate-500">Constatarea la locul lucrarii</div>
                 </div>
                 <div class="rounded-xl border border-slate-200 p-6 text-center">
-                    <div class="text-3xl font-bold text-blue-600">500+</div>
-                    <div class="mt-2 text-sm text-slate-500">Instalari finalizate</div>
+                    <div class="text-3xl font-bold text-blue-600">24h</div>
+                    <div class="mt-2 text-sm text-slate-500">Raspuns la cerere</div>
                 </div>
                 <div class="rounded-xl border border-slate-200 p-6 text-center">
-                    <div class="text-3xl font-bold text-blue-600">24-48h</div>
-                    <div class="mt-2 text-sm text-slate-500">Timp de interventie</div>
+                    <div class="text-3xl font-bold text-blue-600">1 zi</div>
+                    <div class="mt-2 text-sm text-slate-500">Programare la o zi lucratoare</div>
                 </div>
             </div>
 
-            <h2 class="mt-12 text-xl font-semibold text-slate-900">Valorile noastre</h2>
+            <h2 class="mt-12 text-xl font-semibold text-slate-900">Cum lucrez</h2>
             <ul class="mt-4 space-y-2 text-slate-600">
-                <li>&bull; Transparenta in oferte si costuri, fara costuri ascunse.</li>
-                <li>&bull; Echipamente de calitate, testate inainte de instalare.</li>
-                <li>&bull; Suport tehnic rapid dupa finalizarea instalarii.</li>
-                <li>&bull; Consultanta personalizata pentru fiecare tip de proprietate.</li>
+                <li>&bull; Pretul se stabileste dupa ce am vazut lucrarea, nu la telefon.</li>
+                <li>&bull; Devizul este scris, cu materialele si manopera separate.</li>
+                <li>&bull; Fara costuri ascunse si fara avansuri inainte de incepere.</li>
+                <li>&bull; Daca nu merita repara, iti spun si nu te conving sa o faci.</li>
             </ul>
         </section>
     </PublicLayout>

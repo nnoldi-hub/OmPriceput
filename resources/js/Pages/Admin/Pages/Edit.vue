@@ -7,7 +7,7 @@ const initialContent = props.page.content || {};
 const sectionTypes = [
     { value: 'hero', label: 'Hero' },
     { value: 'stats', label: 'Statistici' },
-    { value: 'packages', label: 'Pachete CCTV' },
+    { value: 'packages', label: 'Pachete de intretinere' },
     { value: 'process', label: 'Cum lucram' },
     { value: 'blog', label: 'Ultimele articole' },
     { value: 'cta', label: 'CTA' },

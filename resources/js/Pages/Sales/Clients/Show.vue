@@ -1,6 +1,9 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import { usePermissions } from '@/Composables/usePermissions';
 import { Head, Link, usePage } from '@inertiajs/vue3';
+
+const { canManage } = usePermissions();
 
 const props = defineProps({
     client: Object,
@@ -46,10 +49,10 @@ function money(value) {
             <div class="flex items-center justify-between">
                 <h2 class="text-xl font-semibold leading-tight text-gray-800">{{ client.name }}</h2>
                 <div class="flex gap-2">
-                    <Link :href="route('sales.offers.create', { client_id: client.id })" class="rounded-md bg-slate-900 px-3 py-2 text-sm font-semibold text-white hover:bg-slate-700">
+                    <Link v-if="canManage('offers')" :href="route('sales.offers.create', { client_id: client.id })" class="rounded-md bg-slate-900 px-3 py-2 text-sm font-semibold text-white hover:bg-slate-700">
                         Oferta noua
                     </Link>
-                    <Link :href="route('sales.clients.edit', client.id)" class="rounded-md border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
+                    <Link v-if="canManage('clients')" :href="route('sales.clients.edit', client.id)" class="rounded-md border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
                         Editeaza
                     </Link>
                 </div>
@@ -163,7 +166,7 @@ function money(value) {
                     <div class="rounded-lg bg-white p-6 shadow-sm">
                         <div class="flex items-center justify-between">
                             <h3 class="text-sm font-semibold text-slate-500">Activitati ({{ client.activities.length }})</h3>
-                            <Link :href="route('sales.activities.create', { client_id: client.id })" class="text-sm font-medium text-blue-600 hover:text-blue-500">Adauga</Link>
+                            <Link v-if="canManage('activities')" :href="route('sales.activities.create', { client_id: client.id })" class="text-sm font-medium text-blue-600 hover:text-blue-500">Adauga</Link>
                         </div>
                         <div v-if="client.activities.length" class="mt-4 divide-y divide-slate-100">
                             <div v-for="activity in client.activities" :key="activity.id" class="flex items-center justify-between py-3">

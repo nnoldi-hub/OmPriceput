@@ -19,14 +19,17 @@ defineProps({
             <Icon name="sparkles" class="h-3.5 w-3.5" />
             Cel mai popular
         </div>
-        <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-slate-900 text-white shadow-md">
-            <Icon name="camera" class="h-5 w-5" />
+        <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-orange-500 to-orange-400 text-white shadow-md">
+            <Icon name="wrench" class="h-5 w-5" />
         </div>
         <h3 class="mt-4 font-display text-lg font-semibold text-slate-900">{{ pkg.name }}</h3>
-        <p class="mt-1 text-sm text-slate-500">{{ pkg.cameras }} camere &middot; {{ pkg.resolution }}</p>
+        <p class="mt-1 text-sm text-slate-500">
+            {{ pkg.vizite_an }} {{ pkg.vizite_an === 1 ? 'vizita' : 'vizite' }} pe an &middot;
+            raspuns in {{ pkg.timp_raspuns }} &middot; {{ pkg.prioritate }}
+        </p>
         <p class="mt-4">
             <span class="font-display text-3xl font-bold text-slate-900">{{ Number(pkg.price_from).toLocaleString('ro-RO') }} lei</span>
-            <span class="text-sm text-slate-500"> de la</span>
+            <span class="text-sm text-slate-500"> pe an</span>
         </p>
         <ul class="mt-6 flex-1 space-y-3 text-sm text-slate-600">
             <li v-for="feature in pkg.features" :key="feature" class="flex items-start gap-2">
@@ -37,12 +40,12 @@ defineProps({
             </li>
         </ul>
         <Link
-            :href="route('public.contact')"
+            :href="route('public.quote')"
             :data="{ package: pkg.key }"
             class="mt-8 block rounded-md px-4 py-2.5 text-center text-sm font-semibold shadow-sm transition"
             :class="pkg.highlight ? 'bg-orange-500 text-white hover:bg-orange-400' : 'bg-slate-900 text-white hover:bg-slate-700'"
         >
-            Cere oferta pentru {{ pkg.name }}
+            Vreau pachetul {{ pkg.name }}
         </Link>
     </div>
 </template>

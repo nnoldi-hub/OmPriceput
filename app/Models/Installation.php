@@ -11,14 +11,70 @@ class Installation extends Model
 {
     use HasFactory;
 
-    public const CHECKLIST_TEMPLATE = [
-        'Verificare si pregatire cabluri',
-        'Montaj si fixare camere',
-        'Configurare NVR/DVR',
-        'Testare imagine pe toate camerele',
-        'Configurare acces remote (telefon/aplicatie)',
-        'Curatenie zona de lucru',
-        'Instruire client privind utilizarea sistemului',
+    public const TYPES = [
+        'instalare',
+        'reparatie',
+        'mentenanta',
+        'verificare',
+        'urgenta',
+    ];
+
+    public const TYPE_LABELS = [
+        'instalare' => 'Instalare / montaj',
+        'reparatie' => 'Reparatie',
+        'mentenanta' => 'Mentenanta',
+        'verificare' => 'Verificare / constatare',
+        'urgenta' => 'Interventa urgenta',
+    ];
+
+    public const STATUSES = [
+        'scheduled' => 'Programata',
+        'in_progress' => 'In desfasurare',
+        'completed' => 'Finalizata',
+        'cancelled' => 'Anulata',
+    ];
+
+    public const CHECKLIST_TEMPLATES = [
+        'instalare' => [
+            'Verificare locatie si masuratori',
+            'Pregatirea zonei de lucru',
+            'Demontare vechiul obiect (daca este cazul)',
+            'Montare si fixare',
+            'Conectare la retele (curent / apa / internet)',
+            'Testare functionala completa',
+            'Curatenie si predare loc de lucru',
+        ],
+        'reparatie' => [
+            'Diagnostic defect',
+            'Scoaterea piesei defecte',
+            'Montaj piesa noua',
+            'Verificare etanseitate / functionare',
+            'Testare punctuala a instalatiei',
+            'Curatenie si predare loc de lucru',
+        ],
+        'mentenanta' => [
+            'Verificare instalatii',
+            'Curatare / intretinere',
+            'Inlocuire consumabile uzuale',
+            'Testare functionala',
+            'Intocmire raport cu recomandari',
+        ],
+        'verificare' => [
+            'Contactare client si confirmare adresa',
+            'Identificarea problemei',
+            'Fotografiere / filmare pentru documentare',
+            'Identificarea materialelor necesare',
+            'Estimare orientativa de pret',
+            'Programarea vizitei de lucru',
+        ],
+        'urgenta' => [
+            'Contactare client si evaluarea urgenței',
+            'Intervenție imediată',
+            'Remediere provizorie',
+            'Identificarea cauzei reale',
+            'Verificare funcțională',
+            'Raport de intervenție',
+        ],
     ];
 
     protected $fillable = [
@@ -26,6 +82,7 @@ class Installation extends Model
         'offer_id',
         'technician_id',
         'type',
+        'requested_type',
         'address',
         'latitude',
         'longitude',
@@ -80,6 +137,22 @@ class Installation extends Model
         return $this->belongsTo(User::class, 'technician_id');
     }
 
+    public function typeLabel(): string
+    {
+        return self::TYPE_LABELS[$this->type] ?? $this->type;
+    }
+
+    public function isVisit(): bool
+    {
+        return $this->type === 'verificare';
+    }
+
+    public function isUnscheduled(): bool
+    {
+        return empty($this->scheduled_at)
+            && in_array($this->status, ['scheduled', 'in_progress'], true);
+    }
+
     public function tickets(): HasMany
     {
         return $this->hasMany(Ticket::class);
@@ -95,9 +168,11 @@ class Installation extends Model
         return round((float) $this->expenses()->sum('amount'), 2);
     }
 
-    public static function defaultChecklist(): array
+    public static function defaultChecklist(?string $type = null): array
     {
-        return collect(self::CHECKLIST_TEMPLATE)
+        $template = self::CHECKLIST_TEMPLATES[$type] ?? self::CHECKLIST_TEMPLATES['instalare'];
+
+        return collect($template)
             ->map(fn (string $label) => ['label' => $label, 'done' => false])
             ->all();
     }

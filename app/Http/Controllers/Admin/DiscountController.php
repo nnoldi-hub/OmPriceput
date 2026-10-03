@@ -7,6 +7,7 @@ use App\Models\Discount;
 use App\Models\Equipment;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -16,6 +17,7 @@ class DiscountController extends Controller
     {
         return Inertia::render('Admin/Shop/Discounts/Index', [
             'discounts' => Discount::with('equipment:id,name')->latest()->paginate(15),
+            'categories' => Equipment::CATEGORIES,
         ]);
     }
 
@@ -23,6 +25,7 @@ class DiscountController extends Controller
     {
         return Inertia::render('Admin/Shop/Discounts/Create', [
             'equipment' => Equipment::orderBy('name')->get(['id', 'name', 'category']),
+            'categories' => Equipment::CATEGORIES,
         ]);
     }
 
@@ -38,6 +41,7 @@ class DiscountController extends Controller
         return Inertia::render('Admin/Shop/Discounts/Edit', [
             'discount' => $discount,
             'equipment' => Equipment::orderBy('name')->get(['id', 'name', 'category']),
+            'categories' => Equipment::CATEGORIES,
         ]);
     }
 
@@ -63,7 +67,7 @@ class DiscountController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'scope' => ['required', 'in:product,category'],
             'equipment_id' => ['nullable', 'required_if:scope,product', 'exists:equipment,id'],
-            'category' => ['nullable', 'required_if:scope,category', 'in:camera,dvr,nvr,cable,accessory,other'],
+            'category' => ['nullable', 'required_if:scope,category', Rule::in(array_keys(Equipment::CATEGORIES))],
             'type' => ['required', 'in:percent,fixed'],
             'value' => ['required', 'numeric', 'min:0'],
             'starts_at' => ['nullable', 'date'],

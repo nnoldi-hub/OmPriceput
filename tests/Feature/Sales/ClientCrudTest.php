@@ -30,12 +30,32 @@ class ClientCrudTest extends TestCase
         $this->get(route('sales.clients.index'))->assertRedirect(route('login'));
     }
 
-    public function test_technician_cannot_access_sales_module(): void
+    public function test_technician_sees_clients_but_cannot_manage_them(): void
     {
         $tech = User::factory()->create();
         $tech->assignRole('tehnic');
 
-        $this->actingAs($tech)->get(route('sales.clients.index'))->assertForbidden();
+        $this->assertTrue($tech->hasPermissionTo('clients.view'));
+        $this->assertFalse($tech->hasPermissionTo('clients.manage'));
+
+        $this->actingAs($tech)->get(route('sales.clients.index'))->assertOk();
+        $this->actingAs($tech)->get(route('sales.clients.create'))->assertForbidden();
+        $this->actingAs($tech)->get(route('sales.clients.edit', Client::factory()->create()))->assertForbidden();
+    }
+
+    public function test_client_portal_user_cannot_access_sales_module(): void
+    {
+        $portalUser = User::factory()->create();
+        $portalUser->assignRole('client');
+
+        $this->actingAs($portalUser)->get(route('sales.clients.index'))->assertForbidden();
+    }
+
+    public function test_sales_user_cannot_access_technical_module(): void
+    {
+        $this->actingAs($this->salesUser)->get(route('technical.equipment.index'))->assertForbidden();
+        $this->actingAs($this->salesUser)->get(route('technical.installations.index'))->assertForbidden();
+        $this->actingAs($this->salesUser)->get(route('technical.tickets.index'))->assertForbidden();
     }
 
     public function test_sales_user_can_list_clients(): void
@@ -55,6 +75,7 @@ class ClientCrudTest extends TestCase
             'email' => 'andrei@example.com',
             'source' => 'manual',
             'status' => 'lead',
+            'pipeline_stage' => 'new',
         ]);
 
         $client = Client::firstWhere('email', 'andrei@example.com');
@@ -81,6 +102,7 @@ class ClientCrudTest extends TestCase
             'name' => $client->name,
             'source' => $client->source,
             'status' => 'client',
+            'pipeline_stage' => 'won',
         ])->assertRedirect(route('sales.clients.show', $client));
 
         $this->assertDatabaseHas('clients', ['id' => $client->id, 'status' => 'client']);

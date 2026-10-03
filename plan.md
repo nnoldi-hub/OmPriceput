@@ -1,8 +1,8 @@
-# Plan de dezvoltare - sistem CCTV / firmă de securitate
+# Plan de dezvoltare - sistem Omul Potrivit (contractor de meserii)
 
 ## 1. Evaluare inițială
 
-Structura propusă este corectă și adecvată pentru un proiect de tip firmă CCTV. Modularizarea în 4 componente principale este solidă:
+Structura propusă este corectă și adecvată pentru un proiect de tip firmă de servicii/meserii. Modularizarea în 4 componente principale este solidă:
 
 - Modul Public: site SEO + lead generation
 - Modul Vânzări: CRM, oferte, pipeline
@@ -48,8 +48,8 @@ Rezultat acceptat: aplicația are fundația stabilă și permisiunile definite.
 Obiectiv: lansarea website-ului public și capturarea de lead-uri.
 
 - [x] Pagini principale: acasă, despre firmă, servicii, contact
-- [x] Pachete CCTV: entry / medium / premium
-- [x] Configurator de camere
+- [x] Pachete de servicii: entry / medium / premium
+- [x] Formular de cerere de deviz (`/cerere-deviz`) cu upload de poze, în locul configuratorului de camere
 - [x] Calculator de distanță / cablu
 - [x] Formular de cerere ofertă
 - [x] Blog / articole SEO
@@ -83,7 +83,7 @@ Rezultat acceptat: echipa de vânzări poate gestiona clienții și generarea of
 
 Obiectiv: gestionarea echipamentelor, programărilor și intervențiilor tehnice.
 
-- [x] Management echipamente: camere, DVR/NVR, accesorii
+- [x] Management echipamente: consumabile, scule, accesorii, piese
 - [x] Tracking stoc și inventar
 - [x] Programare instalări
 - [x] Programări intervenții (camp `type`: instalare/interventie pe aceeasi entitate)

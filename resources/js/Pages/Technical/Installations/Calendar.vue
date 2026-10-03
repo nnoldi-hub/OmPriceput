@@ -1,7 +1,10 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import { usePermissions } from '@/Composables/usePermissions';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { computed, reactive, watch } from 'vue';
+
+const { canManage } = usePermissions();
 
 const props = defineProps({
     view: String,
@@ -82,7 +85,7 @@ const weekDayHeaders = ['Luni', 'Marti', 'Miercuri', 'Joi', 'Vineri', 'Sambata',
         <template #header>
             <div class="flex items-center justify-between">
                 <h2 class="text-xl font-semibold leading-tight text-gray-800">Calendar programari</h2>
-                <Link :href="route('technical.installations.create')" class="rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white">Programare noua</Link>
+                <Link v-if="canManage('installations')" :href="route('technical.installations.create')" class="rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white">Programare noua</Link>
             </div>
         </template>
         <div class="py-8">
