@@ -8,6 +8,7 @@ use App\Models\Installation;
 use App\Models\Page;
 use App\Models\Service;
 use App\Notifications\NewLeadReceived;
+use App\Notifications\RequestConfirmation;
 use App\Services\SmsService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -151,6 +152,11 @@ private function durationFor(array $serviceIds): int
         ->unique('id');
 
     Notification::send($recipients, new NewLeadReceived($client, $visit, $services->pluck('name')->all()));
+
+    if ($data['email'] ?? null) {
+        Notification::route('mail', $data['email'])
+            ->notify(new RequestConfirmation($client, $visit, $services->pluck('name')->all()));
+    }
 
     $when = $start ? $start->format('d.m.Y H:i') : null;
 

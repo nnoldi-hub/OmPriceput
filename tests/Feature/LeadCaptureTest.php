@@ -6,6 +6,7 @@ use App\Models\Client;
 use App\Models\Installation;
 use App\Models\User;
 use App\Notifications\NewLeadReceived;
+use App\Notifications\RequestConfirmation;
 use Database\Seeders\RolesAndPermissionsSeeder;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -69,6 +70,65 @@ class LeadCaptureTest extends TestCase
             'visit_id' => $visit->id,
             'scheduled_at' => '2026-10-10 10:00:00',
         ], $notification->toArray($client));
+    }
+
+    public function test_customer_receives_confirmation_email_when_email_is_provided(): void
+    {
+        $this->seed(RolesAndPermissionsSeeder::class);
+        User::factory()->create()->assignRole('admin');
+        config(['notifications.mail_enabled' => true]);
+
+        Notification::fake();
+
+        $this->post(route('public.lead.store'), [
+            'name' => 'Ion Popescu',
+            'phone' => '0722123456',
+            'email' => 'ion@example.com',
+            'privacy_consent' => '1',
+        ])->assertRedirect();
+
+        Notification::assertSentOnDemand(RequestConfirmation::class);
+    }
+
+    public function test_no_confirmation_email_without_email_address(): void
+    {
+        $this->seed(RolesAndPermissionsSeeder::class);
+        User::factory()->create()->assignRole('admin');
+        config(['notifications.mail_enabled' => true]);
+
+        Notification::fake();
+
+        $this->post(route('public.lead.store'), [
+            'name' => 'Ion Popescu',
+            'phone' => '0722123456',
+            'privacy_consent' => '1',
+        ])->assertRedirect();
+
+        Notification::assertSentOnDemandTimes(RequestConfirmation::class, 0);
+    }
+
+    public function test_confirmation_email_shows_appointment_and_branding(): void
+    {
+        $client = Client::factory()->create();
+        $visit = Installation::factory()->create([
+            'client_id' => $client->id,
+            'scheduled_at' => '2026-10-10 10:00',
+        ]);
+
+        $html = view('emails.request-received', [
+            'recipientName' => $client->name,
+            'companyName' => 'Om Priceput',
+            'phone' => '0700 000 000',
+            'hours' => 'Luni - Vineri, 08:00 - 19:00',
+            'visit' => $visit,
+            'services' => ['Instalare centrală'],
+            'logoUrl' => asset('branding/op-logo.png'),
+        ])->render();
+
+        $this->assertStringContainsString('10.10.2026 10:00', $html);
+        $this->assertStringContainsString('Instalare centrală', $html);
+        $this->assertStringContainsString('op-logo.png', $html);
+        $this->assertStringContainsString('am primit mesajul tău', $html);
     }
 
     public function test_name_and_phone_are_required(): void
