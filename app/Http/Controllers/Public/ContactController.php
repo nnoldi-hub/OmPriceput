@@ -13,6 +13,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Collection;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -108,7 +109,9 @@ private function durationFor(array $serviceIds): int
         ? null
         : CarbonImmutable::createFromFormat('Y-m-d H:i', $data['scheduled_at']);
 
-    $register = fn () => DB::transaction(function () use ($request, $data, $availability, $start, $duration) {
+    $services = Service::whereIn('id', $data['service_ids'] ?? [])->get(['id', 'name']);
+
+    $register = fn () => DB::transaction(function () use ($request, $data, $availability, $start, $duration, $services) {
         // verificarea finala, chiar inainte de salvare
         if ($start && ! $availability->isSlotFree($start, $duration)) {
             throw ValidationException::withMessages([
@@ -131,7 +134,7 @@ private function durationFor(array $serviceIds): int
 
         $visit = empty($data['job_type'])
             ? null
-            : $this->createVisit($request, $client, $data, $start, $duration);
+            : $this->createVisit($request, $client, $data, $start, $duration, $services);
 
         return [$client, $visit];
     });
@@ -147,7 +150,7 @@ private function durationFor(array $serviceIds): int
         ->flatMap(fn (Role $role) => $role->users)
         ->unique('id');
 
-    Notification::send($recipients, new NewLeadReceived($client));
+    Notification::send($recipients, new NewLeadReceived($client, $visit, $services->pluck('name')->all()));
 
     $when = $start ? $start->format('d.m.Y H:i') : null;
 
@@ -170,9 +173,9 @@ private function durationFor(array $serviceIds): int
     );
 }
 
-private function createVisit(Request $request, Client $client, array $data, ?CarbonImmutable $start, int $duration): Installation
+private function createVisit(Request $request, Client $client, array $data, ?CarbonImmutable $start, int $duration, Collection $services): Installation
 {
-    $services = Service::whereIn('id', $data['service_ids'] ?? [])->pluck('name');
+    $serviceNames = $services->pluck('name');
 
     $photos = collect($request->file('photos', []))
         ->filter()
@@ -192,7 +195,7 @@ private function createVisit(Request $request, Client $client, array $data, ?Car
         'photos' => $photos ?: null,
         'customer_notes' => collect([
             'Tip lucrare solicitat: '.(Installation::TYPE_LABELS[$data['job_type']] ?? $data['job_type']),
-            $services->isNotEmpty() ? 'Servicii dorite: '.$services->join(', ') : null,
+            $serviceNames->isNotEmpty() ? 'Servicii dorite: '.$serviceNames->join(', ') : null,
             $data['notes'] ?? null,
         ])->filter()->implode("\n"),
         'notes' => 'Constatare creata automat din cererea de deviz online.',

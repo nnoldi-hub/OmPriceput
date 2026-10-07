@@ -38,6 +38,7 @@ class RolesAndPermissionsSeeder extends Seeder
                 'clients.view', 'clients.manage',
                 'offers.view', 'offers.manage',
                 'activities.view', 'activities.manage',
+                'installations.view',
             ],
             'tehnic' => [
                 'clients.view',

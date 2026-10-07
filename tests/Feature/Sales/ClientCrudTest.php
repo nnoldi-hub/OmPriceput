@@ -3,6 +3,7 @@
 namespace Tests\Feature\Sales;
 
 use App\Models\Client;
+use App\Models\Installation;
 use App\Models\Invoice;
 use App\Models\InvoicePayment;
 use App\Models\User;
@@ -54,8 +55,19 @@ class ClientCrudTest extends TestCase
     public function test_sales_user_cannot_access_technical_module(): void
     {
         $this->actingAs($this->salesUser)->get(route('technical.equipment.index'))->assertForbidden();
-        $this->actingAs($this->salesUser)->get(route('technical.installations.index'))->assertForbidden();
         $this->actingAs($this->salesUser)->get(route('technical.tickets.index'))->assertForbidden();
+    }
+
+    public function test_sales_user_can_view_appointments_but_not_manage_them(): void
+    {
+        $installation = Installation::factory()->create();
+
+        $this->assertTrue($this->salesUser->hasPermissionTo('installations.view'));
+        $this->assertFalse($this->salesUser->hasPermissionTo('installations.manage'));
+
+        $this->actingAs($this->salesUser)->get(route('technical.installations.index'))->assertOk();
+        $this->actingAs($this->salesUser)->get(route('technical.installations.show', $installation))->assertOk();
+        $this->actingAs($this->salesUser)->get(route('technical.installations.create'))->assertForbidden();
     }
 
     public function test_sales_user_can_list_clients(): void
