@@ -6,7 +6,7 @@ const props = defineProps({
     description: { type: String, default: '' },
 });
 
-const fullTitle = `${props.title} - Omul Potrivit`;
+const fullTitle = `${props.title} - Om Priceput`;
 </script>
 
 <template>

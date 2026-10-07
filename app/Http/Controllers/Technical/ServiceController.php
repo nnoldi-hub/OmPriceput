@@ -74,6 +74,7 @@ class ServiceController extends Controller
             'unit' => ['required', Rule::in(Service::UNITS)],
             'cost_price' => ['required', 'numeric', 'min:0'],
             'sale_price' => ['required', 'numeric', 'min:0'],
+            'duration_minutes' => ['required', 'integer', 'min:5', 'max:600'],
             'description' => ['nullable', 'string', 'max:1000'],
             'is_active' => ['required', 'boolean'],
         ]);

@@ -32,6 +32,7 @@ class ServiceCrudTest extends TestCase
                 'unit' => 'ora',
                 'cost_price' => 80,
                 'sale_price' => 150,
+                'duration_minutes' => 60,
                 'description' => 'Montaj si reglare mobilier.',
                 'is_active' => true,
             ])
@@ -47,6 +48,7 @@ class ServiceCrudTest extends TestCase
                 'unit' => 'ora',
                 'cost_price' => 90,
                 'sale_price' => 175,
+                'duration_minutes' => 90,
                 'description' => 'Actualizat.',
                 'is_active' => true,
             ])

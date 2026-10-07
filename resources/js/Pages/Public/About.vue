@@ -4,14 +4,14 @@ import PublicLayout from '@/Layouts/PublicLayout.vue';
 import { computed } from 'vue';
 const props = defineProps({ page: Object });
 const pageTitle = computed(() => props.page?.title || 'Despre noi');
-const pageSubtitle = computed(() => props.page?.subtitle || 'Echipa si valorile noastre');
+const pageSubtitle = computed(() => props.page?.subtitle || 'Echipa si principiile de lucru');
 const bodyHtml = computed(() => props.page?.content?.body_html || '');
 </script>
 
 <template>
     <SeoHead
         :title="pageTitle"
-        description="Omul Potrivit: lucrari de reparatii, montaje si intretinere pentru casa si apartament. Deviz scris inainte de lucrare."
+        description="Om Priceput: lucrari de reparatii, montaje si intretinere pentru casa si apartament. Deviz scris inainte de inceperea lucrarii."
     />
 
     <PublicLayout>
@@ -20,15 +20,16 @@ const bodyHtml = computed(() => props.page?.content?.body_html || '');
             <p class="mt-2 text-slate-500">{{ pageSubtitle }}</p>
             <div v-if="bodyHtml" class="prose mt-6 max-w-none text-slate-600" v-html="bodyHtml"></div>
             <p v-else class="mt-6 text-slate-600">
-                Omul Potrivit este un service pentru casa si apartament: lucrez eu la lucrarile mele
-                si trimit meserasi din echipa mea atunci cand ai nevoie de o specialitate precisa.
-                Pentru fiecare lucrare vedem problema la loc, scriem ce materiale sunt necesare si
-                cat costa, si abia dupa acceptarea ta incepem.
+                Om Priceput este un service pentru casa si apartament: execut personal lucrarile pe care le
+                coordonez si implic meserasi din echipa mea atunci cand lucrarea necesita o specializare precisa.
+                Pentru fiecare lucrare analizam problema la locul lucrarii, consemnam materialele necesare si
+                costul estimat, iar lucrarea incepe doar dupa acceptarea devizului.
             </p>
             <p v-if="!bodyHtml" class="mt-4 text-slate-600">
-                Nu preturi din catalog la ghicit. Devizul se face dupa ce am vazut problema, pentru ca
-                unele reparatii par usoare si ascund altele. Iti spunem si daca merita sa schimbi
-                ceva, chiar daca pot sa-l repar cu bucati obisnuite.
+                Nu practicam preturi estimative fara inspectarea zonei. Devizul se intocmeste dupa ce problema
+                a fost constatata, tocmai pentru ca unele reparatii par simple si ascund altele. Recomandam
+                inlocuirea unui element atunci cand este cea mai rationala solutie, chiar daca repararea cu
+                piese obisnuite ar fi posibila.
             </p>
 
             <div class="mt-12 grid grid-cols-1 gap-8 sm:grid-cols-3">
@@ -42,16 +43,16 @@ const bodyHtml = computed(() => props.page?.content?.body_html || '');
                 </div>
                 <div class="rounded-xl border border-slate-200 p-6 text-center">
                     <div class="text-3xl font-bold text-blue-600">1 zi</div>
-                    <div class="mt-2 text-sm text-slate-500">Programare la o zi lucratoare</div>
+                    <div class="mt-2 text-sm text-slate-500">Programare intr-o zi lucratoare</div>
                 </div>
             </div>
 
             <h2 class="mt-12 text-xl font-semibold text-slate-900">Cum lucrez</h2>
             <ul class="mt-4 space-y-2 text-slate-600">
-                <li>&bull; Pretul se stabileste dupa ce am vazut lucrarea, nu la telefon.</li>
-                <li>&bull; Devizul este scris, cu materialele si manopera separate.</li>
-                <li>&bull; Fara costuri ascunse si fara avansuri inainte de incepere.</li>
-                <li>&bull; Daca nu merita repara, iti spun si nu te conving sa o faci.</li>
+                <li>&bull; Pretul se stabileste dupa constatarea la locul lucrarii, nu telefonic.</li>
+                <li>&bull; Devizul este scris, cu materialele si manopera prezentate separat.</li>
+                <li>&bull; Fara costuri ascunse si fara avansuri inainte de inceperea lucrarii.</li>
+                <li>&bull; Daca reparatia nu este rentabila, va informam si nu vom insista pentru executie.</li>
             </ul>
         </section>
     </PublicLayout>

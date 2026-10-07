@@ -17,6 +17,12 @@ use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 use Spatie\Permission\Models\Role;
+use App\Services\AvailabilityService;
+use Carbon\CarbonImmutable;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class ContactController extends Controller
 {
@@ -34,26 +40,81 @@ class ContactController extends Controller
             'services' => Service::where('is_active', true)
                 ->orderBy('category')
                 ->orderBy('name')
-                ->get(['id', 'name', 'category', 'unit', 'description']),
+                ->get(['id', 'name', 'category', 'unit', 'description', 'sale_price', 'duration_minutes']),
         ]);
     }
 
-    public function store(Request $request, SmsService $sms): RedirectResponse
-    {
-        $data = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'phone' => ['required', 'string', 'max:30'],
-            'email' => ['nullable', 'email', 'max:255'],
-            'city' => ['nullable', 'string', 'max:255'],
-            'address' => ['nullable', 'string', 'max:255'],
-            'notes' => ['nullable', 'string', 'max:2000'],
-            'job_type' => ['nullable', Rule::in(Installation::TYPES)],
-            'service_ids' => ['nullable', 'array'],
-            'service_ids.*' => ['integer', 'exists:services,id'],
-            'photos' => ['nullable', 'array', 'max:5'],
-            'photos.*' => ['image', 'max:5120'],
-            'privacy_consent' => ['accepted'],
-        ]);
+    public function dates(Request $request, AvailabilityService $availability): JsonResponse
+{
+    $request->validate(['service_ids' => ['nullable', 'array'], 'service_ids.*' => ['integer']]);
+
+    $minutes = $this->durationFor($request->input('service_ids', []));
+
+    return response()->json([
+        'dates' => $availability->availableDates($minutes)->all(),
+        'duration' => $minutes,
+    ]);
+}
+
+public function slots(Request $request, AvailabilityService $availability): JsonResponse
+{
+    $request->validate([
+        'date' => ['required', 'date_format:Y-m-d'],
+        'service_ids' => ['nullable', 'array'],
+        'service_ids.*' => ['integer'],
+    ]);
+
+    $minutes = $this->durationFor($request->input('service_ids', []));
+
+    $slots = $availability
+        ->slotsForDate(CarbonImmutable::createFromFormat('Y-m-d', $request->input('date')), $minutes)
+        ->map(fn (CarbonImmutable $s) => $s->format('H:i'))
+        ->values();
+
+    return response()->json(['slots' => $slots]);
+}
+
+/** Durata totala, calculata mereu pe server. Minim 60 min (si pentru o simpla constatare). */
+private function durationFor(array $serviceIds): int
+{
+    $ids = array_filter(array_map('intval', $serviceIds));
+
+    $sum = $ids
+        ? (int) Service::whereIn('id', $ids)->where('is_active', true)->sum('duration_minutes')
+        : 0;
+
+    return max($sum, 60);
+}
+    public function store(Request $request, SmsService $sms, AvailabilityService $availability): RedirectResponse
+{
+    $data = $request->validate([
+        'name' => ['required', 'string', 'max:255'],
+        'phone' => ['required', 'string', 'max:30'],
+        'email' => ['nullable', 'email', 'max:255'],
+        'city' => ['nullable', 'string', 'max:255'],
+        'address' => ['nullable', 'string', 'max:255'],
+        'notes' => ['nullable', 'string', 'max:2000'],
+        'job_type' => ['required_with:scheduled_at', 'nullable', Rule::in(Installation::TYPES)],
+        'service_ids' => ['nullable', 'array'],
+        'service_ids.*' => ['integer', 'exists:services,id'],
+        'scheduled_at' => ['nullable', 'date_format:Y-m-d H:i'],
+        'photos' => ['nullable', 'array', 'max:5'],
+        'photos.*' => ['image', 'max:5120'],
+        'privacy_consent' => ['accepted'],
+    ]);
+
+    $duration = $this->durationFor($data['service_ids'] ?? []);
+    $start = empty($data['scheduled_at'])
+        ? null
+        : CarbonImmutable::createFromFormat('Y-m-d H:i', $data['scheduled_at']);
+
+    $register = fn () => DB::transaction(function () use ($request, $data, $availability, $start, $duration) {
+        // verificarea finala, chiar inainte de salvare
+        if ($start && ! $availability->isSlotFree($start, $duration)) {
+            throw ValidationException::withMessages([
+                'scheduled_at' => 'Intervalul ales tocmai a fost ocupat. Va rugam alegeti alt interval.',
+            ]);
+        }
 
         $client = Client::create([
             'name' => $data['name'],
@@ -68,61 +129,73 @@ class ContactController extends Controller
             'privacy_consent_ip' => $request->ip(),
         ]);
 
-        $visit = empty($data['job_type']) ? null : $this->createVisit($request, $client, $data);
+        $visit = empty($data['job_type'])
+            ? null
+            : $this->createVisit($request, $client, $data, $start, $duration);
 
-        $recipients = Role::whereIn('name', ['admin', 'vanzari'])
-            ->with('users')
-            ->get()
-            ->flatMap(fn (Role $role) => $role->users)
-            ->unique('id');
+        return [$client, $visit];
+    });
 
-        Notification::send($recipients, new NewLeadReceived($client));
+    // un singur client poate rezerva la un moment dat, ca doi oameni sa nu ia acelasi slot
+    [$client, $visit] = $start
+        ? Cache::lock('booking', 10)->block(5, $register)
+        : $register();
 
-        foreach ($recipients->whereNotNull('phone') as $recipient) {
-            $sms->send(
-                $recipient->phone,
-                $visit
-                    ? "Cerere de deviz: {$client->name} ({$client->phone}). De programat."
-                    : "Lead nou: {$client->name} ({$client->phone}).",
-            );
-        }
+    $recipients = Role::whereIn('name', ['admin', 'vanzari'])
+        ->with('users')
+        ->get()
+        ->flatMap(fn (Role $role) => $role->users)
+        ->unique('id');
 
-        return back()->with(
-            'success',
+    Notification::send($recipients, new NewLeadReceived($client));
+
+    $when = $start ? $start->format('d.m.Y H:i') : null;
+
+    foreach ($recipients->whereNotNull('phone') as $recipient) {
+        $sms->send(
+            $recipient->phone,
             $visit
-                ? 'Cererea ta a fost trimisa. Revenim cu confirmarea orei pentru constatare.'
-                : 'Cererea ta a fost trimisa. Te vom contacta in cel mai scurt timp.',
+                ? "Cerere de deviz: {$client->name} ({$client->phone})".($when ? ", {$when}. De confirmat." : '. De programat.')
+                : "Lead nou: {$client->name} ({$client->phone}).",
         );
     }
 
-    /**
-     * Programarea de constatare pornita din cererea de deviz: fara data si fara
-     * mester, ca sa poata fi introdusa in lista "de programat".
-     */
-    private function createVisit(Request $request, Client $client, array $data): Installation
-    {
-        $services = Service::whereIn('id', $data['service_ids'] ?? [])->pluck('name');
+    return back()->with(
+        'success',
+        $when
+            ? "Am primit cererea pentru {$when}. Revenim cu confirmarea."
+            : ($visit
+                ? 'Cererea a fost inregistrata. Revenim cu confirmarea orei pentru constatare.'
+                : 'Cererea a fost inregistrata. Va contactam in cel mai scurt timp.'),
+    );
+}
 
-        $photos = collect($request->file('photos', []))
-            ->filter()
-            ->map(fn ($photo) => Storage::disk('public')->url($photo->store('quote-requests', 'public')))
-            ->values()
-            ->all();
+private function createVisit(Request $request, Client $client, array $data, ?CarbonImmutable $start, int $duration): Installation
+{
+    $services = Service::whereIn('id', $data['service_ids'] ?? [])->pluck('name');
 
-        return Installation::create([
-            'client_id' => $client->id,
-            'type' => 'verificare',
-            'requested_type' => $data['job_type'],
-            'address' => trim(($data['address'] ?? '').' '.($data['city'] ?? '')) ?: null,
-            'status' => 'scheduled',
-            'checklist' => Installation::defaultChecklist('verificare'),
-            'photos' => $photos ?: null,
-            'customer_notes' => collect([
-                'Tip lucrare solicitat: '.(Installation::TYPE_LABELS[$data['job_type']] ?? $data['job_type']),
-                $services->isNotEmpty() ? 'Servicii dorite: '.$services->join(', ') : null,
-                $data['notes'] ?? null,
-            ])->filter()->implode("\n"),
-            'notes' => 'Constatare creata automat din cererea de deviz online.',
-        ]);
-    }
+    $photos = collect($request->file('photos', []))
+        ->filter()
+        ->map(fn ($photo) => Storage::disk('public')->url($photo->store('quote-requests', 'public')))
+        ->values()
+        ->all();
+
+    return Installation::create([
+        'client_id' => $client->id,
+        'type' => 'verificare',
+        'requested_type' => $data['job_type'],
+        'address' => trim(($data['address'] ?? '').' '.($data['city'] ?? '')) ?: null,
+        'scheduled_at' => $start,
+        'labor_hours' => round($duration / 60, 2),
+        'status' => 'scheduled',
+        'checklist' => Installation::defaultChecklist('verificare'),
+        'photos' => $photos ?: null,
+        'customer_notes' => collect([
+            'Tip lucrare solicitat: '.(Installation::TYPE_LABELS[$data['job_type']] ?? $data['job_type']),
+            $services->isNotEmpty() ? 'Servicii dorite: '.$services->join(', ') : null,
+            $data['notes'] ?? null,
+        ])->filter()->implode("\n"),
+        'notes' => 'Constatare creata automat din cererea de deviz online.',
+    ]);
+}
 }

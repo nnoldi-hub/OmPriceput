@@ -23,20 +23,20 @@ const verificationLinkSent = computed(
 
 <template>
     <GuestLayout>
-        <Head title="Email Verification" />
+        <Head title="Verificare email" />
 
         <div class="mb-4 text-sm text-gray-600">
-            Thanks for signing up! Before getting started, could you verify your
-            email address by clicking on the link we just emailed to you? If you
-            didn't receive the email, we will gladly send you another.
+            Va multumim pentru inregistrare! Inainte de a incepe, va rugam sa va
+            verificati adresa de email apasand pe linkul pe care tocmai vi l-am
+            trimis. Daca nu ati primit emailul, il trimitem din nou cu placere.
         </div>
 
         <div
             class="mb-4 text-sm font-medium text-green-600"
             v-if="verificationLinkSent"
         >
-            A new verification link has been sent to the email address you
-            provided during registration.
+            Un nou link de verificare a fost trimis pe adresa de email
+            furnizata la inregistrare.
         </div>
 
         <form @submit.prevent="submit">
@@ -45,7 +45,7 @@ const verificationLinkSent = computed(
                     :class="{ 'opacity-25': form.processing }"
                     :disabled="form.processing"
                 >
-                    Resend Verification Email
+                    Trimite din nou emailul de verificare
                 </PrimaryButton>
 
                 <Link
@@ -53,7 +53,7 @@ const verificationLinkSent = computed(
                     method="post"
                     as="button"
                     class="rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                    >Log Out</Link
+                    >Deconectare</Link
                 >
             </div>
         </form>

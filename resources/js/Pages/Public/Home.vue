@@ -13,7 +13,7 @@ const props = defineProps({
     page: Object,
 });
 const heroTitle = computed(() => props.page?.content?.hero_title || 'Reparam. Montam. Lasam totul ca atunci.');
-const heroIntro = computed(() => props.page?.content?.intro || 'Lucrari de electrician, instalator, zugarev si montaj pentru casa si apartament. Trimite cererea, venim la constatare si iti lasam devizul scris inainte sa incepem.');
+const heroIntro = computed(() => props.page?.content?.intro || 'Lucrari de electrician, instalator, zugrav si montaj pentru casa si apartament. Trimiteti cererea, venim la constatare si primiti devizul scris inainte de a incepe lucrarea.');
 const sections = computed(() => props.page?.sections || []);
 const hasSection = (type) => sections.value.some((section) => section.content?.type === type || section.section_key === type);
 const sectionContent = (section) => section.content || {};
@@ -24,23 +24,23 @@ function formatDate(value) {
 
 const fallbackStats = [
     { icon: 'clock', value: '24h', label: 'Raspuns la cerere' },
-    { icon: 'home', value: '1 zi', label: 'Programare constatare' },
+    { icon: 'home', value: '1 zi', label: 'Programarea constatarii' },
     { icon: 'shield', value: 'Scris', label: 'Deviz inainte de lucrare' },
     { icon: 'bolt', value: 'Fara surprize', label: 'Pret final la locul lucrarii' },
 ];
 
 const steps = [
-    { icon: 'clipboard', title: 'Cerere si poze', text: 'Ne spui ce ai nevoie si trimite cateva fotografii.' },
-    { icon: 'truck', title: 'Constatare', text: 'Venim sa vedem problema si sa stabilim materialele.' },
-    { icon: 'wrench', title: 'Deviz scris', text: 'Primesti pretul cu manopera si materialele separate.' },
-    { icon: 'lifebuoy', title: 'Lucrare', text: 'Accepti fara grabire, programam si remediem problema.' },
+    { icon: 'clipboard', title: 'Cerere si fotografii', text: 'Ne spuneti ce aveti nevoie si atasati cateva fotografii ale problemei.' },
+    { icon: 'truck', title: 'Constatare', text: 'Venim la locul lucrarii pentru a identifica problema si a stabili materialele necesare.' },
+    { icon: 'wrench', title: 'Deviz scris', text: 'Primiti devizul cu manopera si materialele prezentate separat.' },
+    { icon: 'lifebuoy', title: 'Executia lucrarii', text: 'Dupa acceptarea devizului, programam interventia si remediem problema.' },
 ];
 </script>
 
 <template>
     <SeoHead
         title="Reparatii, montaje si intretinere"
-        description="Omul Potrivit: lucrari de electrician, instalator, zugarev si montaj. Trimite cererea, primesti deviz scris dupa constatarea gratuita."
+        description="Om Priceput: lucrari de electrician, instalator, zugrav si montaj pentru casa si apartament. Trimiteti cererea si primiti devizul scris dupa constatarea gratuita."
     />
 
     <PublicLayout>
@@ -56,21 +56,21 @@ const steps = [
                         Lucrari pentru casa si apartament
                     </span>
                     <div class="mt-4 flex items-center gap-2 text-white/90">
-                        <img src="/branding/op-logo.png" alt="Omul Potrivit" class="h-12 w-auto max-w-[260px] object-contain sm:h-14 lg:h-16" />
+                        <img src="/branding/logo-trim.png" alt="Om Priceput" class="h-12 w-auto max-w-[260px] object-contain sm:h-14 lg:h-16" />
                     </div>
                     <h1 class="mt-6 font-display text-5xl font-extrabold tracking-[-0.05em] text-white sm:text-7xl">
                         Reparam. Montam.
                         <span class="block text-orange-500">Lasam totul ca atunci.</span>
                     </h1>
                     <p class="mt-6 max-w-[620px] text-lg leading-8 text-slate-300">
-                        Lucrari de electrician, instalator, zugarev si montaj pentru casa si apartament. Trimite cererea, venim la constatare si iti lasam devizul scris inainte sa incepem.
+                        Lucrari de electrician, instalator, zugrav si montaj pentru casa si apartament. Trimiteti cererea, venim la constatare si primiti devizul scris inainte de a incepe lucrarea.
                     </p>
                     <div class="mt-8 flex flex-wrap gap-4">
                         <Link
                             :href="route('public.quote')"
                             class="rounded-md bg-orange-500 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-orange-500/25 transition hover:bg-orange-400"
                         >
-                            Cere deviz gratuit
+                            Cereti un deviz gratuit
                         </Link>
                         <Link
                             :href="route('public.services')"
@@ -115,7 +115,7 @@ const steps = [
             </div>
         </section>
         <section v-for="section in sections.filter((item) => ['cta', 'text_image', 'gallery', 'html'].includes(item.content?.type || item.section_key))" :key="section.id" class="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-            <div v-if="(section.content?.type || section.section_key) === 'cta'" class="rounded-2xl bg-brand-navy p-10 text-center text-white"><h2 class="text-3xl font-bold">{{ sectionContent(section).title }}</h2><p class="mx-auto mt-3 max-w-2xl text-slate-300">{{ sectionContent(section).text }}</p><Link :href="sectionContent(section).button_link || route('public.quote')" class="mt-6 inline-block rounded-md bg-orange-500 px-5 py-3 font-semibold">{{ sectionContent(section).button_text || 'Contacteaza-ne' }}</Link></div>
+            <div v-if="(section.content?.type || section.section_key) === 'cta'" class="rounded-2xl bg-brand-navy p-10 text-center text-white"><h2 class="text-3xl font-bold">{{ sectionContent(section).title }}</h2><p class="mx-auto mt-3 max-w-2xl text-slate-300">{{ sectionContent(section).text }}</p><Link :href="sectionContent(section).button_link || route('public.quote')" class="mt-6 inline-block rounded-md bg-orange-500 px-5 py-3 font-semibold">{{ sectionContent(section).button_text || 'Contactati-ne' }}</Link></div>
             <div v-else-if="(section.content?.type || section.section_key) === 'text_image'" class="grid items-center gap-8 md:grid-cols-2"><div><h2 class="text-3xl font-bold text-slate-900">{{ sectionContent(section).title }}</h2><p class="mt-4 whitespace-pre-line text-slate-600">{{ sectionContent(section).text }}</p></div><img v-if="sectionContent(section).image" :src="sectionContent(section).image" :alt="sectionContent(section).image_alt || sectionContent(section).title" class="rounded-xl object-cover" /></div>
             <div v-else-if="(section.content?.type || section.section_key) === 'gallery'" class="grid grid-cols-2 gap-4 md:grid-cols-4"><img v-for="image in sectionContent(section).images" :key="image" :src="image" alt="" class="h-40 w-full rounded-lg object-cover" /></div>
             <div v-else class="prose max-w-none" v-html="sectionContent(section).html"></div>
@@ -123,7 +123,7 @@ const steps = [
         <section v-if="!hasSection('packages')" class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
             <div class="text-center">
                 <h2 class="font-display text-3xl font-bold text-slate-900">Pachete de intretinere</h2>
-                <p class="mt-3 text-slate-500">Alege un pachet cu numar fix de vizite sau cere un deviz dupa constatare.</p>
+                <p class="mt-3 text-slate-500">Alegeti un pachet cu un numar fix de vizite sau solicitati un deviz dupa constatare.</p>
             </div>
             <div class="mt-10 grid grid-cols-1 gap-8 lg:grid-cols-3">
                 <PackageCard v-for="pkg in packages" :key="pkg.key" :pkg="pkg" />

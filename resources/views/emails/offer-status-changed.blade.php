@@ -12,7 +12,7 @@
                 <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:620px;background:#fff;border-radius:12px;overflow:hidden;">
                     <tr>
                         <td style="background:#061426;padding:28px 24px;text-align:center;">
-                            <img src="{{ $logoUrl }}" alt="Omul Potrivit" width="250" style="display:block;width:250px;max-width:100%;height:auto;margin:auto;">
+                            <img src="{{ $logoUrl }}" alt="Om Priceput" width="250" style="display:block;width:250px;max-width:100%;height:auto;margin:auto;">
                         </td>
                     </tr>
                     <tr>
@@ -34,7 +34,7 @@
                                 </a>
                             </p>
                             <p style="margin-top:28px;border-top:1px solid #e5e7eb;padding-top:22px;color:#4b5563;">
-                                Cu stima,<br><strong style="color:#172033;">Omul Potrivit</strong>
+                                Cu stima,<br><strong style="color:#172033;">Om Priceput</strong>
                             </p>
                         </td>
                     </tr>

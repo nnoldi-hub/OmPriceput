@@ -9,7 +9,7 @@ import { Link } from '@inertiajs/vue3';
     >
         <div>
             <Link href="/">
-                <img src="/branding/op-logo.png" alt="Omul Potrivit" class="h-12 w-auto object-contain" />
+                <img src="/branding/logo-trim.png" alt="Om Priceput" class="h-12 w-auto object-contain" />
             </Link>
         </div>
 

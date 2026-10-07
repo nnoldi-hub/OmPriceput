@@ -19,7 +19,7 @@ class DatabaseSeeder extends Seeder
 
         $admin = User::factory()->create([
             'name' => 'Patron',
-            'email' => 'admin@omulpotrivit.test',
+            'email' => 'admin@ompriceput.test',
             'phone' => '0700 111 222',
             'trade' => 'general',
         ]);
@@ -27,14 +27,14 @@ class DatabaseSeeder extends Seeder
 
         $sales = User::factory()->create([
             'name' => 'Agent Programari',
-            'email' => 'programari@omulpotrivit.test',
+            'email' => 'programari@ompriceput.test',
             'phone' => '0700 111 223',
         ]);
         $sales->assignRole('vanzari');
 
         $electrician = User::factory()->create([
             'name' => 'Meseras Electrician',
-            'email' => 'electrician@omulpotrivit.test',
+            'email' => 'electrician@ompriceput.test',
             'phone' => '0700 111 224',
             'trade' => 'electric',
         ]);
@@ -42,7 +42,7 @@ class DatabaseSeeder extends Seeder
 
         $plumber = User::factory()->create([
             'name' => 'Meseras Sanitar',
-            'email' => 'sanitar@omulpotrivit.test',
+            'email' => 'sanitar@ompriceput.test',
             'phone' => '0700 111 225',
             'trade' => 'sanitar',
         ]);
@@ -50,7 +50,7 @@ class DatabaseSeeder extends Seeder
 
         $painter = User::factory()->create([
             'name' => 'Meseras Vopsire',
-            'email' => 'vopsire@omulpotrivit.test',
+            'email' => 'vopsire@ompriceput.test',
             'phone' => '0700 111 226',
             'trade' => 'vopsire',
         ]);
@@ -58,7 +58,7 @@ class DatabaseSeeder extends Seeder
 
         $support = User::factory()->create([
             'name' => 'Suport Clienti',
-            'email' => 'suport@omulpotrivit.test',
+            'email' => 'suport@ompriceput.test',
             'phone' => '0700 111 227',
         ]);
         $support->assignRole('suport');

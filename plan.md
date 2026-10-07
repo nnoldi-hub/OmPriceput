@@ -1,4 +1,4 @@
-# Plan de dezvoltare - sistem Omul Potrivit (contractor de meserii)
+# Plan de dezvoltare - sistem Om Priceput (contractor de meserii)
 
 ## 1. Evaluare inițială
 

@@ -14,6 +14,12 @@ Route::name('public.')->middleware('track.views')->group(function () {
     Route::get('/despre', [PageController::class, 'about'])->name('about');
     Route::get('/servicii', [PageController::class, 'services'])->name('services');
     Route::get('/cerere-deviz', [ContactController::class, 'quote'])->name('quote');
+    Route::get('/cerere-deviz/zile', [ContactController::class, 'dates'])
+    ->middleware('throttle:60,1')
+    ->name('quote.dates');
+Route::get('/cerere-deviz/sloturi', [ContactController::class, 'slots'])
+    ->middleware('throttle:60,1')
+    ->name('quote.slots');
     Route::get('/contact', [ContactController::class, 'index'])->name('contact');
     Route::get('/termeni', [LegalController::class, 'terms'])->name('terms');
     Route::get('/confidentialitate', [LegalController::class, 'privacy'])->name('privacy');

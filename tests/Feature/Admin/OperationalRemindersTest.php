@@ -69,8 +69,8 @@ class OperationalRemindersTest extends TestCase
         $admin->assignRole('admin');
 
         $this->actingAs($admin)->put(route('admin.settings.update'), [
-            'company_name' => 'Omul Potrivit',
-            'company_email' => 'contact@omulpotrivit.ro',
+            'company_name' => 'Om Priceput',
+            'company_email' => 'contact@ompriceput.ro',
             'company_phone' => '0722000000',
             'company_hours' => 'Luni - Vineri',
             'invoice_series' => 'OP',

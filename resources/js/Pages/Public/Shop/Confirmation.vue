@@ -7,7 +7,7 @@ defineProps({ order: Object });
 </script>
 
 <template>
-    <SeoHead title="Comanda inregistrata" description="Confirmarea comenzii tale din magazinul online Omul Potrivit." />
+    <SeoHead title="Comanda inregistrata" description="Confirmarea comenzii plasate in magazinul online Om Priceput." />
 
     <PublicLayout>
         <section class="mx-auto max-w-3xl px-4 py-16 sm:px-6 lg:px-8 text-center">
@@ -17,8 +17,8 @@ defineProps({ order: Object });
                 </svg>
             </div>
             <h1 class="mt-6 font-display text-2xl font-bold text-slate-900">Comanda a fost inregistrata!</h1>
-            <p class="mt-2 text-slate-500">Numarul comenzii tale: <span class="font-semibold text-slate-800">{{ order.order_number }}</span></p>
-            <p class="mt-1 text-slate-500">Te vom contacta in curand la {{ order.phone }} pentru confirmare.</p>
+            <p class="mt-2 text-slate-500">Numarul comenzii dumneavoastra: <span class="font-semibold text-slate-800">{{ order.order_number }}</span></p>
+            <p class="mt-1 text-slate-500">Va vom contacta in curand la {{ order.phone }} pentru confirmare.</p>
 
             <div class="mt-8 rounded-xl border border-slate-200 p-6 text-left">
                 <h2 class="font-semibold text-slate-900">Produse comandate</h2>
@@ -38,7 +38,7 @@ defineProps({ order: Object });
                 </div>
             </div>
 
-            <Link :href="route('public.shop.index')" class="mt-8 inline-block text-sm text-blue-600">Continua cumparaturile</Link>
+            <Link :href="route('public.shop.index')" class="mt-8 inline-block text-sm text-blue-600">Continuati cumparaturile</Link>
         </section>
     </PublicLayout>
 </template>

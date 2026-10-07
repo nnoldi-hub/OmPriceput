@@ -14,47 +14,47 @@ const trades = [
     {
         key: 'electric',
         title: 'Electrician',
-        text: 'Reparatii si instalatii electrice, tablouri, prize si lumini, verificare si eliminarea defectelor.',
+        text: 'Instalatii si reparatii electrice, tablouri de distributie, prize si corpuri de iluminat, diagnosticarea si eliminarea defectelor.',
         icon: 'bolt',
     },
     {
         key: 'sanitar',
-        title: 'Instalator',
-        text: 'Chiuvite, calorifere, tevi infundate, robinete si obiecte sanitare, montaj si schimb.',
+        title: 'Instalator sanitar',
+        text: 'Chiuvite, calorifere, tevi infundate, robinete si obiecte sanitare: montaj, schimb si depanare.',
         icon: 'lifebuoy',
     },
     {
         key: 'vopsire',
-        title: 'Zugarev',
-        text: 'Vopsire, zugravaila, pregatirea suprafetelor si decoratiuni simple, interior sau exterior.',
+        title: 'Zugrav',
+        text: 'Vopsire, zugraveli, pregatirea suprafetelor si decoratiuni simple, atat in interior, cat si in exterior.',
         icon: 'sparkles',
     },
     {
         key: 'montaj',
         title: 'Montaj',
-        text: 'Mobilier la comanda, tv pe perete, rafturi, corpuri suspendate si obiecte fixate corect.',
+        text: 'Mobilier la comanda, televizor montat pe perete, rafturi, corpuri suspendate si fixarea corecta a obiectelor.',
         icon: 'wrench',
     },
     {
         key: 'general',
         title: 'Lucrari generale',
-        text: 'Reparatii mici de zugraveli, silicon, balamale, usi si tot ce nu gasesti in alta categorie.',
+        text: 'Reparatii mici de zugraveli, silicon, balamale, usi si orice lucrare care nu se incadreaza in categoriile de mai sus.',
         icon: 'home',
     },
 ];
 
 const howItWorks = [
-    { title: 'Trimite cererea', text: 'Alegi tipul lucrarii, adaugi poze si spui problema in cateva randuri.' },
-    { title: 'Te sunam', text: 'Confirmam ora si venim la constatare gratuit.' },
-    { title: 'Primești devizul', text: 'Il primesti scris, cu materialele si manopera separate.' },
-    { title: 'Decizi fara grabire', text: 'Daca nu te convine, nu platesti nimic.' },
+    { title: 'Trimiteti cererea', text: 'Alegeti tipul lucrarii, atasati fotografii si descrieti problema in cateva randuri.' },
+    { title: 'Va sunam pentru confirmare', text: 'Confirmam ora si venim la constatare, gratuit.' },
+    { title: 'Primiti devizul', text: 'Il primiti scris, cu materialele si manopera prezentate separat.' },
+    { title: 'Decideti fara graba', text: 'Daca devizul nu va convinge, nu platiti nimic.' },
 ];
 </script>
 
 <template>
     <SeoHead
-        title="Ce facem - electrician, instalator, zugarev, montaj"
-        description="Lucrari de electrician, instalator, zugarev si montaj pentru casa si apartament. Constatare gratuita si deviz scris inainte de lucrare."
+        title="Ce facem - electrician, instalator, zugrav, montaj"
+        description="Lucrari de electrician, instalator, zugrav si montaj pentru casa si apartament. Constatare gratuita si deviz scris inainte de inceperea lucrarii."
     />
 
     <PublicLayout>
@@ -62,8 +62,8 @@ const howItWorks = [
             <div class="text-center">
                 <h1 class="font-display text-3xl font-bold text-slate-900">Ce facem</h1>
                 <p class="mt-3 text-slate-500">
-                    Lucrez eu sau trimit meserasul potrivit lucrarii. In ambele cazuri, vedem problema
-                    inainte si iti spunem exact ce costa.
+                    Execut lucrarea eu sau deleg meserasului potrivit. In ambele situatii, problema este analizata
+                    la locul lucrarii, iar costul este comunicat inainte de executie.
                 </p>
             </div>
 
@@ -78,7 +78,7 @@ const howItWorks = [
             </div>
 
             <div class="mt-12 rounded-2xl bg-brand-navy p-8 text-center text-white">
-                <h2 class="font-display text-2xl font-bold">Cum decurge o lucrarea</h2>
+                <h2 class="font-display text-2xl font-bold">Cum decurge o lucrare</h2>
                 <div class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
                     <div v-for="(step, index) in howItWorks" :key="step.title" class="text-left">
                         <div class="text-sm font-bold text-orange-400">{{ index + 1 }}</div>
@@ -90,7 +90,7 @@ const howItWorks = [
                     :href="route('public.quote')"
                     class="mt-8 inline-block rounded-md bg-orange-500 px-5 py-3 text-sm font-semibold text-white hover:bg-orange-400"
                 >
-                    Cere deviz
+                    Cereti un deviz
                 </Link>
             </div>
         </section>
@@ -100,7 +100,7 @@ const howItWorks = [
                 <div class="text-center">
                     <h2 class="font-display text-3xl font-bold text-slate-900">Pachete de intretinere</h2>
                     <p class="mt-3 text-slate-500">
-                        Cu numar fix de vizite si conditii cunoscute, pentru intretinerea recurenta a instalatiilor tale.
+                        Cu un numar fix de vizite si conditii clare, pentru intretinerea recurenta a instalatiilor.
                     </p>
                 </div>
                 <div class="mt-10 grid grid-cols-1 gap-8 lg:grid-cols-3">
@@ -108,7 +108,7 @@ const howItWorks = [
                 </div>
                 <div class="mt-10 text-center">
                     <Link :href="route('public.quote')" class="text-sm font-semibold text-blue-600 hover:text-blue-500">
-                        Ai o lucrare diferita? Trimite cererea &rarr;
+                        Aveti o lucrare diferita? Trimiteti cererea &rarr;
                     </Link>
                 </div>
             </div>

@@ -11,7 +11,7 @@ const form = useForm({
     phone: '',
     email: '',
     city: '',
-    notes: params.get('notes') ?? (params.get('package') ? `Interesat de pachetul: ${params.get('package')}` : ''),
+    notes: params.get('notes') ?? (params.get('package') ? `Sunt interesat de pachetul: ${params.get('package')}` : ''),
     privacy_consent: false,
 });
 
@@ -26,7 +26,7 @@ function submit() {
 <template>
     <SeoHead
         title="Contact"
-        description="Contacteaza Omul Potrivit pentru reparatii, montaje si intretinere. Raspundem in cel mai scurt timp."
+        description="Contactati Om Priceput pentru reparatii, montaje si intretinere. Raspundem in cel mai scurt timp."
     />
 
     <PublicLayout>
@@ -34,13 +34,13 @@ function submit() {
             <div class="text-center">
                 <h1 class="font-display text-3xl font-bold text-slate-900">Contact</h1>
                 <p class="mt-3 text-slate-500">
-                    Ai o intrebare sau vrei doar sa stii daca putem ajuta? Scrie-ne si te raspundem.
+                    Aveti o intrebare sau doriti sa verificati daca putem ajuta? Scrieti-ne si va raspundem.
                 </p>
                 <Link
                     :href="route('public.quote')"
                     class="mt-4 inline-flex rounded-md bg-orange-500 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-orange-400"
                 >
-                    Vreau deviz pentru o lucrare
+                    Doresc un deviz pentru o lucrare
                 </Link>
             </div>
 
@@ -60,7 +60,7 @@ function submit() {
                     </div>
                     <label class="flex items-start gap-2 text-sm text-slate-600">
                         <input v-model="form.privacy_consent" type="checkbox" required class="mt-1 rounded border-slate-300 text-orange-500 focus:ring-orange-500" />
-                        <span>Sunt de acord cu prelucrarea datelor conform <a :href="route('public.privacy')" class="text-blue-600 underline">Politicii de confidentialitate</a> si <a :href="route('public.terms')" class="text-blue-600 underline">Termenilor</a>.</span>
+                        <span>Sunt de acord cu prelucrarea datelor personale in conformitate cu <a :href="route('public.privacy')" class="text-blue-600 underline">Politica de confidentialitate</a> si <a :href="route('public.terms')" class="text-blue-600 underline">Termenii si conditiile</a> de utilizare.</span>
                     </label>
                     <p v-if="form.errors.privacy_consent" class="mt-1 text-sm text-red-600">{{ form.errors.privacy_consent }}</p>
                     <div>
@@ -80,7 +80,7 @@ function submit() {
                     </div>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-slate-700">Cum te poate ajuta un meseras</label>
+                        <label class="block text-sm font-medium text-slate-700">Cu ce va putem ajuta?</label>
                     <textarea v-model="form.notes" rows="4" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" />
                     <p v-if="form.errors.notes" class="mt-1 text-sm text-red-600">{{ form.errors.notes }}</p>
                 </div>
@@ -100,10 +100,10 @@ function submit() {
                 </div>
                 <div>
                     <div class="font-semibold text-slate-900">Email</div>
-                    {{ page.props.siteSettings?.company_email || 'contact@omulpotrivit.test' }}
+                    {{ page.props.siteSettings?.company_email || 'contact@ompriceput.test' }}
                 </div>
                 <div>
-                    <div class="font-semibold text-slate-900">Program</div>
+                    <div class="font-semibold text-slate-900">Program de lucru</div>
                     {{ page.props.siteSettings?.company_hours || 'Luni - Vineri, 09:00 - 18:00' }}
                 </div>
                 <div>

@@ -45,7 +45,7 @@ defineProps({
             class="mt-8 block rounded-md px-4 py-2.5 text-center text-sm font-semibold shadow-sm transition"
             :class="pkg.highlight ? 'bg-orange-500 text-white hover:bg-orange-400' : 'bg-slate-900 text-white hover:bg-slate-700'"
         >
-            Vreau pachetul {{ pkg.name }}
+            Doresc pachetul {{ pkg.name }}
         </Link>
     </div>
 </template>

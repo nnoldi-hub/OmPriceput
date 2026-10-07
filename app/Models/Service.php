@@ -28,12 +28,14 @@ class Service extends Model
         'sale_price',
         'description',
         'is_active',
+        'duration_minutes',
     ];
 
     protected $casts = [
         'cost_price' => 'decimal:2',
         'sale_price' => 'decimal:2',
         'is_active' => 'boolean',
+        'duration_minutes' => 'integer',
     ];
 
     public function offerItems(): HasMany

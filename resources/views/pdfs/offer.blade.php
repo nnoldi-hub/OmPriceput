@@ -33,7 +33,7 @@
     <table class="header" cellspacing="0" cellpadding="0">
         <tr>
             <td style="width: 55%;">
-                <img class="logo" src="{{ public_path('branding/op-logo.png') }}" alt="Omul Potrivit">
+                <img class="logo" src="{{ public_path('branding/op-logo.png') }}" alt="Om Priceput">
                 <div class="brand-line">REPARAM. MONTAM. LASAM TOTUL CA ATUNCI.</div>
             </td>
             <td style="width: 45%; text-align: right;">
@@ -93,7 +93,7 @@
     @endif
 
     <div class="footer muted">
-        Deviz generat prin platforma Omul Potrivit. Preturile sunt exprimate in lei si includ manopera si
+        Deviz generat prin platforma Om Priceput. Preturile sunt exprimate in lei si includ manopera si
         materialele listate mai sus. Lucrarea se considera acceptata dupa semnarea devizului.
     </div>
 </body>

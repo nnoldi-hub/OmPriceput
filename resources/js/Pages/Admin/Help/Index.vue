@@ -13,7 +13,7 @@ const activeCategory = ref('all');
 
 const categories = [
     { id: 'all', name: 'Toate ghidurile', icon: 'book-open' },
-    { id: 'configulare', name: '1. Configurare & Setări', icon: 'settings' },
+    { id: 'configurare', name: '1. Configurare & Setări', icon: 'settings' },
     { id: 'crm', name: '2. Vânzări & CRM', icon: 'briefcase' },
     { id: 'magazin', name: '3. Magazin Online', icon: 'shopping-cart' },
     { id: 'tehnic', name: '4. Tehnic & Aprovizionare', icon: 'wrench' },
@@ -26,7 +26,7 @@ const categories = [
 const guides = [
     {
         id: 'cfg-1',
-        category: 'configulare',
+        category: 'configurare',
         title: 'Configurarea datelor firmei, seriei de facturi și cotei TVA',
         summary: 'Setează informațiile oficiale ale companiei pentru ca toate ofertele și facturile emise să conțină antetul corect.',
         steps: [
@@ -41,11 +41,11 @@ const guides = [
     },
     {
         id: 'cfg-2',
-        category: 'configulare',
+        category: 'configurare',
         title: 'Configurarea trimiterii notificărilor pe Email și SMS',
         summary: 'Asigură-te că notificările automate pentru clienți și notificările operaționale funcționează impecabil.',
         steps: [
-            'Pentru Email: Se folosește adresa notificari@sigurantavideo.ro configurată prin SMTP securizat în .env.',
+            'Pentru Email: Se folosește adresa nnoldi@meseriasionline.ro configurată prin SMTP securizat în .env.',
             'Bifează opțiunea "Trimite și pe email notificările operaționale" din Sistem → Setări pentru ca administratorii și tehnicienii să primească alerte pentru facturi restante, programări sau stoc scăzut.',
             'Pentru SMS: Notificările SMS trimit mesaje automate clienților când primesc o ofertă, când li se schimbă statusul tichetele sau când se confirmă o comandă.',
         ],
@@ -55,7 +55,7 @@ const guides = [
     },
     {
         id: 'cfg-3',
-        category: 'configulare',
+        category: 'configurare',
         title: 'Activarea integrărilor Google Analytics 4, GTM și Facebook (Meta) Pixel',
         summary: 'Urmărește performanța campaniilor de reclame și comportamentul vizitatorilor direct pe paginile publice.',
         steps: [
@@ -103,7 +103,7 @@ const guides = [
         id: 'shop-1',
         category: 'magazin',
         title: 'Activarea magazinului online și setarea transportului gratuit',
-        summary: 'Pune la dispoziția clienților un catalog online intuitiv de unde pot comanda sisteme și echipamente.',
+        summary: 'Pune la dispoziția clienților un catalog online intuitiv de unde pot comanda materiale.',
         steps: [
             'Accesează Sistem → Setări → secțiunea Magazin online.',
             'Bifează "Activează magazinul online" pentru a face vizibilă secțiunea de Magazin în site-ul public.',
@@ -142,7 +142,7 @@ const guides = [
             'Când stocul scade sub limita setată, echipamentul apare automat în secțiunea "Stoc scăzut".',
             'Aprovizionare automată: Din secțiunea Tehnic → Comenzi furnizori poți genera automat o comandă de aprovizionare pe baza articolelor cu stoc scăzut.',
         ],
-        proTip: 'Folosește modulul Tehnic → Furnizori / Import pentru a importa rapid cataloage de la furnizori (cum ar fi Hikvision, Dahua, etc.).',
+        proTip: 'Folosește modulul Tehnic → Furnizori / Import pentru a importa rapid cataloage de la furnizori (cum ar fi materiale electrice, sanitare, feronerie).',
         route: 'technical.equipment.index',
         buttonText: 'Vezi Stoc Echipamente',
     },
@@ -179,7 +179,7 @@ const guides = [
     {
         id: 'fin-1',
         category: 'financiar',
-        title: 'Emiteri de facturi, plăți parțiale și sincronizare FGO',
+        title: 'Emiterea facturilor, plăți parțiale și sincronizare FGO',
         summary: 'Gestionează facturarea simplu și eficient cu evidență pe încasări.',
         steps: [
             'Accesează Financiar → Facturi pentru a vedea toate facturile emise, restanțele și statusul încasărilor.',

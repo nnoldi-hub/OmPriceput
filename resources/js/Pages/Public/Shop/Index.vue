@@ -33,21 +33,21 @@ function addToCart(product) {
 <template>
     <SeoHead
         title="Magazin online"
-        description="Materiale, consumabile, scule si piese de schimb pentru lucrarile tale, disponibile la comanda online."
+        description="Materiale, consumabile, scule si piese de schimb, disponibile pentru comanda online."
     />
 
     <PublicLayout>
         <section class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
             <div class="text-center">
                 <h1 class="font-display text-3xl font-bold text-slate-900">Magazin online</h1>
-                <p class="mt-3 text-slate-500">Materiale, consumabile si piese de schimb, disponibile la comanda.</p>
+                <p class="mt-3 text-slate-500">Materiale, consumabile si piese de schimb, disponibile pentru comanda online.</p>
             </div>
 
             <div class="mt-8 flex flex-wrap items-center justify-center gap-3">
                 <input
                     v-model="search"
                     type="text"
-                    placeholder="Cauta produse..."
+                    placeholder="Cautati produse..."
                     class="w-full max-w-xs rounded-lg border-slate-300 text-sm"
                     @keyup.enter="applyFilters"
                 />
@@ -55,7 +55,7 @@ function addToCart(product) {
                     <option value="">Toate categoriile</option>
                     <option v-for="(label, value) in categories" :key="value" :value="value">{{ label }}</option>
                 </select>
-                <button class="rounded-lg bg-brand-navy px-4 py-2 text-sm font-medium text-white" @click="applyFilters">Filtreaza</button>
+                <button class="rounded-lg bg-brand-navy px-4 py-2 text-sm font-medium text-white" @click="applyFilters">Filtrati</button>
             </div>
 
             <div class="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -63,7 +63,7 @@ function addToCart(product) {
                     <Link :href="route('public.shop.show', product.slug)" class="block">
                         <div class="flex h-40 items-center justify-center overflow-hidden rounded-lg bg-slate-50">
                             <img v-if="product.image_path" :src="`/storage/${product.image_path}`" :alt="product.name" class="h-full w-full object-contain" />
-                            <span v-else class="text-sm text-slate-400">Fara imagine</span>
+                            <span v-else class="text-sm text-slate-400">Imagine indisponibila</span>
                         </div>
                         <div class="mt-3 text-xs uppercase tracking-wide text-slate-400">{{ product.category_label }}</div>
                         <h2 class="mt-1 font-semibold text-slate-900">{{ product.name }}</h2>
@@ -78,12 +78,12 @@ function addToCart(product) {
                         :disabled="!product.in_stock"
                         @click="addToCart(product)"
                     >
-                        {{ addedId === product.id ? 'Adaugat in cos' : 'Adauga in cos' }}
+                        {{ addedId === product.id ? 'Adaugat in cos' : 'Adaugati in cos' }}
                     </button>
                 </div>
             </div>
 
-            <p v-if="!products.data.length" class="mt-10 text-center text-slate-500">Nu exista produse disponibile momentan.</p>
+            <p v-if="!products.data.length" class="mt-10 text-center text-slate-500">Nu exista produse disponibile in acest moment.</p>
 
             <div v-if="products.links.length > 3" class="mt-10 flex flex-wrap justify-center gap-2">
                 <Link

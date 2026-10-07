@@ -166,8 +166,8 @@ const mobileOpen = ref(false);
             <div class="flex h-20 flex-shrink-0 items-center gap-2 border-b border-white/10 px-4">
                 <Link :href="route('dashboard')" class="flex min-w-0 items-center gap-2">
                     <img
-                        src="/branding/op-logo.png"
-                        alt="Omul Potrivit"
+                        src="/branding/logo-trim.png"
+                        alt="Om Priceput"
                         class="h-12 w-auto max-w-[190px] flex-shrink-0 object-contain"
                     />
                 </Link>
@@ -283,7 +283,7 @@ const mobileOpen = ref(false);
                     class="rounded-md bg-orange-50 px-3 py-2 text-sm font-medium text-orange-700 hover:bg-orange-100"
                     @click="router.patch(route('notifications.read-all'), {}, { preserveScroll: true })"
                 >
-                    {{ page.props.auth.unreadNotifications }} notificări noi
+                    {{ page.props.auth.unreadNotifications }} notificari noi
                 </button>
             </div>
 

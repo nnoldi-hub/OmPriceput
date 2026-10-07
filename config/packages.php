@@ -4,7 +4,7 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Pachete de intretinere - Omul Potrivit
+    | Pachete de intretinere - Om Priceput
     |--------------------------------------------------------------------------
     |
     | Pachete afisate pe site-ul public. Sunt abonamente de intretinere cu

@@ -37,14 +37,14 @@ function submit() {
 </script>
 
 <template>
-    <SeoHead title="Cosul de cumparaturi" description="Finalizeaza comanda din magazinul Omul Potrivit." />
+    <SeoHead title="Cosul de cumparaturi" description="Finalizeaza comanda din magazinul Om Priceput." />
 
     <PublicLayout>
         <section class="mx-auto max-w-4xl px-4 py-16 sm:px-6 lg:px-8">
-            <h1 class="font-display text-2xl font-bold text-slate-900">Cosul tau</h1>
+            <h1 class="font-display text-2xl font-bold text-slate-900">Cosul dumneavoastra</h1>
 
             <div v-if="!items.length" class="mt-8 rounded-xl border border-dashed border-slate-300 p-10 text-center text-slate-500">
-                Cosul este gol. <Link :href="route('public.shop.index')" class="text-blue-600">Vezi produsele din magazin</Link>.
+                Cosul este gol. <Link :href="route('public.shop.index')" class="text-blue-600">Consultati produsele din magazin</Link>.
             </div>
 
             <template v-else>
@@ -74,7 +74,7 @@ function submit() {
                                 </td>
                                 <td class="px-4 py-3 text-right font-medium">{{ (item.shop_price * item.quantity).toFixed(2) }} lei</td>
                                 <td class="px-4 py-3 text-right">
-                                    <button class="text-xs text-red-600" @click="removeItem(item.equipment_id)">Sterge</button>
+                                    <button class="text-xs text-red-600" @click="removeItem(item.equipment_id)">Elimina</button>
                                 </td>
                             </tr>
                         </tbody>
@@ -127,7 +127,7 @@ function submit() {
                     </div>
                     <div class="flex items-center gap-2 sm:col-span-2">
                         <input id="wants_installation" v-model="form.wants_installation" type="checkbox" class="rounded border-slate-300" />
-                        <label for="wants_installation" class="text-sm text-slate-600">Doresc montaj de catre un meseras Omul Potrivit (se discuta separat)</label>
+                        <label for="wants_installation" class="text-sm text-slate-600">Doresc montaj realizat de un meseras Om Priceput (se stabileste separat)</label>
                     </div>
                     <div class="sm:col-span-2">
                         <button type="submit" class="w-full rounded-lg bg-brand-navy px-6 py-3 font-semibold text-white hover:bg-slate-800" :disabled="form.processing">

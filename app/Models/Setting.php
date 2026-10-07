@@ -10,8 +10,8 @@ class Setting extends Model
     protected $fillable = ['key', 'value'];
 
     public const DEFAULTS = [
-        'company_name' => 'Omul Potrivit',
-        'company_email' => 'contact@omulpotrivit.test',
+        'company_name' => 'Om Priceput',
+        'company_email' => 'contact@ompriceput.test',
         'company_phone' => '0700 000 000',
         'company_address' => '',
         'company_hours' => 'Luni - Vineri, 08:00 - 19:00',

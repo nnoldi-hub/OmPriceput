@@ -103,8 +103,8 @@ class TrafficAnalyticsTest extends TestCase
     public function test_admin_can_save_analytics_and_pixel_ids(): void
     {
         $this->actingAs($this->adminUser)->put(route('admin.settings.update'), [
-            'company_name' => 'Omul Potrivit',
-            'company_email' => 'contact@omulpotrivit.test',
+            'company_name' => 'Om Priceput',
+            'company_email' => 'contact@ompriceput.test',
             'company_phone' => '0700000000',
             'company_address' => 'Str. Test 1',
             'company_hours' => 'Luni - Vineri, 09:00 - 18:00',

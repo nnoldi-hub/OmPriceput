@@ -29,7 +29,7 @@ class SettingsTest extends TestCase
             ->get(route('admin.settings.edit'))
             ->assertInertia(fn ($page) => $page
                 ->component('Admin/Settings/Edit')
-                ->where('settings.company_name', 'Omul Potrivit')
+                ->where('settings.company_name', 'Om Priceput')
             );
     }
 

@@ -157,7 +157,7 @@ class ShopController extends Controller
         Notification::send($recipients, new NewShopOrderReceived($order));
 
         return redirect()->route('public.shop.confirmation', $order->order_number)
-            ->with('success', 'Comanda a fost inregistrata cu succes. Iti multumim!');
+            ->with('success', 'Comanda a fost inregistrata. Va multumim!');
     }
 
     public function confirmation(string $orderNumber): Response
