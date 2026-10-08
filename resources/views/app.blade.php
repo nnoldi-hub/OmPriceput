@@ -94,7 +94,11 @@
         @endif
 
         <!-- Scripts -->
-        @routes
+        @if(auth()->check())
+            @routes
+        @else
+            @routes('public')
+        @endif
         @vite(['resources/js/app.js', "resources/js/Pages/{$page['component']}.vue"])
         @inertiaHead
     </head>

@@ -1,13 +1,19 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
-    # Redirect canonical: de la www la domeniul principal (301)
-    RewriteCond %{HTTP_HOST} ^www\.(.+)$ [NC]
-    RewriteCond %{HTTPS} on
-    RewriteRule ^(.*)$ https://%1/$1 [R=301,L]
+    # Redirect canonical: http://www -> https://domeniu principal (301, o singura saritura)
+    RewriteCond %{HTTPS} off
+    RewriteCond %{HTTP_HOST} ^www\.ompriceput\.ro$ [NC]
+    RewriteRule ^(.*)$ https://ompriceput.ro/$1 [R=301,L]
 
-    RewriteCond %{HTTP_HOST} ^www\.(.+)$ [NC]
-    RewriteRule ^(.*)$ http://%1/$1 [R=301,L]
+    # Redirect canonical: http -> https pe domeniul de productie (301)
+    RewriteCond %{HTTPS} off
+    RewriteCond %{HTTP_HOST} ^ompriceput\.ro$ [NC]
+    RewriteRule ^(.*)$ https://ompriceput.ro/$1 [R=301,L]
+
+    # Redirect canonical: de la www la domeniul principal (301)
+    RewriteCond %{HTTP_HOST} ^www\.ompriceput\.ro$ [NC]
+    RewriteRule ^(.*)$ https://ompriceput.ro/$1 [R=301,L]
 
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_FILENAME} !-f
@@ -21,6 +27,13 @@
 
 # Cache: fisierele din /build sunt fingerprintate (schimbare = nume nou), branding-ul se revalideaza saptamanal
 <IfModule mod_headers.c>
+    # Securitate: clickjacking, MIME sniffing, politică de referrer, HSTS
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-Frame-Options "SAMEORIGIN"
+    Header set Referrer-Policy "strict-origin-when-cross-origin"
+    Header set Permissions-Policy "camera=(), microphone=(), geolocation=()"
+    Header set Strict-Transport-Security "max-age=15552000; includeSubDomains"
+
     SetEnvIf Request_URI "^/build/" IS_BUILD
     Header set Cache-Control "public, max-age=31536000, immutable" env=IS_BUILD
 
