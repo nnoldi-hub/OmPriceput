@@ -166,10 +166,10 @@ const mobileOpen = ref(false);
             <div class="flex h-20 flex-shrink-0 items-center gap-2 border-b border-white/10 px-4">
                 <Link :href="route('dashboard')" class="flex min-w-0 items-center gap-2">
                     <img
-                        src="/branding/logo-header.png"
+                        src="/branding/logo-trim.webp"
                         alt="Om Priceput"
-                        width="512"
-                        height="512"
+                        width="480"
+                        height="480"
                         class="h-12 w-auto max-w-[190px] flex-shrink-0 object-contain"
                     />
                 </Link>

@@ -38,10 +38,8 @@ const mapSrc = `https://maps.google.com/maps?q=${encodeURIComponent(companyAddre
         <header class="sticky top-0 z-30 border-b border-slate-700/80 bg-[#021a2d]">
             <nav class="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
                 <Link :href="route('public.home')" class="flex items-center gap-2 text-white">
-    <span class="inline-flex items-center rounded-xl bg-white px-2 py-1">
-        <img src="/branding/logo-header.png" :alt="companyName" width="512" height="512" class="h-10 w-auto max-w-[200px] object-contain sm:h-12" />
-    </span>
-</Link>
+        <img src="/branding/logo-trim.webp" :alt="companyName" width="480" height="480" class="h-10 w-auto max-w-[200px] object-contain sm:h-12" />
+    </Link>
 
                 <div class="hidden items-center gap-7 lg:flex">
                     <Link
@@ -160,10 +158,8 @@ const mapSrc = `https://maps.google.com/maps?q=${encodeURIComponent(companyAddre
                     <div class="grid grid-cols-1 gap-8 sm:grid-cols-3">
                         <div>
     <div class="flex items-center gap-2 text-white">
-        <span class="inline-flex items-center rounded-lg bg-white px-2 py-1">
-            <img src="/branding/logo-header.png" :alt="companyName" width="512" height="512" class="h-10 w-auto max-w-[160px] object-contain" />
-        </span>
-    </div>
+                   <img src="/branding/logo-trim.webp" :alt="companyName" width="480" height="480" class="h-10 w-auto max-w-[160px] object-contain" />
+   </div>
     <p class="mt-3 text-sm">
         Reparatii, montaje si intretinere pentru casa si apartament.
         Executam personal lucrarile sau implicam meseriasul potrivit.
