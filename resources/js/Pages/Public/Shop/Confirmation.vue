@@ -7,7 +7,7 @@ defineProps({ order: Object });
 </script>
 
 <template>
-    <SeoHead title="Comanda inregistrata" description="Confirmarea comenzii plasate in magazinul online Om Priceput." />
+    <SeoHead />
 
     <PublicLayout>
         <section class="mx-auto max-w-3xl px-4 py-16 sm:px-6 lg:px-8 text-center">

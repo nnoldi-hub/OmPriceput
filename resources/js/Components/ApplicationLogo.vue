@@ -1,5 +1,5 @@
 <script setup>
-const logoPath = '/branding/logo-trim.png';
+const logoPath = '/branding/logo-header.png';
 </script>
 
 <template>

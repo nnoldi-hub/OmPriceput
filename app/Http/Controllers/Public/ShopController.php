@@ -8,6 +8,7 @@ use App\Models\Equipment;
 use App\Models\Setting;
 use App\Models\ShopOrder;
 use App\Notifications\NewShopOrderReceived;
+use App\Support\Seo;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -43,9 +44,48 @@ class ShopController extends Controller
 
         $equipment = Equipment::visibleInShop()->where('slug', $slug)->firstOrFail();
 
+        $this->applySeo($equipment);
+
         return Inertia::render('Public/Shop/Show', [
             'product' => $this->presentProduct($equipment),
         ]);
+    }
+
+    private function applySeo(Equipment $equipment): void
+    {
+        $description = $equipment->shop_description ?: $equipment->description ?: $equipment->name;
+
+        $schema = [
+            '@context' => 'https://schema.org',
+            '@type' => 'Product',
+            'name' => $equipment->name,
+            'description' => $description,
+            'url' => route('public.shop.show', $equipment->slug),
+            'brand' => ['@type' => 'Brand', 'name' => config('app.name')],
+            'offers' => [
+                '@type' => 'Offer',
+                'price' => $equipment->shop_price,
+                'priceCurrency' => 'RON',
+                'availability' => $equipment->stock_quantity > 0
+                    ? 'https://schema.org/InStock'
+                    : 'https://schema.org/OutOfStock',
+                'url' => route('public.shop.show', $equipment->slug),
+            ],
+        ];
+
+        if ($equipment->sku) {
+            $schema['sku'] = $equipment->sku;
+        }
+
+        if ($equipment->image_path) {
+            $schema['image'] = asset('storage/'.$equipment->image_path);
+        }
+
+        app(Seo::class)
+            ->title($equipment->name)
+            ->description($description)
+            ->allowIndex()
+            ->jsonLd([$schema]);
     }
 
     public function cart(Request $request): Response

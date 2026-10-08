@@ -37,7 +37,7 @@ function submit() {
 </script>
 
 <template>
-    <SeoHead title="Cosul de cumparaturi" description="Finalizeaza comanda din magazinul Om Priceput." />
+    <SeoHead />
 
     <PublicLayout>
         <section class="mx-auto max-w-4xl px-4 py-16 sm:px-6 lg:px-8">

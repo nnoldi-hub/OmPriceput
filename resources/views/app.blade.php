@@ -4,7 +4,31 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        <title inertia>{{ config('app.name', 'Laravel') }}</title>
+        @php
+            $seo = app(\App\Support\Seo::class);
+        @endphp
+        <title inertia>{{ $seo->fullTitle() }}</title>
+        @if($seo->description)
+            <meta name="description" content="{{ $seo->description }}">
+            <meta property="og:description" content="{{ $seo->description }}">
+            <meta name="twitter:description" content="{{ $seo->description }}">
+        @endif
+        <meta name="robots" content="{{ $seo->indexed ? 'index,follow' : 'noindex,nofollow' }}">
+        @if($seo->indexed)
+            <link rel="canonical" href="{{ $seo->canonicalUrl() }}">
+            <meta property="og:url" content="{{ $seo->canonicalUrl() }}">
+        @endif
+        <meta property="og:site_name" content="{{ config('app.name') }}">
+        <meta property="og:title" content="{{ $seo->fullTitle() }}">
+        <meta property="og:type" content="website">
+        <meta property="og:locale" content="ro_RO">
+        <meta property="og:image" content="{{ $seo->imageUrl() }}">
+        <meta name="twitter:card" content="summary_large_image">
+        <meta name="twitter:title" content="{{ $seo->fullTitle() }}">
+        <meta name="twitter:image" content="{{ $seo->imageUrl() }}">
+        @foreach ($seo->jsonLd as $block)
+            <script type="application/ld+json">{!! json_encode($block, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG) !!}</script>
+        @endforeach
 
         <link rel="icon" type="image/png" sizes="32x32" href="/branding/favicon-32x32.png?v=1">
         <link rel="icon" type="image/png" sizes="16x16" href="/branding/favicon-16x16.png?v=1">

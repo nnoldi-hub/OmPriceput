@@ -24,10 +24,7 @@ function submit() {
 </script>
 
 <template>
-    <SeoHead
-        title="Contact"
-        description="Contactati Om Priceput pentru reparatii, montaje si intretinere. Raspundem in cel mai scurt timp."
-    />
+    <SeoHead />
 
     <PublicLayout>
         <section class="mx-auto max-w-3xl px-4 py-16 sm:px-6 lg:px-8">

@@ -1,6 +1,10 @@
 <?php
 
+use App\Http\Middleware\EnsureClientPortal;
 use App\Http\Middleware\HandleInertiaRequests;
+use App\Http\Middleware\ResetSeo;
+use App\Http\Middleware\SetPublicSeo;
+use App\Http\Middleware\TrackPageViews;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -18,13 +22,17 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
-            'client.portal' => \App\Http\Middleware\EnsureClientPortal::class,
-            'track.views' => \App\Http\Middleware\TrackPageViews::class,
+            'client.portal' => EnsureClientPortal::class,
+            'track.views' => TrackPageViews::class,
             'role' => RoleMiddleware::class,
             'permission' => PermissionMiddleware::class,
             'role_or_permission' => RoleOrPermissionMiddleware::class,
         ]);
+        $middleware->append([
+            ResetSeo::class,
+        ]);
         $middleware->web(append: [
+            SetPublicSeo::class,
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,
         ]);

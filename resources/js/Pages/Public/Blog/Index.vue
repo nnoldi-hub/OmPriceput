@@ -13,10 +13,7 @@ function formatDate(value) {
 </script>
 
 <template>
-    <SeoHead
-        title="Blog"
-        description="Articole si ghiduri despre reparatii, instalatii electrice si sanitare, zugraveli si intretinerea locuintei."
-    />
+    <SeoHead />
 
     <PublicLayout>
         <section class="mx-auto max-w-5xl px-4 py-16 sm:px-6 lg:px-8">

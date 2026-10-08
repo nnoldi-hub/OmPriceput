@@ -14,10 +14,7 @@ function formatDate(value) {
 </script>
 
 <template>
-    <SeoHead
-        :title="post.meta_title ?? post.title"
-        :description="post.meta_description ?? post.excerpt"
-    />
+    <SeoHead />
 
     <PublicLayout>
         <article class="mx-auto max-w-3xl px-4 py-16 sm:px-6 lg:px-8">

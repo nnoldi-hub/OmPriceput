@@ -2,8 +2,9 @@
 
 namespace App\Http\Middleware;
 
-use Illuminate\Http\Request;
 use App\Models\Setting;
+use App\Support\Seo;
+use Illuminate\Http\Request;
 use Inertia\Middleware;
 
 class HandleInertiaRequests extends Middleware
@@ -43,6 +44,10 @@ class HandleInertiaRequests extends Middleware
                 'error' => fn () => $request->session()->get('error'),
             ],
             'siteSettings' => fn () => Setting::allSettings(),
+            'seo' => fn () => [
+                'title' => app(Seo::class)->fullTitle(),
+                'description' => app(Seo::class)->description,
+            ],
         ];
     }
 }

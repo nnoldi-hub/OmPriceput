@@ -1,19 +1,14 @@
 <script setup>
-import { Head } from '@inertiajs/vue3';
+import { Head, usePage } from '@inertiajs/vue3';
+import { computed } from 'vue';
 
-const props = defineProps({
-    title: { type: String, required: true },
-    description: { type: String, default: '' },
-});
+const page = usePage();
 
-const fullTitle = `${props.title} - Om Priceput`;
+// Titlul vine din partea de server (App\Support\Seo), ca sa fie identic
+// in HTML-ul livrat crawlerelor si in timpul navigarii Inertia.
+const title = computed(() => page.props.seo?.title || document.title);
 </script>
 
 <template>
-    <Head :title="fullTitle">
-        <meta v-if="description" name="description" :content="description" />
-        <meta property="og:title" :content="fullTitle" />
-        <meta v-if="description" property="og:description" :content="description" />
-        <meta property="og:type" content="website" />
-    </Head>
+    <Head :title="title" />
 </template>

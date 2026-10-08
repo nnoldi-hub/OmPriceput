@@ -40,6 +40,6 @@ Route::get('/cerere-deviz/sloturi', [ContactController::class, 'slots'])
 
 Route::get('/sitemap.xml', SitemapController::class)->name('sitemap');
 Route::get('/robots.txt', function () {
-    return response("User-agent: *\nAllow: /\nSitemap: ".route('sitemap'), 200)
-        ->header('Content-Type', 'text/plain');
+    return response("User-agent: *\nAllow: /\nSitemap: ".route('sitemap')."\n", 200)
+        ->header('Content-Type', 'text/plain; charset=UTF-8');
 })->name('robots');

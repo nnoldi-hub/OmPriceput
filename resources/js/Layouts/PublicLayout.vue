@@ -39,7 +39,7 @@ const mapSrc = `https://maps.google.com/maps?q=${encodeURIComponent(companyAddre
             <nav class="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
                 <Link :href="route('public.home')" class="flex items-center gap-2 text-white">
     <span class="inline-flex items-center rounded-xl bg-white px-2 py-1">
-        <img src="/branding/logo-trim.png" :alt="companyName" class="h-10 w-auto max-w-[200px] object-contain sm:h-12" />
+        <img src="/branding/logo-header.png" :alt="companyName" class="h-10 w-auto max-w-[200px] object-contain sm:h-12" />
     </span>
 </Link>
 
@@ -161,7 +161,7 @@ const mapSrc = `https://maps.google.com/maps?q=${encodeURIComponent(companyAddre
                         <div>
     <div class="flex items-center gap-2 text-white">
         <span class="inline-flex items-center rounded-lg bg-white px-2 py-1">
-            <img src="/branding/logo-trim.png" :alt="companyName" class="h-10 w-auto max-w-[160px] object-contain" />
+            <img src="/branding/logo-header.png" :alt="companyName" class="h-10 w-auto max-w-[160px] object-contain" />
         </span>
     </div>
     <p class="mt-3 text-sm">

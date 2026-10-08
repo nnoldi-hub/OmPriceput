@@ -9,10 +9,7 @@ const bodyHtml = computed(() => props.page?.content?.body_html || '');
 </script>
 
 <template>
-    <SeoHead
-        :title="pageTitle"
-        description="Om Priceput: lucrari de reparatii, montaje si intretinere pentru casa si apartament. Deviz scris inainte de inceperea lucrarii."
-    />
+    <SeoHead />
 
     <PublicLayout>
         <section class="mx-auto max-w-4xl px-4 py-16 sm:px-6 lg:px-8">

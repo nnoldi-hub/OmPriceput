@@ -52,10 +52,7 @@ const howItWorks = [
 </script>
 
 <template>
-    <SeoHead
-        title="Ce facem - electrician, instalator, zugrav, montaj"
-        description="Lucrari de electrician, instalator, zugrav si montaj pentru casa si apartament. Constatare gratuita si deviz scris inainte de inceperea lucrarii."
-    />
+    <SeoHead />
 
     <PublicLayout>
         <section class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
