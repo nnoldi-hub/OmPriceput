@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Notification;
 class SendOperationalReminders extends Command
 {
     protected $signature = 'operations:send-reminders';
+
     protected $description = 'Trimite remindere pentru facturi, programari si stoc scazut';
 
     public function handle(): int
@@ -51,7 +52,7 @@ class SendOperationalReminders extends Command
             }
         }
 
-        $lowStock = Equipment::whereColumn('stock_quantity', '<=', 'minimum_stock')->count();
+        $lowStock = Equipment::lowStock()->count();
         if ($lowStock > 0 && $technicalUsers->isNotEmpty()) {
             Notification::send($technicalUsers, new OperationalReminder(
                 'low_stock',
@@ -63,6 +64,7 @@ class SendOperationalReminders extends Command
         }
 
         $this->info("Au fost trimise {$sent} notificari operationale.");
+
         return self::SUCCESS;
     }
 }

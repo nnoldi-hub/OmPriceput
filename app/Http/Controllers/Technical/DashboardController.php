@@ -16,8 +16,7 @@ class DashboardController extends Controller
         return Inertia::render('Technical/Dashboard', [
             'stats' => [
                 'equipment' => Equipment::count(),
-                'lowStock' => Equipment::query()
-                    ->whereColumn('stock_quantity', '<=', 'minimum_stock')
+                'lowStock' => Equipment::lowStock()
                     ->count(),
                 'scheduled' => Installation::where('status', 'scheduled')->count(),
                 'inProgress' => Installation::where('status', 'in_progress')->count(),

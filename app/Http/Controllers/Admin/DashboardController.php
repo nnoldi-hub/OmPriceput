@@ -90,7 +90,7 @@ class DashboardController extends Controller
     {
         $alerts = [];
 
-        $lowStockCount = Equipment::whereColumn('stock_quantity', '<=', 'minimum_stock')->count();
+        $lowStockCount = Equipment::lowStock()->count();
         if ($lowStockCount > 0) {
             $alerts[] = [
                 'type' => 'warning',

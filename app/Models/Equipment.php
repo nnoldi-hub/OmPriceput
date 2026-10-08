@@ -4,8 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Equipment extends Model
 {
@@ -78,6 +78,11 @@ class Equipment extends Model
     public function scopeVisibleInShop($query)
     {
         return $query->where('is_active', true)->where('is_visible_in_shop', true);
+    }
+
+    public function scopeLowStock($query)
+    {
+        return $query->where('minimum_stock', '>', 0)->whereColumn('stock_quantity', '<=', 'minimum_stock');
     }
 
     public function activeDiscount(): ?Discount

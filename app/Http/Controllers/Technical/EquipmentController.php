@@ -24,7 +24,7 @@ class EquipmentController extends Controller
                 });
             })
             ->when($request->string('category')->toString(), fn ($query, $category) => $query->where('category', $category))
-            ->when($request->boolean('low_stock'), fn ($query) => $query->whereColumn('stock_quantity', '<=', 'minimum_stock'))
+            ->when($request->boolean('low_stock'), fn ($query) => $query->lowStock())
             ->when($request->has('shop_visible'), fn ($query) => $query->where('is_visible_in_shop', $request->boolean('shop_visible')))
             ->orderBy('name')
             ->paginate(15)

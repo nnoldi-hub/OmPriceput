@@ -3,17 +3,17 @@
 namespace App\Http\Controllers\Technical;
 
 use App\Http\Controllers\Controller;
+use App\Models\AuditLog;
 use App\Models\Equipment;
 use App\Models\Expense;
 use App\Models\PurchaseOrder;
 use App\Models\Supplier;
-use App\Models\AuditLog;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
-use Illuminate\Support\Facades\Storage;
 
 class PurchaseOrderController extends Controller
 {
@@ -27,12 +27,14 @@ class PurchaseOrderController extends Controller
     public function show(PurchaseOrder $purchaseOrder): Response
     {
         $purchaseOrder->load(['supplier', 'items.equipment']);
+
         return Inertia::render('Technical/PurchaseOrders/Show', ['order' => $purchaseOrder]);
     }
 
     public function edit(PurchaseOrder $purchaseOrder): Response
     {
         abort_unless($purchaseOrder->status === 'draft', 422, 'Doar comenzile draft pot fi editate.');
+
         return Inertia::render('Technical/PurchaseOrders/Edit', [
             'order' => $purchaseOrder->load('items'),
             'suppliers' => Supplier::orderBy('name')->get(['id', 'name']),
@@ -57,6 +59,7 @@ class PurchaseOrderController extends Controller
             $this->storeDocument($request, $purchaseOrder);
             AuditLog::record($request->user(), 'purchase_order.updated', "Comanda {$purchaseOrder->order_number} a fost actualizata.", $purchaseOrder);
         });
+
         return redirect()->route('technical.purchase-orders.show', $purchaseOrder);
     }
 
@@ -65,6 +68,7 @@ class PurchaseOrderController extends Controller
         abort_unless(in_array($purchaseOrder->status, ['draft', 'ordered', 'partially_received'], true), 422, 'Comanda nu poate fi anulata.');
         $purchaseOrder->update(['status' => 'cancelled']);
         AuditLog::record($request->user(), 'purchase_order.cancelled', "Comanda {$purchaseOrder->order_number} a fost anulata.", $purchaseOrder);
+
         return back()->with('success', 'Comanda a fost anulata.');
     }
 
@@ -81,7 +85,7 @@ class PurchaseOrderController extends Controller
         $equipment = Equipment::query()
             ->with('supplier')
             ->where('is_active', true)
-            ->whereColumn('stock_quantity', '<=', 'minimum_stock')
+            ->lowStock()
             ->whereNotNull('supplier_id')
             ->get();
 
@@ -133,6 +137,7 @@ class PurchaseOrderController extends Controller
                 $order,
                 ['total_amount' => (float) $order->total_amount, 'items_count' => count($data['items'])],
             );
+
             return $order;
         });
         $this->storeDocument($request, $order);
@@ -157,8 +162,12 @@ class PurchaseOrderController extends Controller
 
     private function storeDocument(Request $request, PurchaseOrder $order): void
     {
-        if (! $request->hasFile('document')) return;
-        if ($order->document_path) Storage::disk('public')->delete($order->document_path);
+        if (! $request->hasFile('document')) {
+            return;
+        }
+        if ($order->document_path) {
+            Storage::disk('public')->delete($order->document_path);
+        }
         $order->update(['document_path' => $request->file('document')->store('purchase-order-documents', 'public')]);
     }
 

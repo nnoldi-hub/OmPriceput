@@ -6,6 +6,7 @@ use App\Models\Client;
 use App\Models\Equipment;
 use App\Models\Invoice;
 use App\Models\Offer;
+use App\Models\PageView;
 use App\Models\ShopOrder;
 use App\Models\Ticket;
 use Illuminate\Http\Request;
@@ -27,7 +28,7 @@ class DashboardController extends Controller
 
         if ($isAdmin || $roles->contains('tehnic') || $roles->contains('suport')) {
             $stats['openTickets'] = Ticket::whereIn('status', ['open', 'in_progress'])->count();
-            $stats['lowStock'] = Equipment::whereColumn('stock_quantity', '<=', 'minimum_stock')->count();
+            $stats['lowStock'] = Equipment::lowStock()->count();
         }
 
         if ($isAdmin) {
@@ -35,7 +36,7 @@ class DashboardController extends Controller
                 ->selectRaw('COALESCE(SUM(amount - paid_amount), 0) as total')
                 ->value('total');
             $stats['newShopOrders'] = ShopOrder::where('status', 'new')->count();
-            $stats['todayPageViews'] = \App\Models\PageView::human()->whereDate('created_at', today())->count();
+            $stats['todayPageViews'] = PageView::human()->whereDate('created_at', today())->count();
         }
 
         return Inertia::render('Dashboard', ['stats' => $stats]);
