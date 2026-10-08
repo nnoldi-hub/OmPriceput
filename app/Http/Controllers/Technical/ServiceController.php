@@ -15,15 +15,17 @@ class ServiceController extends Controller
    public function index(Request $request): Response
 {
     $services = Service::query()
-        ->when($request->string('search')->toString(), fn ($query, $search) => $query->where('name', 'like', "%{$search}%"))
-        ->when($request->filled('active'), fn ($query) => $query->where('is_active', $request->boolean('active')))
+        ->when($request->string('search')->toString(), fn ($q, $s) => $q->where('name', 'like', "%{$s}%"))
+        ->when($request->filled('category'), fn ($q) => $q->where('category', $request->string('category')->toString()))
+        ->when($request->filled('active'), fn ($q) => $q->where('is_active', $request->boolean('active')))
+        ->orderBy('category')
         ->orderBy('name')
-        ->paginate(15)
+        ->paginate(30)
         ->withQueryString();
 
     return Inertia::render('Technical/Services/Index', [
         'services' => $services,
-        'filters' => $request->only('search', 'active'),
+        'filters' => $request->only('search', 'active', 'category'),
         'trades' => Service::TRADES,
     ]);
 }
