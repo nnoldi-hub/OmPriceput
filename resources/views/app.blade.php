@@ -38,6 +38,16 @@
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700|manrope:500,600,700,800&display=swap" rel="stylesheet" />
 
+        <style>
+            .seo-fallback { max-width: 72rem; margin: 0 auto; padding: 4rem 1.5rem; color: #03172a; }
+            .seo-fallback h1 { font-size: clamp(2rem, 5vw, 3.5rem); font-weight: 800; line-height: 1.1; letter-spacing: -0.03em; }
+            .seo-fallback p { margin-top: 1.25rem; max-width: 52rem; color: #334155; line-height: 1.7; }
+            .seo-fallback h2 { margin-top: 2rem; font-size: 1.125rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
+            .seo-fallback nav { display: flex; flex-wrap: wrap; gap: 0.75rem 1.5rem; margin-top: 0.75rem; }
+            .seo-fallback a { color: #03172a; text-decoration: underline; text-underline-offset: 3px; }
+            .seo-fallback a:hover { color: #f59e0b; }
+        </style>
+
         @php
             $gaId = \App\Models\Setting::get('google_analytics_id');
             $gtmId = \App\Models\Setting::get('google_tag_manager_id');
@@ -93,6 +103,17 @@
             height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             <!-- End Google Tag Manager (noscript) -->
         @endif
-        @inertia
+        {{-- echivalentul directivei @inertia, cu HTML de rezervă în interior pentru crawlerele fără JS --}}
+        @php
+            if (!isset($__inertiaSsrDispatched)) {
+                $__inertiaSsrDispatched = true;
+                $__inertiaSsrResponse = app(\Inertia\Ssr\Gateway::class)->dispatch($page);
+            }
+        @endphp
+        @if($__inertiaSsrResponse ?? null)
+            {!! $__inertiaSsrResponse->body !!}
+        @else
+            <div id="app" data-page="{{ json_encode($page) }}">@if($seo->description)@include('partials.seo-fallback')@endif</div>
+        @endif
     </body>
 </html>

@@ -100,6 +100,19 @@ class SeoTest extends TestCase
         $response->assertSee('Sitemap: '.route('sitemap'), false);
     }
 
+    public function test_initial_html_contains_fallback_heading_and_internal_links(): void
+    {
+        $response = $this->get(route('public.home'));
+
+        $response->assertOk();
+        $response->assertSee('class="seo-fallback"', false);
+        $response->assertSee('<h1>', false);
+        $response->assertSee('id="app" data-page=', false);
+        $response->assertSee(route('public.services'), false);
+        $response->assertSee(route('public.blog.index'), false);
+        $response->assertSee(route('public.terms'), false);
+    }
+
     public function test_shop_product_page_has_product_schema_and_cart_is_noindex(): void
     {
         Setting::query()->delete();
