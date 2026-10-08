@@ -53,7 +53,7 @@ const steps = [
                         Lucrari pentru casa si apartament
                     </span>
                     <div class="mt-4 flex items-center gap-2 text-white/90">
-                        <img src="/branding/logo-header.png" alt="Om Priceput" class="h-12 w-auto max-w-[260px] object-contain sm:h-14 lg:h-16" />
+                        <img src="/branding/logo-header.png" alt="Om Priceput" width="512" height="512" class="h-12 w-auto max-w-[260px] object-contain sm:h-14 lg:h-16" />
                     </div>
                     <h1 class="mt-6 font-display text-5xl font-extrabold tracking-[-0.05em] text-white sm:text-7xl">
                         Reparam. Montam.

@@ -168,6 +168,8 @@ const mobileOpen = ref(false);
                     <img
                         src="/branding/logo-header.png"
                         alt="Om Priceput"
+                        width="512"
+                        height="512"
                         class="h-12 w-auto max-w-[190px] flex-shrink-0 object-contain"
                     />
                 </Link>

@@ -35,8 +35,10 @@
         <link rel="apple-touch-icon" href="/branding/apple-touch-icon.png?v=1">
 
         <!-- Fonts -->
+        <!-- Fonts: incarcate asincron pentru a nu bloca randarea -->
         <link rel="preconnect" href="https://fonts.bunny.net">
-        <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700|manrope:500,600,700,800&display=swap" rel="stylesheet" />
+        <link rel="preload" as="style" href="https://fonts.bunny.net/css?family=inter:400,500,600,700|manrope:500,600,700,800&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="https://fonts.bunny.net/css?family=inter:400,500,600,700|manrope:500,600,700,800&display=swap"></noscript>
 
         <style>
             .seo-fallback { max-width: 72rem; margin: 0 auto; padding: 4rem 1.5rem; color: #03172a; }
