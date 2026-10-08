@@ -1,0 +1,3 @@
+cd ~/repositories/OmPriceput
+pwd
+php -d disable_functions= artisan tinker --execute="Mail::raw('Test Om Priceput', fn(\$m) => \$m->to('conectica.it.ro@gmail.com')->subject('Test mail')); echo 'trimis';"

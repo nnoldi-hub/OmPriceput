@@ -12,21 +12,21 @@ use Inertia\Response;
 
 class ServiceController extends Controller
 {
-    public function index(Request $request): Response
-    {
-        $services = Service::query()
-            ->when($request->string('search')->toString(), fn ($query, $search) => $query->where('name', 'like', "%{$search}%"))
-            ->when($request->filled('active'), fn ($query) => $query->where('is_active', $request->boolean('active')))
-            ->orderBy('name')
-            ->paginate(15)
-            ->withQueryString();
+   public function index(Request $request): Response
+{
+    $services = Service::query()
+        ->when($request->string('search')->toString(), fn ($query, $search) => $query->where('name', 'like', "%{$search}%"))
+        ->when($request->filled('active'), fn ($query) => $query->where('is_active', $request->boolean('active')))
+        ->orderBy('name')
+        ->paginate(15)
+        ->withQueryString();
 
-        return Inertia::render('Technical/Services/Index', [
-            'services' => $services,
-            'filters' => $request->only('search', 'active'),
-            'trades' => Service::TRADES,
-        ]);
-    }
+    return Inertia::render('Technical/Services/Index', [
+        'services' => $services,
+        'filters' => $request->only('search', 'active'),
+        'trades' => Service::TRADES,
+    ]);
+}
 
     public function create(): Response
     {

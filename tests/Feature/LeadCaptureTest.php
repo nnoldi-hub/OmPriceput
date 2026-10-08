@@ -10,7 +10,9 @@ use App\Notifications\RequestConfirmation;
 use Database\Seeders\RolesAndPermissionsSeeder;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class LeadCaptureTest extends TestCase
@@ -129,6 +131,32 @@ class LeadCaptureTest extends TestCase
         $this->assertStringContainsString('Instalare centrală', $html);
         $this->assertStringContainsString('op-logo.png', $html);
         $this->assertStringContainsString('am primit mesajul tău', $html);
+    }
+
+    public function test_quote_request_stores_uploaded_photos_with_the_appointment(): void
+    {
+        Storage::fake('public');
+        $this->seed(RolesAndPermissionsSeeder::class);
+        User::factory()->create()->assignRole('admin');
+        config(['notifications.mail_enabled' => true]);
+
+        Notification::fake();
+
+        $this->post(route('public.lead.store'), [
+            'name' => 'Ion Popescu',
+            'phone' => '0722123456',
+            'job_type' => 'instalare',
+            'photos' => [UploadedFile::fake()->image('hol.jpg', 800, 600)],
+            'privacy_consent' => '1',
+        ])->assertRedirect();
+
+        $installation = Installation::firstOrFail();
+
+        $this->assertCount(1, $installation->photos);
+        $this->assertStringStartsWith('/storage/quote-requests/', $installation->photos[0]);
+
+        $path = str_replace('/storage/', '', parse_url($installation->photos[0], PHP_URL_PATH));
+        Storage::disk('public')->assertExists($path);
     }
 
     public function test_name_and_phone_are_required(): void
