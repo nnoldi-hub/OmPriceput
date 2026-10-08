@@ -7,6 +7,7 @@ use App\Models\Client;
 use App\Models\Installation;
 use App\Models\Page;
 use App\Models\Service;
+use App\Models\Toolbox;
 use App\Notifications\NewLeadReceived;
 use App\Notifications\RequestConfirmation;
 use App\Services\AvailabilityService;
@@ -180,7 +181,8 @@ class ContactController extends Controller
             $sms->send(
                 $recipient->phone,
                 $visit
-                    ? "Cerere de deviz: {$client->name} ({$client->phone})".($when ? ", {$when}. De confirmat." : '. De programat.')
+                    ? "Cerere de deviz: {$client->name} ({$client->phone})".($when ? ", {$when}." : '.')
+                        .' Cutii: '.$visit->requiredToolboxes()->pluck('name')->join(', ').'.'
                     : "Lead nou: {$client->name} ({$client->phone}).",
             );
         }
@@ -201,6 +203,7 @@ class ContactController extends Controller
 
         $subtotal = (float) $services->sum('sale_price');
         $travel = $this->travelFee($subtotal);
+        $boxes = Toolbox::forServices($services->pluck('id'))->pluck('name');
 
         $photos = collect($request->file('photos', []))
             ->filter()
@@ -215,12 +218,14 @@ class ContactController extends Controller
             'address' => trim(($data['address'] ?? '').' '.($data['city'] ?? '')) ?: null,
             'scheduled_at' => $start,
             'labor_hours' => round($duration / 60, 2),
+            'service_items' => $services->map(fn ($s) => ['service_id' => $s->id, 'quantity' => 1])->values()->all(),
             'status' => 'scheduled',
             'checklist' => Installation::defaultChecklist('verificare'),
             'photos' => $photos ?: null,
             'customer_notes' => collect([
                 'Tip lucrare solicitat: '.(Installation::TYPE_LABELS[$data['job_type']] ?? $data['job_type']),
                 $serviceNames->isNotEmpty() ? 'Servicii dorite: '.$serviceNames->join(', ') : null,
+                $boxes->isNotEmpty() ? 'Cutii de luat: '.$boxes->join(', ') : null,
                 'Estimare afișată clientului: manoperă '.number_format($subtotal, 0).' lei + deplasare '.$travel.' lei'
                     .($travel ? ' (se scade din deviz dacă se execută lucrarea)' : ''),
                 $data['notes'] ?? null,

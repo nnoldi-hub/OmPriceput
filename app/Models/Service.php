@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Service extends Model
 {
@@ -42,4 +43,8 @@ class Service extends Model
     {
         return $this->hasMany(OfferItem::class);
     }
+    public function toolboxes(): BelongsToMany
+{
+    return $this->belongsToMany(Toolbox::class, 'service_toolbox');
+}
 }

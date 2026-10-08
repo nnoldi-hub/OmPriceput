@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Collection;
 
 class Installation extends Model
 {
@@ -214,4 +215,8 @@ class Installation extends Model
             'final_profit' => $this->status === 'completed' ? round($offerValue - $totalCost - $actualExpenses, 2) : null,
         ];
     }
+    public function requiredToolboxes(): Collection
+{
+    return Toolbox::forServices(collect($this->service_items ?? [])->pluck('service_id'));
+}
 }
