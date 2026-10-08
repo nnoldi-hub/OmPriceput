@@ -4,10 +4,13 @@ namespace Tests\Feature;
 
 use App\Models\Client;
 use App\Models\Installation;
+use App\Models\Service;
 use App\Models\User;
 use App\Notifications\NewLeadReceived;
 use App\Notifications\RequestConfirmation;
 use Database\Seeders\RolesAndPermissionsSeeder;
+use Database\Seeders\ServiceSeeder;
+use Database\Seeders\ToolboxSeeder;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -124,12 +127,12 @@ class LeadCaptureTest extends TestCase
             'hours' => 'Luni - Vineri, 08:00 - 19:00',
             'visit' => $visit,
             'services' => ['Instalare centrală'],
-            'logoUrl' => asset('branding/op-logo.png'),
+            'logoUrl' => asset('branding/logo-trim.png'),
         ])->render();
 
         $this->assertStringContainsString('10.10.2026 10:00', $html);
         $this->assertStringContainsString('Instalare centrală', $html);
-        $this->assertStringContainsString('op-logo.png', $html);
+        $this->assertStringContainsString('logo-trim.png', $html);
         $this->assertStringContainsString('am primit mesajul tău', $html);
     }
 
@@ -157,6 +160,32 @@ class LeadCaptureTest extends TestCase
 
         $path = str_replace('/storage/', '', parse_url($installation->photos[0], PHP_URL_PATH));
         Storage::disk('public')->assertExists($path);
+    }
+
+    public function test_quote_request_appointment_notes_list_the_required_toolboxes(): void
+    {
+        $this->seed(RolesAndPermissionsSeeder::class);
+        $this->seed(ServiceSeeder::class);
+        $this->seed(ToolboxSeeder::class);
+        User::factory()->create()->assignRole('admin');
+
+        Notification::fake();
+
+        $service = Service::where('category', 'electric')->firstOrFail();
+
+        $this->post(route('public.lead.store'), [
+            'name' => 'Ion Popescu',
+            'phone' => '0722123456',
+            'job_type' => 'instalare',
+            'service_ids' => [$service->id],
+            'privacy_consent' => '1',
+        ])->assertRedirect();
+
+        $installation = Installation::firstOrFail();
+
+        $this->assertStringContainsString('Constatare creată automat', $installation->notes);
+        $this->assertStringContainsString('Cutii de luat: Master, Electric', $installation->notes);
+        $this->assertStringNotContainsString('Cutii de luat', (string) $installation->customer_notes);
     }
 
     public function test_name_and_phone_are_required(): void

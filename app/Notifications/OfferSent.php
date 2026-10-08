@@ -37,7 +37,7 @@ class OfferSent extends Notification
             ->view('emails.offer-sent', [
                 'recipientName' => $this->offer->client->name,
                 'offer' => $this->offer,
-                'logoUrl' => asset('branding/op-logo.png'),
+                'logoUrl' => asset('branding/logo-trim.png'),
             ]);
     }
 

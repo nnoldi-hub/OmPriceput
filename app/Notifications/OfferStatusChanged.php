@@ -42,7 +42,7 @@ class OfferStatusChanged extends Notification
                 'status' => $this->status,
                 'clientMessage' => $this->message,
                 'offerUrl' => route('sales.offers.show', $this->offer),
-                'logoUrl' => asset('branding/op-logo.png'),
+                'logoUrl' => asset('branding/logo-trim.png'),
             ]);
     }
 }

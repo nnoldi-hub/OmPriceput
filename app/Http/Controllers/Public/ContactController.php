@@ -7,7 +7,6 @@ use App\Models\Client;
 use App\Models\Installation;
 use App\Models\Page;
 use App\Models\Service;
-use App\Models\Toolbox;
 use App\Notifications\NewLeadReceived;
 use App\Notifications\RequestConfirmation;
 use App\Services\AvailabilityService;
@@ -203,7 +202,6 @@ class ContactController extends Controller
 
         $subtotal = (float) $services->sum('sale_price');
         $travel = $this->travelFee($subtotal);
-        $boxes = Toolbox::forServices($services->pluck('id'))->pluck('name');
 
         $photos = collect($request->file('photos', []))
             ->filter()
@@ -225,12 +223,14 @@ class ContactController extends Controller
             'customer_notes' => collect([
                 'Tip lucrare solicitat: '.(Installation::TYPE_LABELS[$data['job_type']] ?? $data['job_type']),
                 $serviceNames->isNotEmpty() ? 'Servicii dorite: '.$serviceNames->join(', ') : null,
-                $boxes->isNotEmpty() ? 'Cutii de luat: '.$boxes->join(', ') : null,
                 'Estimare afișată clientului: manoperă '.number_format($subtotal, 0).' lei + deplasare '.$travel.' lei'
                     .($travel ? ' (se scade din deviz dacă se execută lucrarea)' : ''),
                 $data['notes'] ?? null,
             ])->filter()->implode("\n"),
-            'notes' => 'Constatare creată automat din cererea de deviz online.',
+            'notes' => collect([
+                'Constatare creată automat din cererea de deviz online.',
+                Installation::toolboxNote($services->pluck('id')),
+            ])->filter()->implode("\n"),
         ]);
     }
 }

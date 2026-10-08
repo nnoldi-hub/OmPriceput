@@ -38,7 +38,7 @@ class TicketUpdated extends Notification
                 'actionUrl' => $isClient
                     ? route('client.tickets.index')
                     : route('technical.tickets.show', $this->ticket),
-                'logoUrl' => asset('branding/op-logo.png'),
+                'logoUrl' => asset('branding/logo-trim.png'),
             ]);
     }
 

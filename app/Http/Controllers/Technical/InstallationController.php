@@ -126,6 +126,7 @@ class InstallationController extends Controller
         $this->ensureTechnicianAvailability($data);
         $data['checklist'] = Installation::defaultChecklist($data['type']);
         $data = $this->processExecutionDetails($request, $data);
+        $data['notes'] = $this->notesWithToolboxes($data['notes'] ?? null, $data['service_items'] ?? []);
 
         $installation = DB::transaction(function () use ($data) {
             $installation = Installation::create($data);
@@ -170,6 +171,7 @@ class InstallationController extends Controller
         $data = $this->validateData($request);
         $this->ensureTechnicianAvailability($data, $installation);
         $data = $this->processExecutionDetails($request, $data, $installation);
+        $data['notes'] = $this->notesWithToolboxes($data['notes'] ?? null, $data['service_items'] ?? []);
         DB::transaction(function () use ($data, $installation) {
             $installation->update($data);
             if ($installation->status === 'completed') {
@@ -292,6 +294,20 @@ class InstallationController extends Controller
             'technician_signature' => ['nullable', 'image', 'max:5120'],
             'customer_signature' => ['nullable', 'image', 'max:5120'],
         ]);
+    }
+
+    /** Notele tehnice păstrează mereu rândul „Cutii de luat", recalculat la fiecare salvare. */
+    private function notesWithToolboxes(?string $notes, array $serviceItems): ?string
+    {
+        $line = Installation::toolboxNote(collect($serviceItems)->pluck('service_id'));
+
+        $lines = collect(preg_split('/\r\n|\r|\n/', $notes ?? ''))
+            ->filter(fn (string $line) => trim($line) !== '')
+            ->reject(fn (string $line) => str_starts_with(trim($line), 'Cutii de luat:'))
+            ->when($line, fn ($lines) => $lines->push($line))
+            ->values();
+
+        return $lines->implode("\n") ?: null;
     }
 
     private function ensureTechnicianAvailability(array $data, ?Installation $installation = null): void

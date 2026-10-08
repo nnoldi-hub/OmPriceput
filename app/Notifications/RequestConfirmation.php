@@ -46,7 +46,7 @@ class RequestConfirmation extends Notification implements ShouldQueue
                 'hours' => Setting::get('company_hours'),
                 'visit' => $this->visit,
                 'services' => $this->services,
-                'logoUrl' => asset('branding/op-logo.png'),
+                'logoUrl' => asset('branding/logo-trim.png'),
             ]);
     }
 }

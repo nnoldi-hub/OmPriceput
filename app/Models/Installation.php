@@ -216,7 +216,15 @@ class Installation extends Model
         ];
     }
     public function requiredToolboxes(): Collection
-{
-    return Toolbox::forServices(collect($this->service_items ?? [])->pluck('service_id'));
-}
+    {
+        return Toolbox::forServices(collect($this->service_items ?? [])->pluck('service_id'));
+    }
+
+    /** Rândul „Cutii de luat: ..." pentru notele programării. */
+    public static function toolboxNote(iterable $serviceIds): ?string
+    {
+        $boxes = Toolbox::forServices($serviceIds)->pluck('name');
+
+        return $boxes->isNotEmpty() ? 'Cutii de luat: '.$boxes->join(', ') : null;
+    }
 }

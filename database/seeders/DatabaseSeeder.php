@@ -65,6 +65,7 @@ class DatabaseSeeder extends Seeder
 
         $this->call([
             ServiceSeeder::class,
+            ToolboxSeeder::class,
             EquipmentSeeder::class,
             PostSeeder::class,
         ]);

@@ -10,6 +10,8 @@ use App\Models\Offer;
 use App\Models\Service;
 use App\Models\User;
 use Database\Seeders\RolesAndPermissionsSeeder;
+use Database\Seeders\ServiceSeeder;
+use Database\Seeders\ToolboxSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -44,6 +46,60 @@ class InstallationCrudTest extends TestCase
 
         $this->assertNotEmpty($installation->checklist);
         $this->assertFalse($installation->checklist[0]['done']);
+    }
+
+    public function test_appointment_notes_list_the_required_toolboxes(): void
+    {
+        $this->seed(ServiceSeeder::class);
+        $this->seed(ToolboxSeeder::class);
+
+        $client = Client::factory()->create();
+        $service = Service::where('category', 'montaj')->firstOrFail();
+
+        $response = $this->actingAs($this->techUser)->post(route('technical.installations.store'), [
+            'client_id' => $client->id,
+            'type' => 'instalare',
+            'status' => 'scheduled',
+            'service_items' => [['service_id' => $service->id, 'quantity' => 1]],
+        ]);
+
+        $installation = Installation::firstWhere('client_id', $client->id);
+        $response->assertRedirect(route('technical.installations.show', $installation));
+
+        $this->assertStringContainsString('Cutii de luat: Master, Montaj', (string) $installation->notes);
+    }
+
+    public function test_updating_an_appointment_keeps_a_single_toolbox_line(): void
+    {
+        $this->seed(ServiceSeeder::class);
+        $this->seed(ToolboxSeeder::class);
+
+        $client = Client::factory()->create();
+        $service = Service::where('category', 'sanitar')->firstOrFail();
+
+        $this->actingAs($this->techUser)->post(route('technical.installations.store'), [
+            'client_id' => $client->id,
+            'type' => 'instalare',
+            'status' => 'scheduled',
+            'notes' => 'Aduce cheia de la poarta.',
+            'service_items' => [['service_id' => $service->id, 'quantity' => 1]],
+        ]);
+
+        $installation = Installation::firstWhere('client_id', $client->id);
+        $this->assertSame(1, substr_count((string) $installation->notes, 'Cutii de luat:'));
+
+        $this->actingAs($this->techUser)->put(route('technical.installations.update', $installation), [
+            'client_id' => $client->id,
+            'type' => 'instalare',
+            'status' => 'scheduled',
+            'notes' => $installation->notes,
+            'service_items' => [['service_id' => $service->id, 'quantity' => 1]],
+        ])->assertRedirect(route('technical.installations.show', $installation));
+
+        $installation->refresh();
+        $this->assertSame(1, substr_count((string) $installation->notes, 'Cutii de luat:'));
+        $this->assertStringContainsString('Aduce cheia de la poarta.', $installation->notes);
+        $this->assertStringContainsString('Cutii de luat: Master, Sanitar', $installation->notes);
     }
 
     public function test_technician_cannot_be_scheduled_twice_at_the_same_time(): void

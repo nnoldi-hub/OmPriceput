@@ -9,7 +9,7 @@
         .topbar { height: 8px; background: #f59e0b; }
         .header { width: 100%; padding: 18px 0 16px; border-bottom: 1px solid #dbe3ed; }
         .header td { vertical-align: top; }
-        .logo { width: 190px; height: auto; }
+        .logo { width: 110px; height: auto; }
         .brand-line { color: #64748b; font-size: 9px; letter-spacing: 1.2px; margin-top: 6px; }
         h1 { color: #061426; font-size: 19px; margin: 0 0 4px; }
         .muted { color: #64748b; }
@@ -35,7 +35,7 @@
     <table class="header" cellspacing="0" cellpadding="0">
         <tr>
             <td style="width: 55%;">
-                <img class="logo" src="{{ public_path('branding/op-logo.png') }}" alt="{{ $settings['company_name'] }}">
+                <img class="logo" src="{{ public_path('branding/logo-trim.png') }}" alt="{{ $settings['company_name'] }}">
                 <div class="brand-line">SIGURANTA INCEPE CU VIZIBILITATE.</div>
             </td>
             <td style="width: 45%; text-align: right;">

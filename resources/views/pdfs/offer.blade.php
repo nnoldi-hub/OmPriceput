@@ -9,7 +9,7 @@
         .topbar { height: 8px; background: #f59e0b; }
         .header { width: 100%; padding: 22px 0 20px; border-bottom: 1px solid #dbe3ed; }
         .header td { vertical-align: top; }
-        .logo { width: 215px; height: auto; }
+        .logo { width: 110px; height: auto; }
         .brand-line { color: #64748b; font-size: 10px; letter-spacing: 1.4px; margin-top: 8px; }
         .document-title { color: #061426; font-size: 21px; font-weight: bold; margin: 0 0 6px; }
         .muted { color: #64748b; }
@@ -33,7 +33,7 @@
     <table class="header" cellspacing="0" cellpadding="0">
         <tr>
             <td style="width: 55%;">
-                <img class="logo" src="{{ public_path('branding/op-logo.png') }}" alt="Om Priceput">
+                <img class="logo" src="{{ public_path('branding/logo-trim.png') }}" alt="Om Priceput">
                 <div class="brand-line">REPARAM. MONTAM. LASAM TOTUL CA ATUNCI.</div>
             </td>
             <td style="width: 45%; text-align: right;">
