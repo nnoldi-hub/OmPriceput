@@ -27,7 +27,7 @@ function addToCart() {
 
             <div class="mt-6 grid gap-10 sm:grid-cols-2">
                 <div class="flex h-80 items-center justify-center overflow-hidden rounded-xl bg-slate-50">
-                    <img v-if="product.image_path" :src="`/storage/${product.image_path}`" :alt="product.name" class="h-full w-full object-contain" />
+                    <img v-if="product.image_path" :src="`/storage/${product.image_path}`" :alt="product.name" class="h-full w-full object-contain" decoding="async" />
                     <span v-else class="text-sm text-slate-400">Imagine indisponibila</span>
                 </div>
 

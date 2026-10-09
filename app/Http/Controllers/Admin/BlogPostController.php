@@ -8,6 +8,7 @@ use App\Models\Media;
 use App\Models\Post;
 use App\Models\Tag;
 use App\Models\User;
+use App\Support\ImageOptimizer;
 use App\Support\InternalLinker;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -167,7 +168,7 @@ class BlogPostController extends Controller
 
         foreach (['cover_image', 'og_image', 'twitter_image'] as $image) {
             if ($request->hasFile($image)) {
-                $data[$image] = $request->file($image)->store('blog', 'public');
+                $data[$image] = app(ImageOptimizer::class)->store($request->file($image), 'blog', 'public');
             } else {
                 unset($data[$image]);
             }

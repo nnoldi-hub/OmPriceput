@@ -35,7 +35,7 @@ function formatDate(value) {
                     :href="route('public.blog.show', post.slug)"
                     class="group block overflow-hidden rounded-xl border border-slate-200 hover:border-blue-300 hover:shadow-sm"
                 >
-                    <img v-if="post.cover_image_url" :src="post.cover_image_url" :alt="post.cover_image_alt || post.title" class="h-48 w-full object-cover" loading="lazy" />
+                    <img v-if="post.cover_image_url" :src="post.cover_image_url" :alt="post.cover_image_alt || post.title" class="h-48 w-full object-cover" loading="lazy" decoding="async" />
                     <div class="p-6">
                         <time class="text-xs text-slate-400">{{ formatDate(post.published_at) }}</time>
                         <h2 class="mt-2 text-lg font-semibold text-slate-900 group-hover:text-blue-700">{{ post.title }}</h2>

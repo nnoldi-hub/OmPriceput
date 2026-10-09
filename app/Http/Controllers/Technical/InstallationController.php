@@ -6,19 +6,20 @@ use App\Http\Controllers\Controller;
 use App\Models\Client;
 use App\Models\Equipment;
 use App\Models\Installation;
-use App\Models\Setting;
 use App\Models\Invoice;
 use App\Models\Offer;
 use App\Models\Service;
+use App\Models\Setting;
 use App\Models\User;
+use App\Support\ImageOptimizer;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response as HttpResponse;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -134,6 +135,7 @@ class InstallationController extends Controller
                 $this->markCompleted($installation);
                 $this->consumeMaterialsFromStock($installation);
             }
+
             return $installation;
         });
 
@@ -369,8 +371,10 @@ class InstallationController extends Controller
         unset($data['photos']);
 
         $photos = [];
+        $optimizer = app(ImageOptimizer::class);
+
         foreach ($request->file('photos', []) as $photo) {
-            $photos[] = Storage::disk('public')->url($photo->store('installations', 'public'));
+            $photos[] = Storage::disk('public')->url($optimizer->store($photo, 'installations', 'public'));
         }
 
         if ($photos) {
@@ -380,7 +384,7 @@ class InstallationController extends Controller
         foreach (['technician_signature', 'customer_signature'] as $signatureField) {
             if ($request->hasFile($signatureField)) {
                 $data[$signatureField] = Storage::disk('public')->url(
-                    $request->file($signatureField)->store('installations/signatures', 'public')
+                    $optimizer->store($request->file($signatureField), 'installations/signatures', 'public')
                 );
             } elseif ($installation) {
                 $data[$signatureField] = $installation->{$signatureField};

@@ -53,6 +53,7 @@ const readingMinutes = computed(() => {
                 :src="post.cover_image_url"
                 :alt="post.cover_image_alt || post.title"
                 class="mt-8 w-full rounded-xl object-cover"
+                decoding="async"
             />
             <p v-if="post.cover_image_caption" class="mt-2 text-center text-xs text-slate-400">
                 {{ post.cover_image_caption }}
@@ -71,7 +72,7 @@ const readingMinutes = computed(() => {
                         target="_blank"
                         class="overflow-hidden rounded-lg border border-slate-200"
                     >
-                        <img :src="image.url" :alt="image.alt || post.title" class="h-40 w-full object-cover transition hover:scale-105" loading="lazy" />
+                        <img :src="image.url" :alt="image.alt || post.title" class="h-40 w-full object-cover transition hover:scale-105" loading="lazy" decoding="async" />
                     </a>
                 </div>
             </div>
@@ -111,7 +112,7 @@ const readingMinutes = computed(() => {
                         :href="route('public.blog.show', item.slug)"
                         class="group block overflow-hidden rounded-xl border border-slate-200 bg-white hover:border-blue-300 hover:shadow-sm"
                     >
-                        <img v-if="item.cover_image_url" :src="item.cover_image_url" :alt="item.title" class="h-32 w-full object-cover" loading="lazy" />
+                        <img v-if="item.cover_image_url" :src="item.cover_image_url" :alt="item.title" class="h-32 w-full object-cover" loading="lazy" decoding="async" />
                         <div class="p-5">
                             <h3 class="font-semibold text-slate-900 group-hover:text-blue-700">{{ item.title }}</h3>
                             <p class="mt-2 text-sm text-slate-500">{{ item.excerpt }}</p>

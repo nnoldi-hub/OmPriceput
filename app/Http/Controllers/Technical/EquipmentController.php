@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Technical;
 use App\Http\Controllers\Controller;
 use App\Models\Equipment;
 use App\Models\Supplier;
+use App\Support\ImageOptimizer;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -144,7 +145,7 @@ class EquipmentController extends Controller
             return null;
         }
 
-        return $request->file('image')->store('equipment', 'public');
+        return app(ImageOptimizer::class)->store($request->file('image'), 'equipment', 'public');
     }
 
     private function uniqueSlug(string $name): string

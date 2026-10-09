@@ -59,7 +59,7 @@ function addToCart(product) {
                 <div v-for="product in products.data" :key="product.id" class="flex flex-col rounded-xl border border-slate-200 p-5 hover:border-blue-300 hover:shadow-sm">
                     <Link :href="route('public.shop.show', product.slug)" class="block">
                         <div class="flex h-40 items-center justify-center overflow-hidden rounded-lg bg-slate-50">
-                            <img v-if="product.image_path" :src="`/storage/${product.image_path}`" :alt="product.name" class="h-full w-full object-contain" />
+                            <img v-if="product.image_path" :src="`/storage/${product.image_path}`" :alt="product.name" class="h-full w-full object-contain" loading="lazy" decoding="async" />
                             <span v-else class="text-sm text-slate-400">Imagine indisponibila</span>
                         </div>
                         <div class="mt-3 text-xs uppercase tracking-wide text-slate-400">{{ product.category_label }}</div>
