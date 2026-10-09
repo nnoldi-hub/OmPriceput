@@ -60,7 +60,7 @@ Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->name('ad
 
     Route::resource('blog/categorii', CategoryController::class)->only(['index', 'store', 'update', 'destroy'])->parameters(['categorii' => 'category'])->names('blog.categories');
     Route::resource('blog/taguri', TagController::class)->only(['index', 'store', 'update', 'destroy'])->parameters(['taguri' => 'tag'])->names('blog.tags');
-    Route::resource('blog', BlogPostController::class)->except(['show'])->names('blog');
+    Route::resource('blog', BlogPostController::class)->except(['show'])->parameters(['blog' => 'post'])->names('blog');
 
     Route::get('/setari', [SettingsController::class, 'edit'])->name('settings.edit');
     Route::put('/setari', [SettingsController::class, 'update'])->name('settings.update');
