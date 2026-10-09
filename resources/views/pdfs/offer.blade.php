@@ -4,32 +4,32 @@
     <meta charset="utf-8">
     <title>Deviz #{{ $offer->id }}</title>
     <style>
-        @page { margin: 32px 38px 42px; }
-        body { font-family: DejaVu Sans, sans-serif; font-size: 11px; color: #172033; }
-        .topbar { height: 8px; background: #f59e0b; }
-        .header { width: 100%; padding: 22px 0 20px; border-bottom: 1px solid #dbe3ed; }
+        @page { margin: 22px 28px 26px; }
+        body { font-family: DejaVu Sans, sans-serif; font-size: 9.5px; color: #172033; }
+        .topbar { height: 6px; background: #f59e0b; }
+        .header { width: 100%; padding: 12px 0 10px; border-bottom: 1px solid #dbe3ed; }
         .header td { vertical-align: top; }
-        .logo { width: 110px; height: auto; }
-        .brand-line { color: #64748b; font-size: 10px; letter-spacing: 1.4px; margin-top: 8px; }
-        .document-title { color: #061426; font-size: 21px; font-weight: bold; margin: 0 0 6px; }
+        .logo { width: 84px; height: auto; }
+        .brand-line { color: #64748b; font-size: 8px; letter-spacing: 1px; margin-top: 5px; }
+        .document-title { color: #061426; font-size: 17px; font-weight: bold; margin: 0 0 4px; }
         .muted { color: #64748b; }
-        .status { display: inline-block; margin-top: 8px; padding: 5px 10px; background: #fff4d6; color: #9a5b00; font-size: 10px; font-weight: bold; }
-        .section { margin-top: 24px; }
-        .section-title { color: #061426; font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: .8px; }
-        .client-card { margin-top: 9px; padding: 13px 15px; background: #f4f7fb; border-left: 4px solid #2563eb; }
-        .offer-title { margin-top: 24px; padding-bottom: 10px; color: #061426; font-size: 16px; font-weight: bold; border-bottom: 2px solid #f59e0b; }
-        table.items { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        .items th { padding: 8px; background: #061426; color: #fff; font-size: 10px; text-align: left; }
-        .items td { padding: 8px; border-bottom: 1px solid #e2e8f0; }
+        .status { display: inline-block; margin-top: 5px; padding: 3px 8px; background: #fff4d6; color: #9a5b00; font-size: 8.5px; font-weight: bold; }
+        .section { margin-top: 14px; }
+        .section-title { color: #061426; font-size: 9.5px; font-weight: bold; text-transform: uppercase; letter-spacing: .8px; }
+        .client-card { margin-top: 6px; padding: 8px 11px; background: #f4f7fb; border-left: 3px solid #2563eb; }
+        .offer-title { margin-top: 14px; padding-bottom: 6px; color: #061426; font-size: 13px; font-weight: bold; border-bottom: 2px solid #f59e0b; }
+        table.items { width: 100%; border-collapse: collapse; margin-top: 7px; }
+        .items th { padding: 5px; background: #061426; color: #fff; font-size: 8.5px; text-align: left; }
+        .items td { padding: 4px 5px; border-bottom: 1px solid #e2e8f0; }
         .items .subtotal-row td { border-bottom: none; border-top: 1px solid #cbd5e1; background: #f8fafc; font-weight: bold; }
         .text-right { text-align: right; }
-        .section-heading { margin-top: 22px; color: #061426; font-size: 12px; font-weight: bold; }
-        .section-hint { color: #64748b; font-size: 9px; }
-        .total-box { margin-top: 24px; padding: 14px 16px; background: #061426; color: #fff; }
-        .total-box .line { font-size: 10px; color: #cbd5e1; }
-        .total-box .grand { font-size: 16px; font-weight: bold; }
-        .notes { padding: 12px 15px; background: #fffaf0; border-left: 4px solid #f59e0b; line-height: 1.5; }
-        .footer { margin-top: 34px; padding-top: 14px; border-top: 1px solid #dbe3ed; font-size: 9px; line-height: 1.5; }
+        .section-heading { margin-top: 13px; color: #061426; font-size: 10px; font-weight: bold; }
+        .section-hint { color: #64748b; font-size: 8px; }
+        .total-box { margin-top: 14px; padding: 9px 12px; background: #061426; color: #fff; }
+        .total-box .line { font-size: 9px; color: #cbd5e1; }
+        .total-box .grand { font-size: 14px; font-weight: bold; }
+        .notes { padding: 8px 11px; background: #fffaf0; border-left: 3px solid #f59e0b; line-height: 1.4; }
+        .footer { margin-top: 18px; padding-top: 8px; border-top: 1px solid #dbe3ed; font-size: 8px; line-height: 1.4; }
     </style>
 </head>
 <body>
@@ -159,7 +159,7 @@
         </table>
     @endif
 
-    <table cellspacing="0" cellpadding="0" style="width: 100%; margin-top: 22px;">
+    <table cellspacing="0" cellpadding="0" style="width: 100%; margin-top: 12px;">
         <tr>
             <td style="width: 58%;"></td>
             <td style="width: 42%;">
