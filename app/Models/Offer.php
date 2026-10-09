@@ -6,10 +6,13 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Collection;
 
 class Offer extends Model
 {
     use HasFactory;
+
+    public const DEFAULT_VALIDITY_DAYS = 30;
 
     protected $fillable = [
         'client_id',
@@ -50,6 +53,41 @@ class Offer extends Model
         return $this->hasMany(OfferItem::class);
     }
 
+    public function itemsForSection(?string $section = null): Collection
+    {
+        $items = $this->relationLoaded('items') ? $this->items : $this->items()->get();
+
+        if ($section === null) {
+            return $items;
+        }
+
+        return $items->where('section', $section)->values();
+    }
+
+    public function sectionSubtotal(string $section): float
+    {
+        if ($section === OfferItem::SECTION_CLIENT_MATERIALS) {
+            return 0.0;
+        }
+
+        return round($this->itemsForSection($section)->sum('subtotal'), 2);
+    }
+
+    public function materialsSubtotal(): float
+    {
+        return $this->sectionSubtotal(OfferItem::SECTION_MATERIALS);
+    }
+
+    public function laborSubtotal(): float
+    {
+        return $this->sectionSubtotal(OfferItem::SECTION_LABOR);
+    }
+
+    public function pricedSubtotal(): float
+    {
+        return round($this->materialsSubtotal() + $this->laborSubtotal(), 2);
+    }
+
     public function installations(): HasMany
     {
         return $this->hasMany(Installation::class);
@@ -72,9 +110,13 @@ class Offer extends Model
         $uncostedItems = 0;
 
         foreach ($this->items as $item) {
+            if ($item->isClientSupplied()) {
+                continue;
+            }
             $unitCost = $item->equipment?->cost_price ?? $item->service?->cost_price;
             if ($unitCost === null) {
                 $uncostedItems++;
+
                 continue;
             }
             $cost += (float) $item->quantity * (float) $unitCost;

@@ -4,22 +4,22 @@ namespace App\Http\Controllers\Client;
 
 use App\Http\Controllers\Controller;
 use App\Models\Equipment;
-use App\Models\Ticket;
-use App\Models\TicketComment;
-use App\Models\Offer;
 use App\Models\Installation;
-use App\Notifications\TicketUpdated;
-use App\Notifications\OfferAvailable;
+use App\Models\Offer;
+use App\Models\OfferItem;
+use App\Models\Setting;
+use App\Models\Ticket;
+use App\Models\User;
 use App\Notifications\OfferStatusChanged;
+use App\Notifications\TicketUpdated;
 use App\Services\SmsService;
-use Illuminate\Support\Facades\Notification;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
-use Barryvdh\DomPDF\Facade\Pdf;
-use App\Models\Setting;
+use Illuminate\Support\Facades\Notification;
 use Inertia\Inertia;
 use Inertia\Response;
+use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
 class PortalController extends Controller
 {
@@ -57,7 +57,7 @@ class PortalController extends Controller
             'description' => 'Răspuns adăugat de client: '.$data['body'],
         ]);
 
-        $staff = \App\Models\User::role(['admin', 'tehnic', 'suport'])->get();
+        $staff = User::role(['admin', 'tehnic', 'suport'])->get();
         Notification::send($staff, new TicketUpdated($record, 'Clientul a răspuns la cererea #'.$record->id.'.'));
 
         return back()->with('success', 'Răspunsul a fost trimis.');
@@ -126,7 +126,7 @@ class PortalController extends Controller
         if ($clientUser) {
             Notification::send($clientUser, new TicketUpdated($ticket, 'Cererea ta a fost înregistrată și va fi preluată de echipa noastră.'));
         }
-        $staff = \App\Models\User::role(['admin', 'tehnic', 'suport'])->get();
+        $staff = User::role(['admin', 'tehnic', 'suport'])->get();
         Notification::send($staff, new TicketUpdated($ticket, 'A fost creată o cerere nouă de către '.$ticket->client->name.'.'));
         if ($ticket->client->phone) {
             $sms->send($ticket->client->phone, "Cererea #{$ticket->id} a fost inregistrata.");
@@ -262,16 +262,16 @@ class PortalController extends Controller
             'address' => trim(($offer->client->address ?? '').' '.($offer->client->city ?? '')),
             'status' => 'scheduled',
             'checklist' => Installation::defaultChecklist($type),
-            'material_items' => $offer->items->whereNotNull('equipment_id')->map(fn ($item) => [
+            'material_items' => $offer->items->where('section', OfferItem::SECTION_MATERIALS)->map(fn ($item) => [
                 'equipment_id' => $item->equipment_id,
                 'name' => $item->equipment?->name ?? $item->description,
-                'unit' => $item->equipment?->unit ?? 'buc',
+                'unit' => $item->unit ?: ($item->equipment?->unit ?? 'buc'),
                 'quantity' => (int) $item->quantity,
             ])->values()->all(),
-            'service_items' => $offer->items->whereNotNull('service_id')->map(fn ($item) => [
+            'service_items' => $offer->items->where('section', OfferItem::SECTION_LABOR)->map(fn ($item) => [
                 'service_id' => $item->service_id,
                 'name' => $item->service?->name ?? $item->description,
-                'unit' => $item->service?->unit ?? 'ora',
+                'unit' => $item->unit ?: ($item->service?->unit ?? 'ora'),
                 'quantity' => (int) $item->quantity,
             ])->values()->all(),
             'notes' => 'Lucrare generata automat la acceptarea devizului #'.$offer->id.'.',

@@ -1,11 +1,40 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
+import { computed } from 'vue';
 
 const props = defineProps({
     offer: Object,
     profitability: Object,
 });
+
+const sectionDefs = [
+    { key: 'materials', title: 'A. Materiale necesare', priced: true },
+    { key: 'labor', title: 'B. Manopera', priced: true },
+    { key: 'client_materials', title: 'C. Materiale achizitionate de client', priced: false },
+];
+
+const groups = computed(() => {
+    const result = { materials: [], labor: [], client_materials: [] };
+
+    for (const item of props.offer.items) {
+        const section = item.section || (item.equipment_id ? 'materials' : 'labor');
+        (result[section] ??= []).push(item);
+    }
+
+    return result;
+});
+
+const subtotals = computed(() => {
+    const sum = (items) => items.reduce((total, item) => total + (Number(item.quantity) || 0) * (Number(item.unit_price) || 0), 0);
+
+    return {
+        materials: sum(groups.value.materials),
+        labor: sum(groups.value.labor),
+    };
+});
+
+const grandTotal = computed(() => subtotals.value.materials + subtotals.value.labor);
 
 const statusOptions = [
     { value: 'draft', label: 'Draft' },
@@ -116,32 +145,47 @@ function destroy() {
                         <p v-if="profitability.uncosted_items" class="mt-3 text-sm text-amber-800">Atentie: {{ profitability.uncosted_items }} articol(e) nu au cost configurat.</p>
                         <p v-if="profitability.margin_percent < profitability.minimum_margin_percent" class="mt-2 text-sm font-medium text-red-700">Oferta este sub marja minima configurata. Verifica pretul inainte de acceptare.</p>
                     </div>
-                    <div class="rounded-lg bg-white p-6 shadow-sm">
-                        <h3 class="text-sm font-semibold text-slate-500">Produse / servicii</h3>
+                    <div v-for="section in sectionDefs" :key="section.key" class="rounded-lg bg-white p-6 shadow-sm">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-sm font-semibold text-slate-500">{{ section.title }}</h3>
+                            <span v-if="section.priced" class="text-sm text-slate-500">Subtotal: <strong class="text-slate-900">{{ money(subtotals[section.key]) }} lei</strong></span>
+                        </div>
                         <table class="mt-4 min-w-full divide-y divide-slate-200">
                             <thead>
                                 <tr class="text-left text-xs font-medium uppercase text-slate-500">
                                     <th class="py-2">Descriere</th>
                                     <th class="py-2 text-right">Cant.</th>
-                                    <th class="py-2 text-right">Pret unitar</th>
-                                    <th class="py-2 text-right">Subtotal</th>
+                                    <th class="py-2 text-right">UM</th>
+                                    <th v-if="section.priced" class="py-2 text-right">Pret unitar</th>
+                                    <th v-if="section.priced" class="py-2 text-right">Subtotal</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-100">
-                                <tr v-for="item in offer.items" :key="item.id">
+                                <tr v-for="item in groups[section.key]" :key="item.id">
                                     <td class="py-2">{{ item.description }}</td>
                                     <td class="py-2 text-right">{{ item.quantity }}</td>
-                                    <td class="py-2 text-right">{{ money(item.unit_price) }} lei</td>
-                                    <td class="py-2 text-right">{{ money(item.quantity * item.unit_price) }} lei</td>
+                                    <td class="py-2 text-right">{{ item.unit }}</td>
+                                    <td v-if="section.priced" class="py-2 text-right">{{ money(item.unit_price) }} lei</td>
+                                    <td v-if="section.priced" class="py-2 text-right">{{ money(item.quantity * item.unit_price) }} lei</td>
+                                </tr>
+                                <tr v-if="!groups[section.key].length">
+                                    <td :colspan="section.priced ? 5 : 3" class="py-2 text-sm text-slate-400">Nicio linie.</td>
                                 </tr>
                             </tbody>
-                            <tfoot>
-                                <tr class="border-t-2 border-slate-900 font-semibold">
-                                    <td colspan="3" class="py-2 text-right">Total</td>
-                                    <td class="py-2 text-right">{{ money(offer.total_amount) }} lei</td>
-                                </tr>
-                            </tfoot>
                         </table>
+                    </div>
+
+                    <div class="rounded-lg bg-slate-900 p-6 shadow-sm">
+                        <div class="flex items-center justify-between text-white">
+                            <div>
+                                <p class="text-xs uppercase tracking-wide text-slate-400">Materiale: {{ money(subtotals.materials) }} lei</p>
+                                <p class="text-xs uppercase tracking-wide text-slate-400">Manopera: {{ money(subtotals.labor) }} lei</p>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-sm text-slate-400">Total (A + B)</span>
+                                <p class="text-2xl font-bold">{{ money(grandTotal) }} lei</p>
+                            </div>
+                        </div>
                     </div>
 
                     <div v-if="offer.notes" class="rounded-lg bg-white p-6 shadow-sm">

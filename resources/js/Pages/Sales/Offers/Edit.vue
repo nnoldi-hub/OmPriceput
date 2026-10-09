@@ -23,8 +23,10 @@ const form = useForm({
     items: props.offer.items.map((item) => ({
         equipment_id: item.equipment_id,
         service_id: item.service_id,
+        section: item.section || (item.equipment_id ? 'materials' : 'labor'),
         description: item.description,
         quantity: item.quantity,
+        unit: item.unit ?? '',
         unit_price: Number(item.unit_price),
     })),
 });

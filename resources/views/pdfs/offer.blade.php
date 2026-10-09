@@ -2,7 +2,7 @@
 <html lang="ro">
 <head>
     <meta charset="utf-8">
-    <title>Oferta #{{ $offer->id }}</title>
+    <title>Deviz #{{ $offer->id }}</title>
     <style>
         @page { margin: 32px 38px 42px; }
         body { font-family: DejaVu Sans, sans-serif; font-size: 11px; color: #172033; }
@@ -18,83 +18,171 @@
         .section-title { color: #061426; font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: .8px; }
         .client-card { margin-top: 9px; padding: 13px 15px; background: #f4f7fb; border-left: 4px solid #2563eb; }
         .offer-title { margin-top: 24px; padding-bottom: 10px; color: #061426; font-size: 16px; font-weight: bold; border-bottom: 2px solid #f59e0b; }
-        table.items { width: 100%; border-collapse: collapse; margin-top: 14px; }
-        .items th { padding: 10px 8px; background: #061426; color: #fff; font-size: 10px; text-align: left; }
-        .items td { padding: 10px 8px; border-bottom: 1px solid #e2e8f0; }
+        table.items { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        .items th { padding: 8px; background: #061426; color: #fff; font-size: 10px; text-align: left; }
+        .items td { padding: 8px; border-bottom: 1px solid #e2e8f0; }
+        .items .subtotal-row td { border-bottom: none; border-top: 1px solid #cbd5e1; background: #f8fafc; font-weight: bold; }
         .text-right { text-align: right; }
-        .total-row td { padding-top: 14px; color: #061426; font-size: 13px; font-weight: bold; border-top: 2px solid #061426; }
+        .section-heading { margin-top: 22px; color: #061426; font-size: 12px; font-weight: bold; }
+        .section-hint { color: #64748b; font-size: 9px; }
+        .total-box { margin-top: 24px; padding: 14px 16px; background: #061426; color: #fff; }
+        .total-box .line { font-size: 10px; color: #cbd5e1; }
+        .total-box .grand { font-size: 16px; font-weight: bold; }
         .notes { padding: 12px 15px; background: #fffaf0; border-left: 4px solid #f59e0b; line-height: 1.5; }
         .footer { margin-top: 34px; padding-top: 14px; border-top: 1px solid #dbe3ed; font-size: 9px; line-height: 1.5; }
     </style>
 </head>
 <body>
+    @php
+        $createdAt = $offer->created_at;
+        $validUntil = $offer->valid_until ?? $createdAt->copy()->addDays(\App\Models\Offer::DEFAULT_VALIDITY_DAYS);
+        if ($validUntil->lt($createdAt->copy()->startOfDay())) {
+            $validUntil = $createdAt->copy()->addDays(\App\Models\Offer::DEFAULT_VALIDITY_DAYS);
+        }
+        $materials = $offer->itemsForSection(\App\Models\OfferItem::SECTION_MATERIALS);
+        $labor = $offer->itemsForSection(\App\Models\OfferItem::SECTION_LABOR);
+        $clientMaterials = $offer->itemsForSection(\App\Models\OfferItem::SECTION_CLIENT_MATERIALS);
+    @endphp
+
     <div class="topbar"></div>
 
     <table class="header" cellspacing="0" cellpadding="0">
         <tr>
             <td style="width: 55%;">
                 <img class="logo" src="{{ public_path('branding/logo-trim.png') }}" alt="Om Priceput">
-                <div class="brand-line">REPARAM. MONTAM. LASAM TOTUL CA ATUNCI.</div>
+                <div class="brand-line">REPARĂM. MONTĂM. LĂSĂM TOTUL CA ATUNCI.</div>
             </td>
             <td style="width: 45%; text-align: right;">
                 <div class="document-title">DEVIZ #{{ $offer->id }}</div>
-                <div class="muted">Data: {{ $offer->created_at->format('d.m.Y') }}</div>
-                @if ($offer->valid_until)
-                    <div class="muted">Valabila pana la: {{ $offer->valid_until->format('d.m.Y') }}</div>
-                @endif
+                <div class="muted">Data: {{ $createdAt->format('d.m.Y') }}</div>
+                <div class="muted">Valabilă până la: {{ $validUntil->format('d.m.Y') }}</div>
                 <span class="status">{{ strtoupper($offer->status) }}</span>
             </td>
         </tr>
     </table>
 
     <div class="section">
-        <div class="section-title">Oferta pentru</div>
+        <div class="section-title">Ofertă pentru</div>
         <div class="client-card">
             <strong>{{ $offer->client->name }}</strong>
             @if ($offer->client->company_name) &middot; {{ $offer->client->company_name }} @endif
             @if ($offer->client->phone)<br><span class="muted">Telefon: {{ $offer->client->phone }}</span>@endif
             @if ($offer->client->email)<br><span class="muted">Email: {{ $offer->client->email }}</span>@endif
-            @if ($offer->client->address)<br><span class="muted">Adresa: {{ $offer->client->address }}, {{ $offer->client->city }}</span>@endif
+            @if ($offer->client->address)<br><span class="muted">Adresă: {{ $offer->client->address }}, {{ $offer->client->city }}</span>@endif
         </div>
     </div>
 
     <div class="offer-title">{{ $offer->title }}</div>
 
-    <table class="items" cellspacing="0" cellpadding="0">
-        <thead>
-            <tr>
-                <th>Descriere</th>
-                <th class="text-right">Cant.</th>
-                <th class="text-right">Pret unitar</th>
-                <th class="text-right">Subtotal</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach ($offer->items as $item)
+    @if ($materials->isNotEmpty())
+        <div class="section-heading">A. Materiale necesare</div>
+        <div class="section-hint">Materialele furnizate de noi.</div>
+        <table class="items" cellspacing="0" cellpadding="0">
+            <thead>
                 <tr>
-                    <td>{{ $item->description }}</td>
-                    <td class="text-right">{{ $item->quantity }}</td>
-                    <td class="text-right">{{ number_format($item->unit_price, 2, ',', '.') }} lei</td>
-                    <td class="text-right">{{ number_format($item->quantity * $item->unit_price, 2, ',', '.') }} lei</td>
+                    <th>Descriere</th>
+                    <th class="text-right">Cant.</th>
+                    <th class="text-right">U.M.</th>
+                    <th class="text-right">Preț unitar</th>
+                    <th class="text-right">Subtotal</th>
                 </tr>
-            @endforeach
-            <tr class="total-row">
-                <td colspan="3" class="text-right">TOTAL</td>
-                <td class="text-right">{{ number_format($offer->total_amount, 2, ',', '.') }} lei</td>
-            </tr>
-        </tbody>
+            </thead>
+            <tbody>
+                @foreach ($materials as $item)
+                    <tr>
+                        <td>{{ $item->description }}</td>
+                        <td class="text-right">{{ $item->quantity }}</td>
+                        <td class="text-right">{{ $item->unit }}</td>
+                        <td class="text-right">{{ number_format($item->unit_price, 2, ',', '.') }} lei</td>
+                        <td class="text-right">{{ number_format($item->subtotal, 2, ',', '.') }} lei</td>
+                    </tr>
+                @endforeach
+                <tr class="subtotal-row">
+                    <td colspan="4" class="text-right">Subtotal materiale (A)</td>
+                    <td class="text-right">{{ number_format($offer->materialsSubtotal(), 2, ',', '.') }} lei</td>
+                </tr>
+            </tbody>
+        </table>
+    @endif
+
+    @if ($labor->isNotEmpty())
+        <div class="section-heading">B. Manoperă</div>
+        <div class="section-hint">Serviciile prestate de echipa noastră.</div>
+        <table class="items" cellspacing="0" cellpadding="0">
+            <thead>
+                <tr>
+                    <th>Descriere</th>
+                    <th class="text-right">Cant.</th>
+                    <th class="text-right">U.M.</th>
+                    <th class="text-right">Preț unitar</th>
+                    <th class="text-right">Subtotal</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach ($labor as $item)
+                    <tr>
+                        <td>{{ $item->description }}</td>
+                        <td class="text-right">{{ $item->quantity }}</td>
+                        <td class="text-right">{{ $item->unit }}</td>
+                        <td class="text-right">{{ number_format($item->unit_price, 2, ',', '.') }} lei</td>
+                        <td class="text-right">{{ number_format($item->subtotal, 2, ',', '.') }} lei</td>
+                    </tr>
+                @endforeach
+                <tr class="subtotal-row">
+                    <td colspan="4" class="text-right">Subtotal manoperă (B)</td>
+                    <td class="text-right">{{ number_format($offer->laborSubtotal(), 2, ',', '.') }} lei</td>
+                </tr>
+            </tbody>
+        </table>
+    @endif
+
+    @if ($clientMaterials->isNotEmpty())
+        <div class="section-heading">C. Materiale achiziționate de client</div>
+        <div class="section-hint">Listă informativă. Aceste materiale nu intră în totalul devizului.</div>
+        <table class="items" cellspacing="0" cellpadding="0">
+            <thead>
+                <tr>
+                    <th>Descriere</th>
+                    <th class="text-right">Cant.</th>
+                    <th class="text-right">U.M.</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach ($clientMaterials as $item)
+                    <tr>
+                        <td>{{ $item->description }}</td>
+                        <td class="text-right">{{ $item->quantity }}</td>
+                        <td class="text-right">{{ $item->unit }}</td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
+    @endif
+
+    <table cellspacing="0" cellpadding="0" style="width: 100%; margin-top: 22px;">
+        <tr>
+            <td style="width: 58%;"></td>
+            <td style="width: 42%;">
+                <table class="total-box" cellspacing="0" cellpadding="0" style="width: 100%;">
+                    <tr><td class="line">Materiale (A): {{ number_format($offer->materialsSubtotal(), 2, ',', '.') }} lei</td></tr>
+                    <tr><td class="line">Manoperă (B): {{ number_format($offer->laborSubtotal(), 2, ',', '.') }} lei</td></tr>
+                    <tr><td class="grand" style="padding-top: 6px;">TOTAL (A + B): {{ number_format($offer->pricedSubtotal(), 2, ',', '.') }} lei</td></tr>
+                </table>
+            </td>
+        </tr>
     </table>
 
     @if ($offer->notes)
         <div class="section">
-            <div class="section-title">Note</div>
+            <div class="section-title">Observații</div>
             <div class="notes">{{ $offer->notes }}</div>
         </div>
     @endif
 
     <div class="footer muted">
-        Deviz generat prin platforma Om Priceput. Preturile sunt exprimate in lei si includ manopera si
-        materialele listate mai sus. Lucrarea se considera acceptata dupa semnarea devizului.
+        Deviz generat prin platforma Om Priceput. Prețurile sunt exprimate în lei și includ manopera și
+        materialele listate mai sus. Materialele achiziționate de client sunt menționate doar informativ.
+        Lucrarea se consideră acceptată după semnarea devizului.
     </div>
 </body>
 </html>

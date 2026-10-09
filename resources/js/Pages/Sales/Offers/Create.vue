@@ -11,6 +11,7 @@ const props = defineProps({
     preselectedClientId: Number,
     preselectedVisit: Object,
     preselectedJobType: String,
+    defaultValidUntil: String,
 });
 
 const form = useForm({
@@ -19,9 +20,9 @@ const form = useForm({
     job_type: props.preselectedJobType ?? 'instalare',
     title: 'Deviz lucrare',
     status: 'draft',
-    valid_until: '',
+    valid_until: props.defaultValidUntil ?? '',
     notes: props.preselectedVisit?.label ? `Constatare: ${props.preselectedVisit.label}` : '',
-    items: [{ equipment_id: null, service_id: null, description: '', quantity: 1, unit_price: 0 }],
+    items: [{ equipment_id: null, service_id: null, section: 'materials', description: '', quantity: 1, unit: '', unit_price: 0 }],
 });
 
 function submit() {

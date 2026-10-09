@@ -8,10 +8,11 @@ use App\Models\Client;
 use App\Models\Equipment;
 use App\Models\Installation;
 use App\Models\Offer;
+use App\Models\OfferItem;
 use App\Models\Service;
 use App\Models\User;
-use App\Notifications\OfferSent;
 use App\Notifications\OfferAvailable;
+use App\Notifications\OfferSent;
 use App\Services\SmsService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
@@ -77,14 +78,16 @@ class OfferController extends Controller
                 'label' => 'Constatare #'.$visit->id.' - '.($visit->client?->name ?? ''),
             ] : null,
             'preselectedJobType' => $visit?->requested_type ?: ($request->string('job_type')->toString() ?: 'instalare'),
+            'defaultValidUntil' => now()->addDays(Offer::DEFAULT_VALIDITY_DAYS)->toDateString(),
         ]);
     }
 
     public function store(Request $request): RedirectResponse
     {
         $data = $this->validateData($request);
+        $items = $this->prepareItems($data['items']);
 
-        $offer = DB::transaction(function () use ($data, $request) {
+        $offer = DB::transaction(function () use ($data, $items, $request) {
             $offer = Offer::create([
                 'client_id' => $data['client_id'],
                 'user_id' => $request->user()->id,
@@ -92,12 +95,12 @@ class OfferController extends Controller
                 'title' => $data['title'],
                 'job_type' => $data['job_type'],
                 'status' => 'draft',
-                'valid_until' => $data['valid_until'] ?? null,
+                'valid_until' => $data['valid_until'] ?? now()->addDays(Offer::DEFAULT_VALIDITY_DAYS)->toDateString(),
                 'notes' => $data['notes'] ?? null,
-                'total_amount' => collect($data['items'])->sum(fn ($item) => $item['quantity'] * $item['unit_price']),
+                'total_amount' => $this->totalFromItems($items),
             ]);
 
-            $offer->items()->createMany($data['items']);
+            $offer->items()->createMany($items);
 
             return $offer;
         });
@@ -142,21 +145,22 @@ class OfferController extends Controller
     public function update(Request $request, Offer $offer): RedirectResponse
     {
         $data = $this->validateData($request);
+        $items = $this->prepareItems($data['items']);
 
-        DB::transaction(function () use ($data, $offer) {
+        DB::transaction(function () use ($data, $items, $offer) {
             $offer->update([
                 'client_id' => $data['client_id'],
                 'visit_id' => $data['visit_id'] ?? null,
                 'title' => $data['title'],
                 'job_type' => $data['job_type'],
                 'status' => in_array($offer->status, ['sent', 'accepted', 'rejected'], true) ? 'draft' : $data['status'],
-                'valid_until' => $data['valid_until'] ?? null,
+                'valid_until' => $data['valid_until'] ?? now()->addDays(Offer::DEFAULT_VALIDITY_DAYS)->toDateString(),
                 'notes' => $data['notes'] ?? null,
-                'total_amount' => collect($data['items'])->sum(fn ($item) => $item['quantity'] * $item['unit_price']),
+                'total_amount' => $this->totalFromItems($items),
             ]);
 
             $offer->items()->delete();
-            $offer->items()->createMany($data['items']);
+            $offer->items()->createMany($items);
         });
 
         return redirect()->route('sales.offers.show', $offer)->with('success', 'Deviz actualizat cu succes.');
@@ -223,16 +227,16 @@ class OfferController extends Controller
             'address' => trim(($offer->client->address ?? '').' '.($offer->client->city ?? '')),
             'status' => 'scheduled',
             'checklist' => Installation::defaultChecklist($type),
-            'material_items' => $offer->items->whereNotNull('equipment_id')->map(fn ($item) => [
+            'material_items' => $offer->items->where('section', OfferItem::SECTION_MATERIALS)->map(fn ($item) => [
                 'equipment_id' => $item->equipment_id,
                 'name' => $item->equipment?->name ?? $item->description,
-                'unit' => $item->equipment?->unit ?? 'buc',
+                'unit' => $item->unit ?: ($item->equipment?->unit ?? 'buc'),
                 'quantity' => (int) $item->quantity,
             ])->values()->all(),
-            'service_items' => $offer->items->whereNotNull('service_id')->map(fn ($item) => [
+            'service_items' => $offer->items->where('section', OfferItem::SECTION_LABOR)->map(fn ($item) => [
                 'service_id' => $item->service_id,
                 'name' => $item->service?->name ?? $item->description,
-                'unit' => $item->service?->unit ?? 'ora',
+                'unit' => $item->unit ?: ($item->service?->unit ?? 'ora'),
                 'quantity' => (int) $item->quantity,
             ])->values()->all(),
             'notes' => 'Lucrare generata automat la acceptarea devizului #'.$offer->id.'.',
@@ -264,11 +268,45 @@ class OfferController extends Controller
             'valid_until' => ['nullable', 'date'],
             'notes' => ['nullable', 'string', 'max:2000'],
             'items' => ['required', 'array', 'min:1'],
+            'items.*.section' => ['nullable', Rule::in(OfferItem::SECTIONS)],
             'items.*.equipment_id' => ['nullable', 'exists:equipment,id'],
             'items.*.service_id' => ['nullable', 'exists:services,id'],
             'items.*.description' => ['required', 'string', 'max:255'],
             'items.*.quantity' => ['required', 'integer', 'min:1'],
-            'items.*.unit_price' => ['required', 'numeric', 'min:0'],
+            'items.*.unit' => ['nullable', 'string', 'max:20'],
+            'items.*.unit_price' => ['nullable', 'numeric', 'min:0'],
         ]);
+    }
+
+    private function prepareItems(array $items): array
+    {
+        return collect($items)->map(function (array $item): array {
+            $section = $item['section'] ?? null;
+
+            if (! in_array($section, OfferItem::SECTIONS, true)) {
+                $section = ! empty($item['equipment_id'])
+                    ? OfferItem::SECTION_MATERIALS
+                    : OfferItem::SECTION_LABOR;
+            }
+
+            $isClientSupplied = $section === OfferItem::SECTION_CLIENT_MATERIALS;
+
+            return [
+                'equipment_id' => $isClientSupplied ? null : ($item['equipment_id'] ?? null),
+                'service_id' => $isClientSupplied ? null : ($item['service_id'] ?? null),
+                'section' => $section,
+                'description' => $item['description'],
+                'quantity' => $item['quantity'],
+                'unit' => $item['unit'] ?? null,
+                'unit_price' => $isClientSupplied ? 0 : ($item['unit_price'] ?? 0),
+            ];
+        })->all();
+    }
+
+    private function totalFromItems(array $items): float
+    {
+        return round(collect($items)
+            ->reject(fn (array $item): bool => $item['section'] === OfferItem::SECTION_CLIENT_MATERIALS)
+            ->sum(fn (array $item): float => (float) $item['quantity'] * (float) $item['unit_price']), 2);
     }
 }

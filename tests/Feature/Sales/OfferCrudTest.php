@@ -91,6 +91,60 @@ class OfferCrudTest extends TestCase
         ])->assertSessionHasErrors('items');
     }
 
+    public function test_offer_splits_total_between_materials_and_labor_and_ignores_client_materials(): void
+    {
+        $client = Client::factory()->create();
+        $equipment = Equipment::factory()->create(['unit_price' => 100]);
+
+        $this->actingAs($this->salesUser)->post(route('sales.offers.store'), [
+            'client_id' => $client->id,
+            'title' => 'Oferta cu sectiuni',
+            'status' => 'draft',
+            'job_type' => 'instalare',
+            'items' => [
+                ['section' => 'materials', 'equipment_id' => $equipment->id, 'description' => $equipment->name, 'quantity' => 2, 'unit' => 'buc', 'unit_price' => 100],
+                ['section' => 'labor', 'service_id' => null, 'description' => 'Manopera montaj', 'quantity' => 1, 'unit' => 'ora', 'unit_price' => 150],
+                ['section' => 'client_materials', 'description' => 'Cablu CYYF 3x2.5', 'quantity' => 10, 'unit' => 'm', 'unit_price' => 999],
+            ],
+        ]);
+
+        $offer = Offer::firstWhere('title', 'Oferta cu sectiuni');
+
+        $this->assertEquals(350, $offer->total_amount);
+        $this->assertEquals(200, $offer->materialsSubtotal());
+        $this->assertEquals(150, $offer->laborSubtotal());
+        $this->assertEquals(350, $offer->pricedSubtotal());
+        $this->assertCount(3, $offer->items);
+
+        $clientMaterial = $offer->items->firstWhere('section', 'client_materials');
+        $this->assertNotNull($clientMaterial);
+        $this->assertEquals(0, $clientMaterial->unit_price);
+        $this->assertEquals('m', $clientMaterial->unit);
+    }
+
+    public function test_infers_materials_and_labor_when_section_is_missing(): void
+    {
+        $client = Client::factory()->create();
+        $equipment = Equipment::factory()->create(['unit_price' => 200]);
+
+        $this->actingAs($this->salesUser)->post(route('sales.offers.store'), [
+            'client_id' => $client->id,
+            'title' => 'Oferta fara sectiune',
+            'status' => 'draft',
+            'job_type' => 'instalare',
+            'items' => [
+                ['equipment_id' => $equipment->id, 'description' => $equipment->name, 'quantity' => 1, 'unit_price' => 200],
+                ['equipment_id' => null, 'description' => 'Manopera', 'quantity' => 1, 'unit_price' => 100],
+            ],
+        ]);
+
+        $offer = Offer::firstWhere('title', 'Oferta fara sectiune');
+
+        $this->assertEquals(300, $offer->total_amount);
+        $this->assertSame('materials', $offer->items->firstWhere('equipment_id', $equipment->id)->section);
+        $this->assertSame('labor', $offer->items->firstWhere('equipment_id', null)->section);
+    }
+
     public function test_sales_user_can_update_offer_status_and_it_promotes_client_on_accept(): void
     {
         $client = Client::factory()->create(['status' => 'lead']);
