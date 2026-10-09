@@ -12,6 +12,24 @@ class Seo
 
     public bool $indexed = false;
 
+    public ?string $canonical = null;
+
+    public ?string $robots = null;
+
+    public string $type = 'website';
+
+    public ?string $ogTitle = null;
+
+    public ?string $ogDescription = null;
+
+    public ?string $ogImage = null;
+
+    public ?string $twitterTitle = null;
+
+    public ?string $twitterDescription = null;
+
+    public ?string $twitterImage = null;
+
     /** @var array<int, array<string, mixed>> */
     public array $jsonLd = [];
 
@@ -21,6 +39,15 @@ class Seo
         $this->description = null;
         $this->image = null;
         $this->indexed = false;
+        $this->canonical = null;
+        $this->robots = null;
+        $this->type = 'website';
+        $this->ogTitle = null;
+        $this->ogDescription = null;
+        $this->ogImage = null;
+        $this->twitterTitle = null;
+        $this->twitterDescription = null;
+        $this->twitterImage = null;
         $this->jsonLd = [];
     }
 
@@ -59,6 +86,69 @@ class Seo
         return $this;
     }
 
+    public function canonical(?string $canonical): static
+    {
+        $this->canonical = $canonical ?: null;
+
+        return $this;
+    }
+
+    public function robots(?string $robots): static
+    {
+        $this->robots = $robots ?: null;
+
+        return $this;
+    }
+
+    public function type(?string $type): static
+    {
+        $this->type = $type ?: 'website';
+
+        return $this;
+    }
+
+    public function ogTitle(?string $title): static
+    {
+        $this->ogTitle = $title;
+
+        return $this;
+    }
+
+    public function ogDescription(?string $description): static
+    {
+        $this->ogDescription = $description;
+
+        return $this;
+    }
+
+    public function ogImage(?string $image): static
+    {
+        $this->ogImage = $image;
+
+        return $this;
+    }
+
+    public function twitterTitle(?string $title): static
+    {
+        $this->twitterTitle = $title;
+
+        return $this;
+    }
+
+    public function twitterDescription(?string $description): static
+    {
+        $this->twitterDescription = $description;
+
+        return $this;
+    }
+
+    public function twitterImage(?string $image): static
+    {
+        $this->twitterImage = $image;
+
+        return $this;
+    }
+
     /** @param array<int, array<string, mixed>> $blocks */
     public function jsonLd(array $blocks): static
     {
@@ -81,11 +171,41 @@ class Seo
 
     public function canonicalUrl(): string
     {
-        return request()->url();
+        return $this->canonical ?? request()->url();
+    }
+
+    public function robotsContent(): string
+    {
+        return $this->robots ?? ($this->indexed ? 'index,follow' : 'noindex,nofollow');
     }
 
     public function imageUrl(): string
     {
-        return $this->image ?? asset('branding/logo-trim.png');
+        return $this->ogImage ?? $this->image ?? asset('branding/logo-trim.png');
+    }
+
+    public function ogTitleValue(): string
+    {
+        return $this->ogTitle ?? $this->fullTitle();
+    }
+
+    public function ogDescriptionValue(): string
+    {
+        return $this->ogDescription ?? (string) $this->description;
+    }
+
+    public function twitterTitleValue(): string
+    {
+        return $this->twitterTitle ?? $this->fullTitle();
+    }
+
+    public function twitterDescriptionValue(): string
+    {
+        return $this->twitterDescription ?? (string) $this->description;
+    }
+
+    public function twitterImageUrl(): string
+    {
+        return $this->twitterImage ?? $this->imageUrl();
     }
 }

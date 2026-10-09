@@ -10,22 +10,24 @@
         <title inertia>{{ $seo->fullTitle() }}</title>
         @if($seo->description)
             <meta name="description" content="{{ $seo->description }}">
-            <meta property="og:description" content="{{ $seo->description }}">
-            <meta name="twitter:description" content="{{ $seo->description }}">
         @endif
-        <meta name="robots" content="{{ $seo->indexed ? 'index,follow' : 'noindex,nofollow' }}">
-        @if($seo->indexed)
-            <link rel="canonical" href="{{ $seo->canonicalUrl() }}">
-            <meta property="og:url" content="{{ $seo->canonicalUrl() }}">
+        @if($seo->ogDescriptionValue())
+            <meta property="og:description" content="{{ $seo->ogDescriptionValue() }}">
         @endif
+        @if($seo->twitterDescriptionValue())
+            <meta name="twitter:description" content="{{ $seo->twitterDescriptionValue() }}">
+        @endif
+        <meta name="robots" content="{{ $seo->robotsContent() }}">
+        <link rel="canonical" href="{{ $seo->canonicalUrl() }}">
+        <meta property="og:url" content="{{ $seo->canonicalUrl() }}">
         <meta property="og:site_name" content="{{ config('app.name') }}">
-        <meta property="og:title" content="{{ $seo->fullTitle() }}">
-        <meta property="og:type" content="website">
+        <meta property="og:title" content="{{ $seo->ogTitleValue() }}">
+        <meta property="og:type" content="{{ $seo->type }}">
         <meta property="og:locale" content="ro_RO">
         <meta property="og:image" content="{{ $seo->imageUrl() }}">
         <meta name="twitter:card" content="summary_large_image">
-        <meta name="twitter:title" content="{{ $seo->fullTitle() }}">
-        <meta name="twitter:image" content="{{ $seo->imageUrl() }}">
+        <meta name="twitter:title" content="{{ $seo->twitterTitleValue() }}">
+        <meta name="twitter:image" content="{{ $seo->twitterImageUrl() }}">
         @foreach ($seo->jsonLd as $block)
             <script type="application/ld+json">{!! json_encode($block, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG) !!}</script>
         @endforeach

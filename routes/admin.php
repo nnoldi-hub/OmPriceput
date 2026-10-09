@@ -1,20 +1,23 @@
 <?php
 
-use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\AuditLogController;
+use App\Http\Controllers\Admin\BlogPostController;
+use App\Http\Controllers\Admin\CategoryController;
+use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\DiscountController;
+use App\Http\Controllers\Admin\ExpenseController;
 use App\Http\Controllers\Admin\HelpController;
 use App\Http\Controllers\Admin\InvoiceController;
-use App\Http\Controllers\Admin\ExpenseController;
+use App\Http\Controllers\Admin\MediaController;
 use App\Http\Controllers\Admin\PageController;
-use App\Http\Controllers\Admin\StatController;
-use App\Http\Controllers\Admin\BlogPostController;
 use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\ShopOrderController;
 use App\Http\Controllers\Admin\SitePackageController;
 use App\Http\Controllers\Admin\SmsLogController;
+use App\Http\Controllers\Admin\StatController;
 use App\Http\Controllers\Admin\SubscriptionController;
+use App\Http\Controllers\Admin\TagController;
 use App\Http\Controllers\Admin\TrafficController;
 use App\Http\Controllers\Admin\UserController;
 use Illuminate\Support\Facades\Route;
@@ -49,6 +52,14 @@ Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->name('ad
     Route::post('/statistici', [StatController::class, 'store'])->name('stats.store');
     Route::put('/statistici/{stat}', [StatController::class, 'update'])->name('stats.update');
     Route::delete('/statistici/{stat}', [StatController::class, 'destroy'])->name('stats.destroy');
+    Route::get('/media/json', [MediaController::class, 'json'])->name('media.json');
+    Route::get('/media', [MediaController::class, 'index'])->name('media.index');
+    Route::post('/media', [MediaController::class, 'store'])->name('media.store');
+    Route::put('/media/{media}', [MediaController::class, 'update'])->name('media.update');
+    Route::delete('/media/{media}', [MediaController::class, 'destroy'])->name('media.destroy');
+
+    Route::resource('blog/categorii', CategoryController::class)->only(['index', 'store', 'update', 'destroy'])->parameters(['categorii' => 'category'])->names('blog.categories');
+    Route::resource('blog/taguri', TagController::class)->only(['index', 'store', 'update', 'destroy'])->parameters(['taguri' => 'tag'])->names('blog.tags');
     Route::resource('blog', BlogPostController::class)->except(['show'])->names('blog');
 
     Route::get('/setari', [SettingsController::class, 'edit'])->name('settings.edit');

@@ -15,11 +15,11 @@ Route::name('public.')->middleware('track.views')->group(function () {
     Route::get('/servicii', [PageController::class, 'services'])->name('services');
     Route::get('/cerere-deviz', [ContactController::class, 'quote'])->name('quote');
     Route::get('/cerere-deviz/zile', [ContactController::class, 'dates'])
-    ->middleware('throttle:60,1')
-    ->name('quote.dates');
-Route::get('/cerere-deviz/sloturi', [ContactController::class, 'slots'])
-    ->middleware('throttle:60,1')
-    ->name('quote.slots');
+        ->middleware('throttle:60,1')
+        ->name('quote.dates');
+    Route::get('/cerere-deviz/sloturi', [ContactController::class, 'slots'])
+        ->middleware('throttle:60,1')
+        ->name('quote.slots');
     Route::get('/contact', [ContactController::class, 'index'])->name('contact');
     Route::get('/termeni', [LegalController::class, 'terms'])->name('terms');
     Route::get('/confidentialitate', [LegalController::class, 'privacy'])->name('privacy');
@@ -27,6 +27,8 @@ Route::get('/cerere-deviz/sloturi', [ContactController::class, 'slots'])
         ->middleware('throttle:6,1')
         ->name('lead.store');
     Route::get('/blog', [BlogController::class, 'index'])->name('blog.index');
+    Route::get('/blog/categorie/{slug}', [BlogController::class, 'category'])->name('blog.category');
+    Route::get('/blog/eticheta/{slug}', [BlogController::class, 'tag'])->name('blog.tag');
     Route::get('/blog/{slug}', [BlogController::class, 'show'])->name('blog.show');
 
     Route::get('/magazin', [ShopController::class, 'index'])->name('shop.index');

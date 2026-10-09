@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Client;
 use App\Models\Equipment;
+use App\Models\Media;
 use App\Models\Post;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -88,6 +89,20 @@ class PublicPagesTest extends TestCase
         $post = Post::factory()->create(['published_at' => null]);
 
         $this->get(route('public.blog.show', $post->slug))->assertNotFound();
+    }
+
+    public function test_blog_show_includes_gallery_images(): void
+    {
+        $media = Media::create(['disk' => 'public', 'path' => 'media/galerie.jpg', 'original_name' => 'galerie.jpg', 'alt' => 'Alt']);
+        $post = Post::factory()->create(['published_at' => now()->subDay(), 'gallery' => [$media->id]]);
+
+        $this->get(route('public.blog.show', $post->slug))
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->component('Public/Blog/Show')
+                ->has('post.gallery_images', 1)
+                ->where('post.gallery_images.0.alt', 'Alt')
+            );
     }
 
     public function test_sitemap_and_robots_are_reachable(): void
