@@ -5,27 +5,70 @@ namespace App\Http\Controllers\Public;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Media;
+use App\Models\PageView;
 use App\Models\Post;
 use App\Models\Tag;
 use App\Support\Seo;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class BlogController extends Controller
 {
-    public function index(): Response
-    {
-        app(Seo::class)
-            ->title('Blog')
-            ->description('Ghiduri si sfaturi pentru intretinerea locuintei si a instalatiilor din casa sau apartament.')
-            ->allowIndex();
+    private const PER_PAGE = 9;
 
-        return Inertia::render('Public/Blog/Index', [
-            'posts' => $this->publishedPosts()->paginate(9)->withQueryString(),
-            'heading' => 'Blog',
-            'description' => 'Ghiduri si sfaturi pentru intretinerea locuintei si a instalatiilor din casa sau apartament.',
-        ]);
+    private const DESCRIPTION = 'Articole și ghiduri despre reparații, instalații electrice și sanitare, zugrăveli și întreținerea locuinței.';
+
+    /** @var array<string, string> */
+    private const SORTS = [
+        'newest' => 'Cele mai noi',
+        'oldest' => 'Cele mai vechi',
+        'popular' => 'Cele mai citite',
+        'title' => 'Alfabetic (A–Z)',
+    ];
+
+    public function index(Request $request): Response
+    {
+        $filters = $this->filters($request);
+
+        $seo = app(Seo::class)->title('Blog')->description(self::DESCRIPTION);
+        $this->applyIndexability($seo, $request, $filters);
+
+        return $this->render($request, $filters, 'Blog', self::DESCRIPTION);
+    }
+
+    public function category(Request $request, string $slug): Response
+    {
+        $category = Category::where('slug', $slug)->firstOrFail();
+
+        $filters = $this->filters($request);
+        $filters['category'] = $category->slug;
+
+        $description = $category->description ?: 'Articole din categoria '.$category->name.'.';
+
+        $seo = app(Seo::class)->title('Categoria: '.$category->name)->description($description);
+        $this->applyIndexability($seo, $request, $filters);
+
+        return $this->render($request, $filters, $category->name, $description);
+    }
+
+    public function tag(Request $request, string $slug): Response
+    {
+        $tag = Tag::where('slug', $slug)->firstOrFail();
+
+        $filters = $this->filters($request);
+        $filters['tag'] = $tag->slug;
+
+        $description = 'Articole etichetate cu '.$tag->name.'.';
+
+        $seo = app(Seo::class)->title('Eticheta: '.$tag->name)->description($description);
+        $this->applyIndexability($seo, $request, $filters);
+
+        return $this->render($request, $filters, '#'.$tag->name, $description);
     }
 
     public function show(string $slug): Response
@@ -46,47 +89,195 @@ class BlogController extends Controller
         ]);
     }
 
-    public function category(string $slug): Response
+    /**
+     * @param  array{q: string, sort: string, category: ?string, tag: ?string}  $filters
+     */
+    private function render(Request $request, array $filters, string $heading, string $description): Response
     {
-        $category = Category::where('slug', $slug)->firstOrFail();
+        $featured = $this->featuredPost($request, $filters);
 
-        app(Seo::class)
-            ->title('Categoria: '.$category->name)
-            ->description($category->description ?: 'Articole din categoria '.$category->name.'.')
-            ->allowIndex();
+        $query = $this->filteredPosts($filters);
+
+        if ($featured) {
+            $query->whereKeyNot($featured->getKey());
+        }
+
+        $posts = $filters['sort'] === 'popular'
+            ? $this->paginateByPopularity($query, $request)
+            : $this->applySort($query, $filters['sort'])->paginate(self::PER_PAGE)->withQueryString();
+
+        $posts->through(fn (Post $post): Post => $this->decorate($post));
 
         return Inertia::render('Public/Blog/Index', [
-            'posts' => $this->publishedPosts()
-                ->whereHas('categories', fn ($query) => $query->where('categories.id', $category->id))
-                ->paginate(9)
-                ->withQueryString(),
-            'heading' => $category->name,
-            'description' => $category->description ?: 'Articole din categoria '.$category->name.'.',
+            'posts' => $posts,
+            'featured' => $featured ? $this->decorate($featured) : null,
+            'filters' => $filters,
+            'sorts' => collect(self::SORTS)->map(fn (string $label, string $value): array => [
+                'value' => $value,
+                'label' => $label,
+            ])->values(),
+            'categories' => $this->categoryOptions(),
+            'tags' => $this->tagOptions(),
+            'total' => $posts->total() + ($featured ? 1 : 0),
+            'heading' => $heading,
+            'description' => $description,
         ]);
     }
 
-    public function tag(string $slug): Response
+    /** Articolul evidențiat se afișează doar pe prima pagină, fără căutare sau filtre active. */
+    private function featuredPost(Request $request, array $filters): ?Post
     {
-        $tag = Tag::where('slug', $slug)->firstOrFail();
+        $isDefaultView = $filters['q'] === ''
+            && $filters['category'] === null
+            && $filters['tag'] === null
+            && $filters['sort'] === 'newest'
+            && $request->integer('page') <= 1;
 
-        app(Seo::class)
-            ->title('Eticheta: '.$tag->name)
-            ->description('Articole etichetate cu '.$tag->name.'.')
-            ->allowIndex();
+        if (! $isDefaultView) {
+            return null;
+        }
 
-        return Inertia::render('Public/Blog/Index', [
-            'posts' => $this->publishedPosts()
-                ->whereHas('tags', fn ($query) => $query->where('tags.id', $tag->id))
-                ->paginate(9)
-                ->withQueryString(),
-            'heading' => '#'.$tag->name,
-            'description' => 'Articole etichetate cu '.$tag->name.'.',
-        ]);
+        return Post::published()
+            ->with(['categories:id,name,slug', 'author:id,name'])
+            ->latest('published_at')
+            ->first();
     }
 
-    private function publishedPosts()
+    /**
+     * @param  array{q: string, sort: string, category: ?string, tag: ?string}  $filters
+     */
+    private function filteredPosts(array $filters): Builder
     {
-        return Post::published()->with(['categories:id,name,slug'])->latest('published_at');
+        return Post::published()
+            ->with(['categories:id,name,slug', 'author:id,name'])
+            ->when($filters['q'] !== '', function (Builder $query) use ($filters): void {
+                $term = '%'.addcslashes($filters['q'], '%_\\').'%';
+
+                $query->where(function (Builder $query) use ($term): void {
+                    $query->where('title', 'like', $term)
+                        ->orWhere('excerpt', 'like', $term)
+                        ->orWhere('body', 'like', $term);
+                });
+            })
+            ->when($filters['category'], fn (Builder $query, string $slug): Builder => $query
+                ->whereHas('categories', fn ($categories) => $categories->where('slug', $slug)))
+            ->when($filters['tag'], fn (Builder $query, string $slug): Builder => $query
+                ->whereHas('tags', fn ($tags) => $tags->where('slug', $slug)));
+    }
+
+    private function applySort(Builder $query, string $sort): Builder
+    {
+        return match ($sort) {
+            'oldest' => $query->oldest('published_at'),
+            'title' => $query->orderBy('title'),
+            default => $query->latest('published_at'),
+        };
+    }
+
+    private function paginateByPopularity(Builder $query, Request $request): LengthAwarePaginator
+    {
+        $posts = $query->get();
+        $views = $this->viewCounts($posts->pluck('slug'));
+
+        $sorted = $posts
+            ->sort(function (Post $a, Post $b) use ($views): int {
+                $comparison = ($views[$b->slug] ?? 0) <=> ($views[$a->slug] ?? 0);
+
+                return $comparison !== 0
+                    ? $comparison
+                    : ($b->published_at?->getTimestamp() <=> $a->published_at?->getTimestamp());
+            })
+            ->values();
+
+        $page = LengthAwarePaginator::resolveCurrentPage();
+
+        return new LengthAwarePaginator(
+            $sorted->forPage($page, self::PER_PAGE)->values(),
+            $sorted->count(),
+            self::PER_PAGE,
+            $page,
+            [
+                'path' => LengthAwarePaginator::resolveCurrentPath(),
+                'query' => $request->query(),
+            ],
+        );
+    }
+
+    /** @param  Collection<int, string>  $slugs */
+    private function viewCounts(Collection $slugs): Collection
+    {
+        if ($slugs->isEmpty()) {
+            return collect();
+        }
+
+        return PageView::query()
+            ->human()
+            ->whereIn('path', $slugs->map(fn (string $slug): string => '/blog/'.$slug)->all())
+            ->selectRaw('path, count(*) as views')
+            ->groupBy('path')
+            ->pluck('views', 'path')
+            ->mapWithKeys(fn ($views, string $path): array => [
+                Str::after($path, '/blog/') => (int) $views,
+            ]);
+    }
+
+    /** @return Collection<int, Category> */
+    private function categoryOptions(): Collection
+    {
+        return Category::query()
+            ->withCount(['posts' => fn (Builder $query) => $query->published()])
+            ->orderBy('name')
+            ->get(['id', 'name', 'slug'])
+            ->filter(fn (Category $category): bool => $category->posts_count > 0)
+            ->values();
+    }
+
+    /** @return Collection<int, Tag> */
+    private function tagOptions(): Collection
+    {
+        return Tag::query()
+            ->withCount(['posts' => fn (Builder $query) => $query->published()])
+            ->orderBy('name')
+            ->get(['id', 'name', 'slug'])
+            ->filter(fn (Tag $tag): bool => $tag->posts_count > 0)
+            ->values();
+    }
+
+    private function decorate(Post $post): Post
+    {
+        return $post->setAttribute('reading_minutes', $this->readingMinutes($post->body));
+    }
+
+    private function readingMinutes(?string $body): int
+    {
+        $text = trim((string) preg_replace('/\s+/u', ' ', strip_tags((string) $body)));
+        $words = $text === '' ? 0 : count(preg_split('/\s+/u', $text));
+
+        return max(1, (int) ceil($words / 200));
+    }
+
+    /** @return array{q: string, sort: string, category: ?string, tag: ?string} */
+    private function filters(Request $request): array
+    {
+        $sort = $request->string('sort')->toString();
+
+        return [
+            'q' => trim($request->string('q')->toString()),
+            'sort' => array_key_exists($sort, self::SORTS) ? $sort : 'newest',
+            'category' => $request->string('category')->toString() ?: null,
+            'tag' => $request->string('tag')->toString() ?: null,
+        ];
+    }
+
+    private function applyIndexability(Seo $seo, Request $request, array $filters): void
+    {
+        if ($filters['q'] !== '' || $request->integer('page') > 1) {
+            $seo->noindex();
+
+            return;
+        }
+
+        $seo->allowIndex();
     }
 
     /** @return Collection<int, Post> */
