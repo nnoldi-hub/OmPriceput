@@ -245,7 +245,11 @@ const previewDescription = computed(() => form.meta_description || form.excerpt 
 const previewUrl = computed(() => form.canonical_url || `https://ompriceput.ro/blog/${form.slug || 'slug-articol'}`);
 
 function submit() {
-    editorRef.value?.sync();
+    try {
+        editorRef.value?.sync?.();
+    } catch (e) {
+        // continutul este oricum sincronizat prin v-model
+    }
 
     const options = { forceFormData: true, preserveScroll: true };
 
