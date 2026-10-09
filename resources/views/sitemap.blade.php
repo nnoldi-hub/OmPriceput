@@ -3,7 +3,9 @@
 @foreach ($urls as $url)
     <url>
         <loc>{{ $url['loc'] }}</loc>
+@if(($url['lastmod'] ?? null) !== null)
         <lastmod>{{ $url['lastmod'] }}</lastmod>
+@endif
     </url>
 @endforeach
 </urlset>
