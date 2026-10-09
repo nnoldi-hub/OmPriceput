@@ -52,7 +52,7 @@ function addToCart(product) {
                     <option value="">Toate categoriile</option>
                     <option v-for="(label, value) in categories" :key="value" :value="value">{{ label }}</option>
                 </select>
-                <button class="rounded-lg bg-brand-navy px-4 py-2 text-sm font-medium text-white" @click="applyFilters">Filtrati</button>
+                <button class="inline-flex min-h-[48px] items-center justify-center rounded-lg bg-brand-navy px-4 py-2 text-sm font-medium text-white" @click="applyFilters">Filtrati</button>
             </div>
 
             <div class="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -71,7 +71,7 @@ function addToCart(product) {
                     </div>
                     <p v-if="!product.in_stock" class="mt-1 text-xs font-medium text-red-600">Stoc epuizat</p>
                     <button
-                        class="mt-4 rounded-lg bg-orange-500 px-4 py-2 text-sm font-semibold text-white hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-50"
+                        class="mt-4 inline-flex min-h-[48px] items-center justify-center rounded-lg bg-orange-500 px-4 py-2 text-sm font-semibold text-white hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-50"
                         :disabled="!product.in_stock"
                         @click="addToCart(product)"
                     >
@@ -88,7 +88,7 @@ function addToCart(product) {
                     :key="link.label"
                     :href="link.url ?? '#'"
                     :class="[
-                        'rounded-md px-3 py-1.5 text-sm',
+                        'inline-flex min-h-[48px] min-w-[48px] items-center justify-center rounded-md px-3 py-1.5 text-sm',
                         link.active ? 'bg-blue-600 text-white' : 'text-slate-500 hover:bg-slate-100',
                         !link.url ? 'pointer-events-none opacity-40' : '',
                     ]"

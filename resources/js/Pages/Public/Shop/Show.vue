@@ -46,7 +46,7 @@ function addToCart() {
                     <template v-else>
                         <div class="mt-6 flex items-center gap-3">
                             <input v-model.number="quantity" type="number" min="1" :max="product.stock_quantity" class="w-20 rounded-lg border-slate-300 text-sm" />
-                            <button class="rounded-lg bg-orange-500 px-6 py-2 text-sm font-semibold text-white hover:bg-orange-600" @click="addToCart">
+                            <button class="inline-flex min-h-[48px] items-center justify-center rounded-lg bg-orange-500 px-6 py-2 text-sm font-semibold text-white hover:bg-orange-600" @click="addToCart">
                                 {{ added ? 'Adaugat in cos' : 'Adaugati in cos' }}
                             </button>
                         </div>

@@ -74,7 +74,7 @@ function submit() {
                                 </td>
                                 <td class="px-4 py-3 text-right font-medium">{{ (item.shop_price * item.quantity).toFixed(2) }} lei</td>
                                 <td class="px-4 py-3 text-right">
-                                    <button class="text-xs text-red-600" @click="removeItem(item.equipment_id)">Elimina</button>
+                                    <button class="inline-flex min-h-[48px] min-w-[48px] items-center justify-center px-2 text-xs text-red-600" @click="removeItem(item.equipment_id)">Elimina</button>
                                 </td>
                             </tr>
                         </tbody>

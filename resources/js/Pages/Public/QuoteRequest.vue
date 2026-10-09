@@ -279,7 +279,7 @@ function submit() {
                                 <label
                                     v-for="service in list"
                                     :key="service.id"
-                                    class="flex cursor-pointer items-center gap-2 text-sm text-slate-700"
+                                    class="flex min-h-[48px] cursor-pointer items-center gap-2 text-sm text-slate-700"
                                 >
                                     <input
                                         type="checkbox"
@@ -335,7 +335,7 @@ function submit() {
                             v-for="d in availableDates"
                             :key="d"
                             type="button"
-                            class="rounded-md border px-3 py-2 text-sm"
+                            class="inline-flex min-h-[48px] items-center justify-center rounded-md border px-3 py-2 text-sm"
                             :class="selectedDate === d ? 'border-orange-500 bg-orange-50 font-semibold' : 'border-slate-200 hover:border-orange-300'"
                             @click="pickDate(d)"
                         >
@@ -351,7 +351,7 @@ function submit() {
                                 v-for="t in slots"
                                 :key="t"
                                 type="button"
-                                class="rounded-md border px-3 py-1.5 text-sm"
+                                class="inline-flex min-h-[48px] min-w-[48px] items-center justify-center rounded-md border px-3 py-1.5 text-sm"
                                 :class="form.scheduled_at === `${selectedDate} ${t}` ? 'border-orange-500 bg-orange-500 text-white' : 'border-slate-200 hover:border-orange-300'"
                                 @click="pickSlot(t)"
                             >
@@ -425,7 +425,7 @@ function submit() {
                                 />
                                 <button
                                     type="button"
-                                    class="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-slate-800 text-xs font-bold text-white shadow"
+                                    class="absolute -right-2 -top-2 flex h-8 w-8 items-center justify-center rounded-full bg-slate-800 text-sm font-bold text-white shadow"
                                     :aria-label="`Elimină fotografia ${index + 1}`"
                                     @click="removePhoto(index)"
                                 >
@@ -450,7 +450,7 @@ function submit() {
                 <button
                     type="submit"
                     :disabled="form.processing"
-                    class="w-full rounded-md bg-orange-500 px-4 py-3 text-sm font-semibold text-white shadow-sm hover:bg-orange-400 disabled:opacity-50"
+                    class="flex min-h-[48px] w-full items-center justify-center rounded-md bg-orange-500 px-4 py-3 text-sm font-semibold text-white shadow-sm hover:bg-orange-400 disabled:opacity-50"
                 >
                     {{ form.processing ? 'Se trimite...' : 'Trimite cererea de deviz' }}
                 </button>

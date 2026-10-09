@@ -53,7 +53,7 @@ function formatDate(value) {
                     :key="link.label"
                     :href="link.url ?? '#'"
                     :class="[
-                        'rounded-md px-3 py-1.5 text-sm',
+                        'inline-flex min-h-[48px] min-w-[48px] items-center justify-center rounded-md px-3 py-1.5 text-sm',
                         link.active ? 'bg-blue-600 text-white' : 'text-slate-500 hover:bg-slate-100',
                         !link.url ? 'pointer-events-none opacity-40' : '',
                     ]"

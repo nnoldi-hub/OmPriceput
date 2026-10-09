@@ -34,7 +34,7 @@ const readingMinutes = computed(() => {
                     v-for="category in post.categories"
                     :key="category.id"
                     :href="route('public.blog.category', category.slug)"
-                    class="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700 hover:bg-blue-100"
+                    class="inline-flex min-h-[44px] min-w-[48px] items-center justify-center rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700 hover:bg-blue-100"
                 >
                     {{ category.name }}
                 </Link>
@@ -59,7 +59,7 @@ const readingMinutes = computed(() => {
                 <span v-if="post.cover_image_credit">· Foto: {{ post.cover_image_credit }}</span>
             </p>
 
-            <div class="prose prose-slate mt-8 max-w-none text-slate-600" v-html="post.body_html"></div>
+            <div class="prose prose-slate mt-8 max-w-none text-slate-600 prose-headings:font-display prose-headings:font-bold prose-headings:text-slate-900 prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline" v-html="post.body_html"></div>
 
             <div v-if="post.gallery_images?.length" class="mt-10">
                 <h2 class="text-lg font-semibold text-slate-900">Galerie foto</h2>
@@ -82,7 +82,7 @@ const readingMinutes = computed(() => {
                     v-for="tag in post.tags"
                     :key="tag.id"
                     :href="route('public.blog.tag', tag.slug)"
-                    class="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600 hover:bg-slate-200"
+                    class="inline-flex min-h-[44px] min-w-[48px] items-center justify-center rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600 hover:bg-slate-200"
                 >
                     #{{ tag.name }}
                 </Link>
@@ -92,7 +92,7 @@ const readingMinutes = computed(() => {
                 <h2 class="text-xl font-semibold text-slate-900">Întrebări frecvente</h2>
                 <div class="mt-4 space-y-3">
                     <details v-for="(item, index) in post.faq" :key="index" class="group rounded-lg border border-slate-200 bg-white p-4">
-                        <summary class="cursor-pointer text-base font-medium text-slate-800 marker:content-['']">
+                        <summary class="flex min-h-[44px] cursor-pointer items-center text-base font-medium text-slate-800 marker:content-['']">
                             {{ item.question }}
                         </summary>
                         <p class="mt-3 text-sm leading-relaxed text-slate-600">{{ item.answer }}</p>

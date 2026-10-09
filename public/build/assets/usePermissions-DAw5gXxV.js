@@ -1,1 +1,0 @@
-import{i as e,m as t}from"./app-PW-cAm71.js";function n(){let n=t(()=>e().props.auth??{}),r=t(()=>n.value.roles??[]),i=t(()=>n.value.permissions??[]),a=(...e)=>e.some(e=>r.value.includes(e)),o=(...e)=>e.some(e=>i.value.includes(e));return{roles:r,permissions:i,hasRole:a,can:o,canManage:e=>o(`${e}.manage`)}}export{n as t};
