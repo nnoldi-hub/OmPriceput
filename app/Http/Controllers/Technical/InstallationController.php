@@ -144,12 +144,17 @@ class InstallationController extends Controller
 
     public function show(Installation $installation): Response
     {
-        $installation->load(['client', 'offer', 'technician:id,name,trade', 'tickets']);
+        $installation->load(['client', 'offer', 'technician:id,name,trade', 'tickets', 'expenses.supplier:id,name']);
 
         return Inertia::render('Technical/Installations/Show', [
             'installation' => $installation,
             'types' => Installation::TYPE_LABELS,
             'statuses' => Installation::STATUSES,
+            'toolboxes' => $installation->requiredToolboxes()->map(fn ($box) => [
+                'id' => $box->id,
+                'name' => $box->name,
+                'contents' => array_values(array_filter(preg_split('/\r\n|\r|\n/', (string) $box->contents))),
+            ])->values(),
         ]);
     }
 

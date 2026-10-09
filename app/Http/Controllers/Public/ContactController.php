@@ -126,7 +126,7 @@ class ContactController extends Controller
 
         $services = Service::whereIn('id', $data['service_ids'] ?? [])
             ->where('is_active', true)
-            ->get(['id', 'name', 'sale_price']);
+            ->get(['id', 'name', 'unit', 'sale_price']);
 
         $register = fn () => DB::transaction(function () use ($request, $data, $availability, $start, $duration, $services) {
             // verificarea finală, chiar înainte de salvare
@@ -216,7 +216,12 @@ class ContactController extends Controller
             'address' => trim(($data['address'] ?? '').' '.($data['city'] ?? '')) ?: null,
             'scheduled_at' => $start,
             'labor_hours' => round($duration / 60, 2),
-            'service_items' => $services->map(fn ($s) => ['service_id' => $s->id, 'quantity' => 1])->values()->all(),
+            'service_items' => $services->map(fn ($s) => [
+                'service_id' => $s->id,
+                'name' => $s->name,
+                'unit' => $s->unit,
+                'quantity' => 1,
+            ])->values()->all(),
             'status' => 'scheduled',
             'checklist' => Installation::defaultChecklist('verificare'),
             'photos' => $photos ?: null,

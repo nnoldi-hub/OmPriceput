@@ -2,13 +2,14 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { usePermissions } from '@/Composables/usePermissions';
 import { Head, Link, router } from '@inertiajs/vue3';
-import { computed, reactive } from 'vue';
+import { computed, reactive, ref } from 'vue';
 
 const { canManage } = usePermissions();
 
 const props = defineProps({
     installation: Object,
     types: Object,
+    toolboxes: { type: Array, default: () => [] },
 });
 
 const typeLabel = computed(() => props.types?.[props.installation.type] ?? props.installation.type);
@@ -16,10 +17,10 @@ const typeLabel = computed(() => props.types?.[props.installation.type] ?? props
 const pendingChecklistIndexes = reactive(new Set());
 
 const statusOptions = [
-    { value: 'scheduled', label: 'Programata' },
-    { value: 'in_progress', label: 'In desfasurare' },
-    { value: 'completed', label: 'Finalizata' },
-    { value: 'cancelled', label: 'Anulata' },
+    { value: 'scheduled', label: 'Programată' },
+    { value: 'in_progress', label: 'În desfășurare' },
+    { value: 'completed', label: 'Finalizată' },
+    { value: 'cancelled', label: 'Anulată' },
 ];
 
 const statusClasses = {
@@ -78,6 +79,20 @@ const checklistProgress = computed(() => {
     return Math.round((done / props.installation.checklist.length) * 100);
 });
 
+// ---- Cutii de luat (bifele sunt doar pentru încărcare, nu se salvează) ----
+const openBoxes = ref([]);
+const packed = reactive({});
+
+function toggleBox(id) {
+    const i = openBoxes.value.indexOf(id);
+    if (i === -1) openBoxes.value.push(id);
+    else openBoxes.value.splice(i, 1);
+}
+
+function packedCount(box) {
+    return box.contents.filter((_, i) => packed[`${box.id}-${i}`]).length;
+}
+
 function money(value) {
     return Number(value ?? 0).toLocaleString('ro-RO', { minimumFractionDigits: 2 });
 }
@@ -97,35 +112,14 @@ function money(value) {
                         Raport PDF
                     </a>
                     <Link v-if="canManage('installations') && !isFinalized" :href="route('technical.installations.edit', installation.id)" class="rounded-md border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
-                        Editeaza
+                        Editează
                     </Link>
-                </div>
-
-                <div class="rounded-lg bg-white p-6 shadow-sm">
-                    <h3 class="text-sm font-semibold text-slate-500">Costuri si profit</h3>
-                    <dl class="mt-4 grid grid-cols-2 gap-4 text-sm sm:grid-cols-3">
-                        <div><dt class="text-slate-400">Valoare oferta</dt><dd class="font-semibold text-slate-900">{{ money(installation.cost_report.offer_value) }} lei</dd></div>
-                        <div><dt class="text-slate-400">Cost materiale</dt><dd class="text-slate-900">{{ money(installation.cost_report.material_cost) }} lei</dd></div>
-                        <div><dt class="text-slate-400">Cost manopera</dt><dd class="text-slate-900">{{ money(installation.cost_report.labor_cost) }} lei</dd></div>
-                        <div><dt class="text-slate-400">Cost total</dt><dd class="font-semibold text-slate-900">{{ money(installation.cost_report.total_cost) }} lei</dd></div>
-                        <div><dt class="text-slate-400">Cheltuieli reale</dt><dd class="font-semibold text-orange-700">{{ money(installation.cost_report.actual_expenses) }} lei</dd></div>
-                        <div><dt class="text-slate-400">Cost real total</dt><dd class="font-semibold text-slate-900">{{ money(installation.cost_report.actual_total_cost) }} lei</dd></div>
-                        <div><dt class="text-slate-400">Profit estimat</dt><dd class="font-semibold text-blue-700">{{ money(installation.cost_report.estimated_profit) }} lei</dd></div>
-                        <div v-if="installation.cost_report.final_profit !== null"><dt class="text-slate-400">Profit final real</dt><dd class="font-semibold" :class="installation.cost_report.final_profit >= 0 ? 'text-green-700' : 'text-red-700'">{{ money(installation.cost_report.final_profit) }} lei</dd></div>
-                    </dl>
-                    <div v-if="installation.expenses?.length" class="mt-5 border-t border-slate-100 pt-4">
-                        <h4 class="text-xs font-semibold uppercase tracking-wide text-slate-400">Cheltuieli asociate</h4>
-                        <div v-for="expense in installation.expenses" :key="expense.id" class="mt-2 flex justify-between text-sm">
-                            <span>{{ expense.description }} <span class="text-slate-400">({{ expense.supplier?.name || 'fara furnizor' }})</span></span>
-                            <strong>{{ money(expense.amount) }} lei</strong>
-                        </div>
-                    </div>
                 </div>
             </div>
         </template>
 
         <div class="py-8">
-            <div class="mx-auto grid max-w-6xl grid-cols-1 gap-6 sm:px-6 lg:grid-cols-3 lg:px-8">
+            <div class="mx-auto grid max-w-6xl grid-cols-1 gap-6 px-4 sm:px-6 lg:grid-cols-3 lg:px-8">
                 <div class="space-y-6 lg:col-span-1">
                     <div class="rounded-lg bg-white p-6 shadow-sm">
                         <h3 class="text-sm font-semibold text-slate-500">Detalii</h3>
@@ -138,9 +132,12 @@ function money(value) {
                                     </Link>
                                 </dd>
                             </div>
-
+                            <div v-if="installation.client.phone">
+                                <dt class="text-slate-400">Telefon</dt>
+                                <dd><a :href="`tel:${installation.client.phone}`" class="text-blue-600 hover:text-blue-500">{{ installation.client.phone }}</a></dd>
+                            </div>
                             <div>
-                                <dt class="text-slate-400">Adresa</dt>
+                                <dt class="text-slate-400">Adresă</dt>
                                 <dd class="text-slate-900">{{ installation.address ?? '-' }}</dd>
                             </div>
                             <div>
@@ -148,11 +145,11 @@ function money(value) {
                                 <dd class="text-slate-900">{{ installation.technician?.name ?? 'Neasignat' }}</dd>
                             </div>
                             <div>
-                                <dt class="text-slate-400">Data programata</dt>
+                                <dt class="text-slate-400">Data programată</dt>
                                 <dd class="text-slate-900">{{ installation.scheduled_at ? new Date(installation.scheduled_at).toLocaleString('ro-RO') : '-' }}</dd>
                             </div>
                             <div v-if="installation.report_number">
-                                <dt class="text-slate-400">Numar PV</dt>
+                                <dt class="text-slate-400">Număr PV</dt>
                                 <dd class="text-slate-900">{{ installation.report_number }}</dd>
                             </div>
                             <div v-if="installation.notes">
@@ -178,18 +175,67 @@ function money(value) {
                         </div>
                     </div>
 
+                    <div v-if="toolboxes.length" class="rounded-lg bg-white p-6 shadow-sm">
+                        <h3 class="text-sm font-semibold text-slate-500">Cutii de luat</h3>
+                        <p class="mt-1 text-xs text-slate-400">Bifează pe măsură ce încarci. Bifele nu se salvează.</p>
+
+                        <div v-for="box in toolboxes" :key="box.id" class="mt-3 rounded-md border border-slate-200">
+                            <button
+                                type="button"
+                                class="flex w-full items-center justify-between px-3 py-2 text-left"
+                                :aria-expanded="openBoxes.includes(box.id)"
+                                @click="toggleBox(box.id)"
+                            >
+                                <span class="text-sm font-semibold text-slate-800">{{ box.name }}</span>
+                                <span class="flex items-center gap-2 text-xs text-slate-500">
+                                    {{ packedCount(box) }}/{{ box.contents.length }}
+                                    <span class="text-lg leading-none text-slate-400">{{ openBoxes.includes(box.id) ? '−' : '+' }}</span>
+                                </span>
+                            </button>
+                            <ul v-show="openBoxes.includes(box.id)" class="space-y-1.5 border-t border-slate-100 px-3 py-2">
+                                <li v-for="(line, i) in box.contents" :key="i">
+                                    <label class="flex items-start gap-2 text-sm">
+                                        <input v-model="packed[`${box.id}-${i}`]" type="checkbox" class="mt-0.5 rounded border-slate-300 text-blue-600 focus:ring-blue-500" />
+                                        <span :class="packed[`${box.id}-${i}`] ? 'text-slate-400 line-through' : 'text-slate-700'">{{ line }}</span>
+                                    </label>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
                     <div v-if="mapSrc" class="overflow-hidden rounded-lg bg-white shadow-sm">
                         <iframe :src="mapSrc" class="h-56 w-full border-0" loading="lazy"></iframe>
                         <a :href="mapLink" target="_blank" class="block p-3 text-center text-sm text-blue-600 hover:text-blue-500">
-                            Deschide in Google Maps
+                            Deschide în Google Maps
                         </a>
                     </div>
                 </div>
 
                 <div class="space-y-6 lg:col-span-2">
                     <div class="rounded-lg bg-white p-6 shadow-sm">
+                        <h3 class="text-sm font-semibold text-slate-500">Costuri și profit</h3>
+                        <dl class="mt-4 grid grid-cols-2 gap-4 text-sm sm:grid-cols-3">
+                            <div><dt class="text-slate-400">Valoare ofertă</dt><dd class="font-semibold text-slate-900">{{ money(installation.cost_report.offer_value) }} lei</dd></div>
+                            <div><dt class="text-slate-400">Cost materiale</dt><dd class="text-slate-900">{{ money(installation.cost_report.material_cost) }} lei</dd></div>
+                            <div><dt class="text-slate-400">Cost manoperă</dt><dd class="text-slate-900">{{ money(installation.cost_report.labor_cost) }} lei</dd></div>
+                            <div><dt class="text-slate-400">Cost total</dt><dd class="font-semibold text-slate-900">{{ money(installation.cost_report.total_cost) }} lei</dd></div>
+                            <div><dt class="text-slate-400">Cheltuieli reale</dt><dd class="font-semibold text-orange-700">{{ money(installation.cost_report.actual_expenses) }} lei</dd></div>
+                            <div><dt class="text-slate-400">Cost real total</dt><dd class="font-semibold text-slate-900">{{ money(installation.cost_report.actual_total_cost) }} lei</dd></div>
+                            <div><dt class="text-slate-400">Profit estimat</dt><dd class="font-semibold text-blue-700">{{ money(installation.cost_report.estimated_profit) }} lei</dd></div>
+                            <div v-if="installation.cost_report.final_profit !== null"><dt class="text-slate-400">Profit final real</dt><dd class="font-semibold" :class="installation.cost_report.final_profit >= 0 ? 'text-green-700' : 'text-red-700'">{{ money(installation.cost_report.final_profit) }} lei</dd></div>
+                        </dl>
+                        <div v-if="installation.expenses?.length" class="mt-5 border-t border-slate-100 pt-4">
+                            <h4 class="text-xs font-semibold uppercase tracking-wide text-slate-400">Cheltuieli asociate</h4>
+                            <div v-for="expense in installation.expenses" :key="expense.id" class="mt-2 flex justify-between text-sm">
+                                <span>{{ expense.description }} <span class="text-slate-400">({{ expense.supplier?.name || 'fără furnizor' }})</span></span>
+                                <strong>{{ money(expense.amount) }} lei</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="rounded-lg bg-white p-6 shadow-sm">
                         <div class="flex items-center justify-between">
-                            <h3 class="text-sm font-semibold text-slate-500">Checklist instalare</h3>
+                            <h3 class="text-sm font-semibold text-slate-500">Checklist</h3>
                             <span class="text-xs text-slate-400">{{ checklistProgress }}% complet</span>
                         </div>
                         <div class="mt-2 h-2 w-full overflow-hidden rounded-full bg-slate-100">
@@ -212,14 +258,14 @@ function money(value) {
                     </div>
 
                     <div class="rounded-lg bg-white p-6 shadow-sm">
-                        <h3 class="text-sm font-semibold text-slate-500">Executie si receptie</h3>
+                        <h3 class="text-sm font-semibold text-slate-500">Execuție și recepție</h3>
                         <dl class="mt-4 grid grid-cols-1 gap-4 text-sm sm:grid-cols-2">
                             <div><dt class="text-slate-400">Ore lucrate</dt><dd class="text-slate-900">{{ installation.labor_hours ?? '-' }}</dd></div>
-                            <div><dt class="text-slate-400">Client la receptie</dt><dd class="text-slate-900">{{ installation.customer_name ?? '-' }}</dd></div>
-                            <div><dt class="text-slate-400">Data receptiei</dt><dd class="text-slate-900">{{ installation.handover_at ? new Date(installation.handover_at).toLocaleString('ro-RO') : '-' }}</dd></div>
+                            <div><dt class="text-slate-400">Client la recepție</dt><dd class="text-slate-900">{{ installation.customer_name ?? '-' }}</dd></div>
+                            <div><dt class="text-slate-400">Data recepției</dt><dd class="text-slate-900">{{ installation.handover_at ? new Date(installation.handover_at).toLocaleString('ro-RO') : '-' }}</dd></div>
                             <div class="sm:col-span-2"><dt class="text-slate-400">Materiale consumate</dt><dd class="whitespace-pre-line text-slate-900">{{ installation.materials?.join('\n') || '-' }}</dd></div>
                             <div v-if="installation.material_items?.length" class="sm:col-span-2">
-                                <dt class="text-slate-400">Materiale scazute din stoc</dt>
+                                <dt class="text-slate-400">Materiale scăzute din stoc</dt>
                                 <dd class="text-slate-900">
                                     <ul class="mt-1 list-disc pl-5">
                                         <li v-for="item in installation.material_items" :key="`${item.equipment_id}-${item.name}`">
@@ -229,7 +275,7 @@ function money(value) {
                                 </dd>
                             </div>
                             <div v-if="installation.service_items?.length" class="sm:col-span-2">
-                                <dt class="text-slate-400">Servicii / manopera planificata</dt>
+                                <dt class="text-slate-400">Servicii / manoperă planificată</dt>
                                 <dd class="text-slate-900">
                                     <ul class="mt-1 list-disc pl-5">
                                         <li v-for="item in installation.service_items" :key="`${item.service_id}-${item.name}`">
@@ -238,16 +284,16 @@ function money(value) {
                                     </ul>
                                 </dd>
                             </div>
-                            <div class="sm:col-span-2"><dt class="text-slate-400">Observatii client</dt><dd class="whitespace-pre-line text-slate-900">{{ installation.customer_notes || '-' }}</dd></div>
+                            <div class="sm:col-span-2"><dt class="text-slate-400">Observații client</dt><dd class="whitespace-pre-line text-slate-900">{{ installation.customer_notes || '-' }}</dd></div>
                         </dl>
                         <div v-if="installation.technician_signature || installation.customer_signature" class="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
                             <div v-if="installation.technician_signature">
-                                <p class="text-xs text-slate-400">Semnatura tehnician</p>
-                                <img :src="installation.technician_signature" alt="Semnatura tehnician" class="mt-2 h-16 max-w-full object-contain" />
+                                <p class="text-xs text-slate-400">Semnătură tehnician</p>
+                                <img :src="installation.technician_signature" alt="Semnătură tehnician" class="mt-2 h-16 max-w-full object-contain" />
                             </div>
                             <div v-if="installation.customer_signature">
-                                <p class="text-xs text-slate-400">Semnatura client</p>
-                                <img :src="installation.customer_signature" alt="Semnatura client" class="mt-2 h-16 max-w-full object-contain" />
+                                <p class="text-xs text-slate-400">Semnătură client</p>
+                                <img :src="installation.customer_signature" alt="Semnătură client" class="mt-2 h-16 max-w-full object-contain" />
                             </div>
                         </div>
                         <div v-if="installation.photos?.length" class="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3">
@@ -275,7 +321,7 @@ function money(value) {
                                 <div class="text-xs text-slate-400">{{ ticket.status }}</div>
                             </Link>
                         </div>
-                        <p v-else class="mt-4 text-sm text-slate-400">Niciun tichet deschis pentru aceasta interventie.</p>
+                        <p v-else class="mt-4 text-sm text-slate-400">Niciun tichet deschis pentru această intervenție.</p>
                     </div>
                 </div>
             </div>
