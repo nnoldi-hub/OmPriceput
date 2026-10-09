@@ -35,9 +35,10 @@ const emit = defineEmits(['update:modelValue', 'media']);
 
 const textarea = ref(null);
 let editor = null;
+let ready = false;
 
 function syncValue() {
-    if (editor) {
+    if (editor && ready) {
         emit('update:modelValue', editor.getContent());
     }
 }
@@ -48,7 +49,7 @@ function insertImage(url, alt = '') {
     syncValue();
 }
 
-defineExpose({ insertImage });
+defineExpose({ insertImage, sync: syncValue });
 
 onMounted(() => {
     tinymce.init({
@@ -86,26 +87,35 @@ onMounted(() => {
                 onAction: () => emit('media'),
             });
 
-            instance.on('init', () => {
-                instance.setContent(props.modelValue || '');
-            });
             instance.on('change keyup undo redo input', syncValue);
         },
-    }).then((editors) => {
-        editor = Array.isArray(editors) ? editors[0] : editors;
+        init_instance_callback: (instance) => {
+            editor = instance;
+
+            const initial = props.modelValue || '';
+
+            if (instance.getContent() !== initial) {
+                instance.setContent(initial);
+            }
+
+            ready = true;
+        },
     });
 });
 
 watch(
     () => props.modelValue,
     (value) => {
-        if (editor && value !== editor.getContent()) {
-            editor.setContent(value || '');
+        if (!ready || !editor || value === editor.getContent()) {
+            return;
         }
+
+        editor.setContent(value || '');
     },
 );
 
 onBeforeUnmount(() => {
+    ready = false;
     editor?.remove();
     editor = null;
 });
