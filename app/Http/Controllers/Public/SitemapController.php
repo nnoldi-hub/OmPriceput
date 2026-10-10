@@ -7,7 +7,6 @@ use App\Models\Category;
 use App\Models\Equipment;
 use App\Models\Post;
 use App\Models\Setting;
-use App\Models\Tag;
 use Illuminate\Http\Response;
 use Illuminate\Support\Collection;
 
@@ -22,7 +21,6 @@ class SitemapController extends Controller
                 'lastmod' => ($post->updated_at ?? $post->published_at)->toDateString(),
             ]))
             ->merge($this->categoryUrls())
-            ->merge($this->tagUrls())
             ->merge($this->shopUrls());
 
         $xml = view('sitemap', ['urls' => $urls])->render();
@@ -58,20 +56,7 @@ class SitemapController extends Controller
                 'lastmod' => ($category->updated_at ?? $category->created_at)->toDateString(),
             ]);
     }
-
-    private function tagUrls(): Collection
-    {
-        return Tag::query()
-            ->whereHas('posts', fn ($query) => $query->published())
-            ->orderBy('name')
-            ->get()
-            ->map(fn (Tag $tag) => [
-                'loc' => route('public.blog.tag', $tag->slug),
-                'lastmod' => ($tag->updated_at ?? $tag->created_at)->toDateString(),
-            ]);
-    }
-
-    private function shopUrls(): Collection
+     private function shopUrls(): Collection
     {
         if (Setting::get('shop_enabled', '0') !== '1') {
             return collect();
