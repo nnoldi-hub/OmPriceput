@@ -27,7 +27,9 @@ class SitemapController extends Controller
 
         $xml = view('sitemap', ['urls' => $urls])->render();
 
-        return response($xml, 200)->header('Content-Type', 'text/xml');
+        return response($xml, 200)
+            ->header('Content-Type', 'application/xml; charset=utf-8')
+            ->header('Cache-Control', 'public, max-age=3600, s-maxage=3600');
     }
 
     /** @return array<int, string> */
