@@ -15,6 +15,15 @@ const hasAccess = (rolesToCheck, permissionsToCheck = []) =>
 
 const sections = [
     {
+        key: 'agenda',
+        name: 'Agenda',
+        icon: 'calendar',
+        roles: ['admin'],
+        items: [
+            { name: 'Inbox', route: 'agenda.index' },
+        ],
+    },
+    {
         key: 'sales',
         name: 'Vanzari',
         icon: 'briefcase',

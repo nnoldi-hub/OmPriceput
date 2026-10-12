@@ -74,4 +74,9 @@ class Client extends Model
     {
         return $this->hasMany(Activity::class);
     }
+
+    public function projects(): HasMany
+    {
+        return $this->hasMany(Project::class);
+    }
 }

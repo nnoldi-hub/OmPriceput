@@ -20,6 +20,7 @@ Route::middleware('auth')->group(function () {
 
 require __DIR__.'/sales.php';
 require __DIR__.'/technical.php';
+require __DIR__.'/agenda.php';
 require __DIR__.'/admin.php';
 require __DIR__.'/client.php';
 
