@@ -3,7 +3,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 
-const props = defineProps({ measurement: Object, clients: Array, projects: Array, statuses: Object, pricing: Object });
+const props = defineProps({ measurement: Object, clients: Array, projects: Array, statuses: Object, objectTypes: Object, fieldDefs: Object, pricing: Object });
 const page = usePage();
 
 const m = props.measurement;
@@ -11,12 +11,35 @@ const location = ref(m.location ?? '');
 const notes = ref(m.notes ?? '');
 const clientId = ref(m.client_id ?? null);
 const projectId = ref(m.project_id ?? null);
-const newObjectName = ref('');
 const photoInput = ref(null);
+
+function blankObject(type) {
+    return { type, name: '', length: null, width: null, height: null, quantity: 1, specs: {} };
+}
+
+const newObject = ref(blankObject('camera'));
+
+const typeKeys = Object.keys(props.objectTypes ?? {});
+const baseFields = (type) => props.objectTypes?.[type]?.fields ?? [];
+const attrFields = (type) => props.objectTypes?.[type]?.attributes ?? [];
+const typeLabel = (type) => props.objectTypes?.[type]?.label ?? type;
+
+function onNewTypeChange() {
+    newObject.value = blankObject(newObject.value.type);
+}
 
 const totalArea = computed(() => m.objects.reduce((sum, object) => sum + (object.area ?? 0), 0));
 const totalPerimeter = computed(() => m.objects.reduce((sum, object) => sum + (object.perimeter ?? 0), 0));
-const estimate = computed(() => totalArea.value * props.pricing.area_m2 + totalPerimeter.value * props.pricing.perimeter_ml);
+const totalPieces = computed(() => m.objects.filter((o) => o.unit === 'buc').reduce((sum, o) => sum + (o.quantity ?? 0), 0));
+const estimate = computed(() => {
+    let sum = totalArea.value * props.pricing.area_m2 + totalPerimeter.value * props.pricing.perimeter_ml;
+    for (const o of m.objects) {
+        if (o.object_type === 'camera') continue;
+        const price = props.pricing.type_prices?.[o.object_type] ?? (o.unit === 'ml' ? props.pricing.perimeter_ml : 0);
+        sum += (o.unit_quantity ?? 0) * price;
+    }
+    return sum;
+});
 
 const ron = (value) => new Intl.NumberFormat('ro-RO', { style: 'currency', currency: 'RON' }).format(value ?? 0);
 
@@ -51,21 +74,32 @@ function remove() {
 function patchObject(object, overrides = {}) {
     router.patch(route('measurements.objects.update', object.id), {
         name: object.name,
+        object_type: object.object_type,
         length: object.length ?? null,
         width: object.width ?? null,
         height: object.height ?? null,
         quantity: object.quantity ?? 1,
+        specs: object.specs ?? {},
         notes: object.notes ?? null,
         ...overrides,
     }, { preserveScroll: true });
 }
 
 function addObject() {
-    const name = newObjectName.value.trim();
+    const o = newObject.value;
+    const name = o.name.trim();
     if (!name) return;
-    router.post(route('measurements.objects.store', m.id), { name }, {
+    router.post(route('measurements.objects.store', m.id), {
+        name,
+        object_type: o.type,
+        length: o.length ?? null,
+        width: o.width ?? null,
+        height: o.height ?? null,
+        quantity: o.quantity || 1,
+        specs: o.specs ?? {},
+    }, {
         preserveScroll: true,
-        onSuccess: () => { newObjectName.value = ''; },
+        onSuccess: () => { newObject.value = blankObject(o.type); },
     });
 }
 
@@ -185,7 +219,7 @@ function formatDate(value) {
                     </div>
                 </section>
 
-                <section class="mt-5 grid grid-cols-3 gap-3">
+                <section class="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
                     <div class="rounded-xl bg-white p-4 text-center shadow-sm">
                         <div class="text-2xl font-bold text-brand-navy">{{ Number(totalArea).toFixed(1) }}</div>
                         <div class="text-xs text-slate-500">mp</div>
@@ -194,6 +228,10 @@ function formatDate(value) {
                         <div class="text-2xl font-bold text-brand-navy">{{ Number(totalPerimeter).toFixed(1) }}</div>
                         <div class="text-xs text-slate-500">ml</div>
                     </div>
+                    <div class="rounded-xl bg-white p-4 text-center shadow-sm">
+                        <div class="text-2xl font-bold text-brand-navy">{{ totalPieces }}</div>
+                        <div class="text-xs text-slate-500">buc</div>
+                    </div>
                     <div class="rounded-xl bg-brand-navy p-4 text-center text-white shadow-sm">
                         <div class="text-2xl font-bold">{{ ron(estimate) }}</div>
                         <div class="text-xs text-slate-300">estimativ oferta</div>
@@ -201,22 +239,67 @@ function formatDate(value) {
                 </section>
 
                 <section class="mt-5 rounded-xl bg-white p-4 shadow-sm">
-                    <h3 class="text-sm font-semibold uppercase tracking-wide text-slate-500">Obiecte / camere ({{ m.objects.length }})</h3>
-                    <div class="mt-3 space-y-2">
-                        <div v-for="o in m.objects" :key="o.id" class="rounded-lg bg-slate-50 p-2">
-                            <div class="flex items-center gap-2">
-                                <input v-model="o.name" type="text" placeholder="Camera / zona" class="min-w-0 flex-1 rounded-md border-slate-300 text-sm" enterkeyhint="done" @change="patchObject(o)" />
-                                <input v-model="o.length" type="number" step="0.01" inputmode="decimal" placeholder="L" title="Lungime (m)" class="w-20 rounded-md border-slate-300 text-sm" enterkeyhint="done" @change="patchObject(o)" />
-                                <input v-model="o.width" type="number" step="0.01" inputmode="decimal" placeholder="l" title="Latime (m)" class="w-20 rounded-md border-slate-300 text-sm" enterkeyhint="done" @change="patchObject(o)" />
-                                <input v-model="o.quantity" type="number" min="1" inputmode="numeric" placeholder="buc" title="Cantitate" class="w-16 rounded-md border-slate-300 text-sm" enterkeyhint="done" @change="patchObject(o)" />
-                                <span class="w-16 text-right text-xs font-medium text-slate-600">{{ Number(o.area ?? 0).toFixed(1) }} mp</span>
+                    <h3 class="text-sm font-semibold uppercase tracking-wide text-slate-500">Elemente masurate ({{ m.objects.length }})</h3>
+                    <div class="mt-3 space-y-3">
+                        <div v-for="o in m.objects" :key="o.id" class="rounded-lg bg-slate-50 p-3">
+                            <div class="flex flex-wrap items-center gap-2">
+                                <span class="rounded-full bg-brand-navy px-2 py-0.5 text-xs font-semibold text-white">{{ o.type_label }}</span>
+                                <input v-model="o.name" type="text" placeholder="Denumire / zona" class="min-w-0 flex-1 rounded-md border-slate-300 text-sm" enterkeyhint="done" @change="patchObject(o)" />
+                                <span class="text-xs font-semibold text-slate-600">{{ Number(o.unit_quantity ?? 0).toFixed(1) }} {{ o.unit }}</span>
                                 <button type="button" class="text-sm font-semibold text-red-400 hover:text-red-600" @click="removeObject(o)">x</button>
                             </div>
+                            <div class="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                                <div v-for="f in baseFields(o.object_type)" :key="f">
+                                    <label class="block text-[11px] uppercase tracking-wide text-slate-400">{{ fieldDefs[f]?.label }}<span v-if="fieldDefs[f]?.unit"> ({{ fieldDefs[f].unit }})</span></label>
+                                    <input v-model.number="o[f]" type="number" step="0.01" inputmode="decimal" class="mt-0.5 w-full rounded-md border-slate-300 text-sm" enterkeyhint="done" @change="patchObject(o)" />
+                                </div>
+                                <div v-for="f in attrFields(o.object_type)" :key="f">
+                                    <label class="block text-[11px] uppercase tracking-wide text-slate-400">{{ fieldDefs[f]?.label }}</label>
+                                    <select v-if="fieldDefs[f]?.type === 'select'" v-model="o.specs[f]" class="mt-0.5 w-full rounded-md border-slate-300 text-sm" @change="patchObject(o)">
+                                        <option value="">-</option>
+                                        <option v-for="opt in fieldDefs[f].options" :key="opt" :value="opt">{{ opt }}</option>
+                                    </select>
+                                    <input v-else v-model="o.specs[f]" :type="fieldDefs[f]?.type === 'number' ? 'number' : 'text'" class="mt-0.5 w-full rounded-md border-slate-300 text-sm" enterkeyhint="done" @change="patchObject(o)" />
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] uppercase tracking-wide text-slate-400">Cantitate</label>
+                                    <input v-model.number="o.quantity" type="number" min="1" inputmode="numeric" class="mt-0.5 w-full rounded-md border-slate-300 text-sm" enterkeyhint="done" @change="patchObject(o)" />
+                                </div>
+                            </div>
+                            <p v-if="o.attributes_summary" class="mt-1 text-xs text-slate-500">{{ o.attributes_summary }}</p>
                         </div>
-                        <div class="flex gap-2 pt-1">
-                            <input v-model="newObjectName" type="text" placeholder="Camera noua (ex: Living)" class="min-w-0 flex-1 rounded-md border-slate-300 text-sm" enterkeyhint="send" @keyup.enter="addObject" />
-                            <button type="button" class="shrink-0 rounded-md bg-slate-800 px-3 py-1.5 text-xs font-semibold text-white" @click="addObject">Adauga</button>
+                    </div>
+
+                    <div class="mt-4 rounded-lg border border-dashed border-slate-300 p-3">
+                        <div class="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                            <div class="col-span-2">
+                                <label class="block text-[11px] uppercase tracking-wide text-slate-400">Tip element</label>
+                                <select v-model="newObject.type" class="mt-0.5 w-full rounded-md border-slate-300 text-sm" @change="onNewTypeChange">
+                                    <option v-for="key in typeKeys" :key="key" :value="key">{{ typeLabel(key) }}</option>
+                                </select>
+                            </div>
+                            <div class="col-span-2">
+                                <label class="block text-[11px] uppercase tracking-wide text-slate-400">Denumire / zona</label>
+                                <input v-model="newObject.name" type="text" placeholder="Ex: Living, Priza bucatarie" class="mt-0.5 w-full rounded-md border-slate-300 text-sm" enterkeyhint="done" @keyup.enter="addObject" />
+                            </div>
+                            <div v-for="f in baseFields(newObject.type)" :key="f">
+                                <label class="block text-[11px] uppercase tracking-wide text-slate-400">{{ fieldDefs[f]?.label }}<span v-if="fieldDefs[f]?.unit"> ({{ fieldDefs[f].unit }})</span></label>
+                                <input v-model.number="newObject[f]" type="number" step="0.01" inputmode="decimal" class="mt-0.5 w-full rounded-md border-slate-300 text-sm" enterkeyhint="done" />
+                            </div>
+                            <div v-for="f in attrFields(newObject.type)" :key="f">
+                                <label class="block text-[11px] uppercase tracking-wide text-slate-400">{{ fieldDefs[f]?.label }}</label>
+                                <select v-if="fieldDefs[f]?.type === 'select'" v-model="newObject.specs[f]" class="mt-0.5 w-full rounded-md border-slate-300 text-sm">
+                                    <option value="">-</option>
+                                    <option v-for="opt in fieldDefs[f].options" :key="opt" :value="opt">{{ opt }}</option>
+                                </select>
+                                <input v-else v-model="newObject.specs[f]" :type="fieldDefs[f]?.type === 'number' ? 'number' : 'text'" class="mt-0.5 w-full rounded-md border-slate-300 text-sm" enterkeyhint="done" />
+                            </div>
+                            <div>
+                                <label class="block text-[11px] uppercase tracking-wide text-slate-400">Cantitate</label>
+                                <input v-model.number="newObject.quantity" type="number" min="1" inputmode="numeric" class="mt-0.5 w-full rounded-md border-slate-300 text-sm" enterkeyhint="done" />
+                            </div>
                         </div>
+                        <button type="button" class="mt-3 w-full rounded-md bg-slate-800 px-3 py-2 text-sm font-semibold text-white sm:w-auto" @click="addObject">Adauga element</button>
                     </div>
                 </section>
 
@@ -229,7 +312,9 @@ function formatDate(value) {
                 </section>
 
                 <p class="mt-5 text-xs text-slate-400">
-                    Tarife estimate: {{ ron(pricing.area_m2) }}/mp + {{ ron(pricing.perimeter_ml) }}/ml (modificabile in Setari). Masurata: {{ formatDate(m.measured_at) }}.
+                    Tarife: suprafata {{ ron(pricing.area_m2) }}/mp, traseu {{ ron(pricing.perimeter_ml) }}/ml, restul pe tip in
+                    <Link :href="route('admin.pricing.index')" class="font-semibold text-blue-500 hover:text-blue-600">nomenclator</Link>.
+                    Masurata: {{ formatDate(m.measured_at) }}.
                 </p>
             </div>
         </div>

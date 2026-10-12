@@ -69,6 +69,7 @@ class DatabaseSeeder extends Seeder
             EquipmentSeeder::class,
             PostSeeder::class,
             ProjectSeeder::class,
+            PriceItemSeeder::class,
         ]);
     }
 }

@@ -1,6 +1,6 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head, useForm, usePage } from '@inertiajs/vue3';
+import { Head, Link, useForm, usePage } from '@inertiajs/vue3';
 
 const props = defineProps({
     settings: Object,
@@ -142,6 +142,7 @@ function submit() {
                         <div class="sm:col-span-2 border-t border-slate-200 pt-5">
                             <h3 class="text-sm font-semibold text-slate-900">Tarife masuratori</h3>
                             <p class="mt-1 text-xs text-slate-500">Preturile de estimare folosite la calculul ofertelor generate din masuratori.</p>
+                            <Link :href="route('admin.pricing.index')" class="mt-2 inline-block text-sm font-semibold text-blue-600 hover:text-blue-500">Configureaza nomenclatorul de preturi pe tip (priza, traseu, tablou, suport) &rarr;</Link>
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-slate-700">Pret estimare pe mp (lei)</label>

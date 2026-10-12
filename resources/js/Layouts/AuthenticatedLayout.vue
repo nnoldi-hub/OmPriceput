@@ -24,6 +24,7 @@ const sections = [
             { name: 'Inbox', route: 'agenda.inbox' },
             { name: 'Proiecte', route: 'agenda.projects.index' },
             { name: 'Masuratori', route: 'measurements.index' },
+            { name: 'Nomenclator preturi', route: 'admin.pricing.index' },
             { name: 'Raport masuratori', route: 'admin.reports.measurements' },
         ],
     },

@@ -8,6 +8,7 @@ use App\Models\Measurement;
 use App\Models\MeasurementObject;
 use App\Models\Offer;
 use App\Models\OfferItem;
+use App\Models\PriceItem;
 use App\Models\Project;
 use App\Models\Setting;
 use App\Support\ImageOptimizer;
@@ -40,8 +41,6 @@ class MeasurementController extends Controller
     {
         $measurement->load(['client:id,name', 'project:id,name', 'objects', 'offer:id,measurement_id,title,total_amount']);
 
-        $area = $measurement->totalArea();
-        $perimeter = $measurement->totalPerimeter();
         $areaPrice = (float) (Setting::get('pricing_area_m2') ?? '0');
         $perimeterPrice = (float) (Setting::get('pricing_perimeter_ml') ?? '0');
 
@@ -50,10 +49,17 @@ class MeasurementController extends Controller
             'clients' => Client::query()->orderBy('name')->get(['id', 'name']),
             'projects' => Project::query()->orderBy('name')->get(['id', 'name']),
             'statuses' => Measurement::STATUS_LABELS,
+            'objectTypes' => MeasurementObject::TYPES,
+            'fieldDefs' => MeasurementObject::FIELDS,
             'pricing' => [
                 'area_m2' => $areaPrice,
                 'perimeter_ml' => $perimeterPrice,
-                'estimate' => round($area * $areaPrice + $perimeter * $perimeterPrice, 2),
+                'estimate' => $this->estimate($measurement),
+                'type_prices' => PriceItem::query()
+                    ->where('is_active', true)
+                    ->orderBy('position')
+                    ->get(['object_type', 'price'])
+                    ->mapWithKeys(fn (PriceItem $item) => [$item->object_type => (float) $item->price]),
             ],
         ]);
     }
@@ -200,31 +206,63 @@ class MeasurementController extends Controller
         $perimeterPrice = (float) (Setting::get('pricing_perimeter_ml') ?? '0');
 
         $items = [];
+        $hasRoute = false;
 
         foreach ($measurement->objects as $object) {
-            if ($object->area() > 0) {
-                $items[] = [
-                    'section' => OfferItem::SECTION_LABOR,
-                    'description' => 'Montaj sistem - '.$object->name
-                        .(($object->length && $object->width)
-                            ? sprintf(' (%.1f x %.1f m)', (float) $object->length, (float) $object->width)
-                            : ''),
-                    'quantity' => max(1, (int) round($object->area())),
-                    'unit' => 'mp',
-                    'unit_price' => $areaPrice,
-                ];
-            } else {
-                $items[] = [
-                    'section' => OfferItem::SECTION_LABOR,
-                    'description' => $object->name,
-                    'quantity' => max(1, (int) $object->quantity),
-                    'unit' => 'buc',
-                    'unit_price' => 0,
-                ];
+            $type = $object->object_type;
+            $price = PriceItem::priceFor($type);
+
+            if ($type === 'camera' || $object->unit === 'mp') {
+                if ($object->area() > 0) {
+                    $dims = ($object->length && $object->width)
+                        ? sprintf(' (%.1f x %.1f m)', (float) $object->length, (float) $object->width)
+                        : '';
+                    $items[] = [
+                        'section' => OfferItem::SECTION_LABOR,
+                        'description' => 'Montaj suprafata - '.$object->name.$dims,
+                        'quantity' => max(1, (int) round($object->area())),
+                        'unit' => 'mp',
+                        'unit_price' => $price ?? $areaPrice,
+                    ];
+                } else {
+                    $items[] = [
+                        'section' => OfferItem::SECTION_LABOR,
+                        'description' => $object->name,
+                        'quantity' => max(1, (int) $object->quantity),
+                        'unit' => 'buc',
+                        'unit_price' => 0.0,
+                    ];
+                }
+
+                continue;
             }
+
+            $attrs = $object->attributesSummary();
+            $suffix = $attrs !== '' ? ' ('.$attrs.')' : '';
+
+            if ($object->unit === 'ml') {
+                $hasRoute = true;
+                $items[] = [
+                    'section' => OfferItem::SECTION_LABOR,
+                    'description' => $object->typeLabel().' - '.$object->name.$suffix,
+                    'quantity' => max(1, (int) round($object->unitQuantity())),
+                    'unit' => 'ml',
+                    'unit_price' => $price ?? $perimeterPrice,
+                ];
+
+                continue;
+            }
+
+            $items[] = [
+                'section' => OfferItem::SECTION_LABOR,
+                'description' => $object->typeLabel().' - '.$object->name.$suffix,
+                'quantity' => max(1, (int) $object->quantity),
+                'unit' => 'buc',
+                'unit_price' => $price ?? 0.0,
+            ];
         }
 
-        if ($measurement->totalPerimeter() > 0) {
+        if (! $hasRoute && $measurement->totalPerimeter() > 0) {
             $items[] = [
                 'section' => OfferItem::SECTION_LABOR,
                 'description' => 'Cablaj retea (perimetru)',
@@ -235,6 +273,27 @@ class MeasurementController extends Controller
         }
 
         return $items;
+    }
+
+    private function estimate(Measurement $measurement): float
+    {
+        $areaPrice = (float) (Setting::get('pricing_area_m2') ?? '0');
+        $perimeterPrice = (float) (Setting::get('pricing_perimeter_ml') ?? '0');
+
+        $total = $measurement->totalArea() * $areaPrice + $measurement->totalPerimeter() * $perimeterPrice;
+
+        foreach ($measurement->objects as $object) {
+            if ($object->object_type === 'camera') {
+                continue;
+            }
+
+            $price = PriceItem::priceFor($object->object_type)
+                ?? ($object->unit === 'ml' ? $perimeterPrice : 0.0);
+
+            $total += $object->unitQuantity() * $price;
+        }
+
+        return round($total, 2);
     }
 
     private function offerTotal(array $items): float
@@ -284,13 +343,19 @@ class MeasurementController extends Controller
             'objects' => $measurement->objects->map(fn (MeasurementObject $object) => [
                 'id' => $object->id,
                 'name' => $object->name,
+                'object_type' => $object->object_type,
+                'type_label' => $object->typeLabel(),
+                'unit' => $object->unit,
                 'length' => $object->length,
                 'width' => $object->width,
                 'height' => $object->height,
                 'quantity' => $object->quantity,
+                'specs' => (object) ($object->specs ?? []),
                 'notes' => $object->notes,
                 'area' => $object->area(),
                 'perimeter' => $object->perimeter(),
+                'unit_quantity' => $object->unitQuantity(),
+                'attributes_summary' => $object->attributesSummary(),
             ]),
         ];
     }
@@ -314,14 +379,27 @@ class MeasurementController extends Controller
     {
         Validator::make($request->all(), [
             'name' => ['required', 'string', 'max:255'],
+            'object_type' => ['nullable', Rule::in(array_keys(MeasurementObject::TYPES))],
             'length' => ['nullable', 'numeric', 'min:0', 'max:10000'],
             'width' => ['nullable', 'numeric', 'min:0', 'max:10000'],
             'height' => ['nullable', 'numeric', 'min:0', 'max:10000'],
             'quantity' => ['nullable', 'integer', 'min:1', 'max:100000'],
             'notes' => ['nullable', 'string', 'max:255'],
+            'specs' => ['nullable', 'array'],
+            'specs.*' => ['nullable'],
         ])->validate();
 
-        return $request->only(['name', 'length', 'width', 'height', 'quantity', 'notes']);
+        $data = $request->only(['name', 'length', 'width', 'height', 'quantity', 'notes']);
+        $type = $request->input('object_type') ?: 'camera';
+
+        $data['object_type'] = $type;
+        $data['unit'] = MeasurementObject::TYPES[$type]['unit'] ?? 'buc';
+
+        if ($request->has('specs')) {
+            $data['specs'] = $request->input('specs') ?: null;
+        }
+
+        return $data;
     }
 
     private function hasStatusChange(Request $request, Measurement $measurement): bool

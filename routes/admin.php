@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\HelpController;
 use App\Http\Controllers\Admin\InvoiceController;
 use App\Http\Controllers\Admin\MediaController;
 use App\Http\Controllers\Admin\PageController;
+use App\Http\Controllers\Admin\PriceItemController;
 use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\ShopOrderController;
@@ -65,6 +66,7 @@ Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->name('ad
 
     Route::get('/setari', [SettingsController::class, 'edit'])->name('settings.edit');
     Route::put('/setari', [SettingsController::class, 'update'])->name('settings.update');
+    Route::resource('nomenclator', PriceItemController::class)->only(['index', 'store', 'update', 'destroy'])->parameters(['nomenclator' => 'priceItem'])->names('pricing');
     Route::get('/ghid', HelpController::class)->name('help');
 
     Route::resource('magazin/comenzi', ShopOrderController::class)->only(['index', 'show', 'destroy'])->parameters(['comenzi' => 'shopOrder'])->names('shop-orders');
