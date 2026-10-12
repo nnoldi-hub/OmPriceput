@@ -17,8 +17,8 @@ return [
     'blocking_statuses' => ['scheduled', 'in_progress'],
 
     // taxa de deplasare, obligatorie la fiecare programare (lei)
-'travel_fee' => (int) env('BOOKING_TRAVEL_FEE', 50),
+    'travel_fee' => (int) env('BOOKING_TRAVEL_FEE', 50),
 
-// peste aceasta valoare a manoperei deplasarea e gratuita (0 = niciodata gratuita)
-'travel_free_above' => (int) env('BOOKING_TRAVEL_FREE_ABOVE', 300),
+    // peste aceasta valoare a manoperei deplasarea e gratuita (0 = niciodata gratuita)
+    'travel_free_above' => (int) env('BOOKING_TRAVEL_FREE_ABOVE', 300),
 ];

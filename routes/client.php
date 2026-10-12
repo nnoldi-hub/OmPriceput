@@ -1,9 +1,10 @@
 <?php
 
 use App\Http\Controllers\Client\PortalController;
+use App\Http\Middleware\EnsureClientPortal;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(['auth', 'verified', \App\Http\Middleware\EnsureClientPortal::class])->prefix('client')->name('client.')->group(function () {
+Route::middleware(['auth', 'verified', EnsureClientPortal::class])->prefix('client')->name('client.')->group(function () {
     Route::get('/', [PortalController::class, 'dashboard'])->name('dashboard');
     Route::get('/tichete', [PortalController::class, 'tickets'])->name('tickets.index');
     Route::post('/tichete', [PortalController::class, 'storeTicket'])->name('tickets.store');

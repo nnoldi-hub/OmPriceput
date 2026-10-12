@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Client;
 use App\Models\Measurement;
 use App\Models\MeasurementObject;
+use App\Models\Offer;
+use App\Models\OfferItem;
 use App\Models\Setting;
 use App\Support\ImageOptimizer;
 use Illuminate\Http\RedirectResponse;
@@ -20,7 +22,7 @@ class MeasurementController extends Controller
 {
     public function index(): Response
     {
-        $measurements = Measurement::with(['client:id,name', 'project:id,name', 'objects'])
+        $measurements = Measurement::with(['client:id,name', 'project:id,name', 'objects', 'offer:id,measurement_id,title,total_amount'])
             ->orderByDesc('updated_at')
             ->get()
             ->map(fn (Measurement $measurement) => $this->toArray($measurement));
@@ -35,7 +37,7 @@ class MeasurementController extends Controller
 
     public function show(Measurement $measurement): Response
     {
-        $measurement->load(['client:id,name', 'project:id,name', 'objects']);
+        $measurement->load(['client:id,name', 'project:id,name', 'objects', 'offer:id,measurement_id,title,total_amount']);
 
         $area = $measurement->totalArea();
         $perimeter = $measurement->totalPerimeter();
@@ -144,6 +146,101 @@ class MeasurementController extends Controller
         return redirect()->back()->with('success', 'Poza stearsa.');
     }
 
+    public function createOffer(Request $request, Measurement $measurement): RedirectResponse
+    {
+        if ($existing = $measurement->offer) {
+            return redirect()->route('sales.offers.show', $existing)
+                ->with('success', 'Masuratoarea are deja o oferta.');
+        }
+
+        $clientId = $measurement->client_id;
+        if ($request->filled('client_id')) {
+            $clientId = (int) $request->input('client_id');
+        }
+
+        if (! $clientId || ! Client::whereKey($clientId)->exists()) {
+            return back()->with('error', 'Atribuie mai intai un client masuratorii si salveaza detaliile.');
+        }
+
+        $measurement->load('objects');
+        $items = $this->offerItemsFromMeasurement($measurement);
+
+        if (empty($items)) {
+            return back()->with('error', 'Adauga macar un obiect cu dimensiuni inainte de a genera oferta.');
+        }
+
+        $areaPrice = (float) (Setting::get('pricing_area_m2') ?? '0');
+        $perimeterPrice = (float) (Setting::get('pricing_perimeter_ml') ?? '0');
+
+        $offer = Offer::create([
+            'client_id' => $clientId,
+            'user_id' => $request->user()->id,
+            'measurement_id' => $measurement->id,
+            'title' => 'Oferta - '.$measurement->name,
+            'job_type' => 'instalare',
+            'status' => 'draft',
+            'valid_until' => now()->addDays(Offer::DEFAULT_VALIDITY_DAYS)->toDateString(),
+            'notes' => 'Generata din masuratoarea #'.$measurement->id
+                .($measurement->location ? ' - '.$measurement->location : ''),
+            'total_amount' => $this->offerTotal($items),
+        ]);
+
+        $offer->items()->createMany($items);
+
+        return redirect()->route('sales.offers.show', $offer)
+            ->with('success', 'Oferta creata din masuratoare.');
+    }
+
+    private function offerItemsFromMeasurement(Measurement $measurement): array
+    {
+        $areaPrice = (float) (Setting::get('pricing_area_m2') ?? '0');
+        $perimeterPrice = (float) (Setting::get('pricing_perimeter_ml') ?? '0');
+
+        $items = [];
+
+        foreach ($measurement->objects as $object) {
+            if ($object->area() > 0) {
+                $items[] = [
+                    'section' => OfferItem::SECTION_LABOR,
+                    'description' => 'Montaj sistem - '.$object->name
+                        .(($object->length && $object->width)
+                            ? sprintf(' (%.1f x %.1f m)', (float) $object->length, (float) $object->width)
+                            : ''),
+                    'quantity' => max(1, (int) round($object->area())),
+                    'unit' => 'mp',
+                    'unit_price' => $areaPrice,
+                ];
+            } else {
+                $items[] = [
+                    'section' => OfferItem::SECTION_LABOR,
+                    'description' => $object->name,
+                    'quantity' => max(1, (int) $object->quantity),
+                    'unit' => 'buc',
+                    'unit_price' => 0,
+                ];
+            }
+        }
+
+        if ($measurement->totalPerimeter() > 0) {
+            $items[] = [
+                'section' => OfferItem::SECTION_LABOR,
+                'description' => 'Cablaj retea (perimetru)',
+                'quantity' => max(1, (int) round($measurement->totalPerimeter())),
+                'unit' => 'ml',
+                'unit_price' => $perimeterPrice,
+            ];
+        }
+
+        return $items;
+    }
+
+    private function offerTotal(array $items): float
+    {
+        return round(collect($items)->sum(
+            fn (array $item): float => (float) $item['quantity'] * (float) $item['unit_price']
+        ), 2);
+    }
+
     private function photoPath(string $url): string
     {
         $base = Storage::disk('public')->url('/');
@@ -176,6 +273,11 @@ class MeasurementController extends Controller
             'objects_count' => $measurement->objects->count(),
             'notes' => $measurement->notes,
             'photos' => $measurement->photos ?? [],
+            'offer' => $measurement->offer ? [
+                'id' => $measurement->offer->id,
+                'title' => $measurement->offer->title,
+                'total_amount' => (float) $measurement->offer->total_amount,
+            ] : null,
             'objects' => $measurement->objects->map(fn (MeasurementObject $object) => [
                 'id' => $object->id,
                 'name' => $object->name,

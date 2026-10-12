@@ -164,12 +164,24 @@ class TrafficController extends Controller
 
     private function resolvePathTitle(string $path, ?string $fallback): string
     {
-        if ($path === '/') return 'Acasă';
-        if ($path === '/magazin') return 'Catalog Magazin Online';
-        if ($path === '/magazin/cos') return 'Coș de cumpărături';
-        if ($path === '/contact') return 'Pagina de Contact';
-        if ($path === '/servicii') return 'Servicii Oferite';
-        if ($path === '/cerere-deviz') return 'Cerere de deviz';
+        if ($path === '/') {
+            return 'Acasă';
+        }
+        if ($path === '/magazin') {
+            return 'Catalog Magazin Online';
+        }
+        if ($path === '/magazin/cos') {
+            return 'Coș de cumpărături';
+        }
+        if ($path === '/contact') {
+            return 'Pagina de Contact';
+        }
+        if ($path === '/servicii') {
+            return 'Servicii Oferite';
+        }
+        if ($path === '/cerere-deviz') {
+            return 'Cerere de deviz';
+        }
 
         if (preg_match('#^/magazin/([^/]+)$#', $path, $matches)) {
             $equipment = Equipment::where('slug', $matches[1])->first();

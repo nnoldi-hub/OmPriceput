@@ -46,6 +46,7 @@ class EquipmentImport implements ToCollection, WithHeadingRow
     private function value(Collection|array $row, string $field): string
     {
         $column = $this->mapping[$field] ?? null;
+
         return trim((string) ($column ? ($row[$column] ?? '') : ''));
     }
 

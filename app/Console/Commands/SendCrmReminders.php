@@ -39,6 +39,7 @@ class SendCrmReminders extends Command
 
             if ($recipients->isEmpty()) {
                 $this->warn("Nu exista destinatari pentru activitatea #{$activity->id}.");
+
                 continue;
             }
 

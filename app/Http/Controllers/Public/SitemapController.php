@@ -56,7 +56,8 @@ class SitemapController extends Controller
                 'lastmod' => ($category->updated_at ?? $category->created_at)->toDateString(),
             ]);
     }
-     private function shopUrls(): Collection
+
+    private function shopUrls(): Collection
     {
         if (Setting::get('shop_enabled', '0') !== '1') {
             return collect();

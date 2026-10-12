@@ -34,6 +34,10 @@ function saveDetails() {
     patch();
 }
 
+function convertToOffer() {
+    router.post(route('measurements.offer', m.id), { client_id: clientId.value }, { preserveScroll: true });
+}
+
 function toggleDone() {
     patch({ status: m.status === 'completed' ? 'in_progress' : 'completed' });
 }
@@ -110,6 +114,25 @@ function formatDate(value) {
         <div class="py-6">
             <div class="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
                 <div v-if="page.props.flash.success" class="mb-4 rounded-md bg-green-50 p-4 text-sm text-green-800">{{ page.props.flash.success }}</div>
+                <div v-if="page.props.flash.error" class="mb-4 rounded-md bg-red-50 p-4 text-sm text-red-700">{{ page.props.flash.error }}</div>
+
+                <section class="mb-5">
+                    <Link
+                        v-if="m.offer"
+                        :href="route('sales.offers.show', m.offer.id)"
+                        class="block w-full rounded-xl bg-green-600 px-4 py-3 text-center text-sm font-semibold text-white shadow-sm transition hover:bg-green-500"
+                    >
+                        Oferta #{{ m.offer.id }}{{ m.offer.title ? ' - '.concat(m.offer.title) : '' }} ({{ ron(m.offer.total_amount) }}) - deschide
+                    </Link>
+                    <button
+                        v-else
+                        type="button"
+                        class="w-full rounded-xl bg-brand-navy px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-700"
+                        @click="convertToOffer"
+                    >
+                        Converteste masuratoarea in oferta
+                    </button>
+                </section>
 
                 <div class="rounded-xl bg-white p-4 shadow-sm">
                     <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">

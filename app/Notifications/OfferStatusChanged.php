@@ -15,8 +15,7 @@ class OfferStatusChanged extends Notification
         public Offer $offer,
         public string $status,
         public ?string $message = null,
-    ) {
-    }
+    ) {}
 
     public function via(object $notifiable): array
     {

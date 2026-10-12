@@ -8,9 +8,9 @@ use App\Models\Ticket;
 use App\Models\User;
 use App\Notifications\TicketUpdated;
 use App\Services\SmsService;
-use Illuminate\Support\Facades\Notification;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Notification;
 use Inertia\Inertia;
 use Inertia\Response;
 

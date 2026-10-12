@@ -19,6 +19,7 @@ class BlogArticlesSeeder extends Seeder
 
     /** Cheile pentru intrebari frecvente (verifica in articolele existente, daca ai FAQ). */
     private const FAQ_QUESTION_KEY = 'question';
+
     private const FAQ_ANSWER_KEY = 'answer';
 
     private const WITH_FAQ = true;

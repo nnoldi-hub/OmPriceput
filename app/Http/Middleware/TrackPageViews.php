@@ -127,23 +127,45 @@ class TrackPageViews
 
     private function detectBrowser(string $userAgent): string
     {
-        if (preg_match('/Edg/i', $userAgent)) return 'Edge';
-        if (preg_match('/OPR|Opera/i', $userAgent)) return 'Opera';
-        if (preg_match('/Chrome/i', $userAgent)) return 'Chrome';
-        if (preg_match('/Safari/i', $userAgent)) return 'Safari';
-        if (preg_match('/Firefox/i', $userAgent)) return 'Firefox';
-        if (preg_match('/MSIE|Trident/i', $userAgent)) return 'IE';
+        if (preg_match('/Edg/i', $userAgent)) {
+            return 'Edge';
+        }
+        if (preg_match('/OPR|Opera/i', $userAgent)) {
+            return 'Opera';
+        }
+        if (preg_match('/Chrome/i', $userAgent)) {
+            return 'Chrome';
+        }
+        if (preg_match('/Safari/i', $userAgent)) {
+            return 'Safari';
+        }
+        if (preg_match('/Firefox/i', $userAgent)) {
+            return 'Firefox';
+        }
+        if (preg_match('/MSIE|Trident/i', $userAgent)) {
+            return 'IE';
+        }
 
         return 'Other';
     }
 
     private function detectPlatform(string $userAgent): string
     {
-        if (preg_match('/Windows/i', $userAgent)) return 'Windows';
-        if (preg_match('/Android/i', $userAgent)) return 'Android';
-        if (preg_match('/iPhone|iPad|iPod/i', $userAgent)) return 'iOS';
-        if (preg_match('/Macintosh|Mac OS/i', $userAgent)) return 'macOS';
-        if (preg_match('/Linux/i', $userAgent)) return 'Linux';
+        if (preg_match('/Windows/i', $userAgent)) {
+            return 'Windows';
+        }
+        if (preg_match('/Android/i', $userAgent)) {
+            return 'Android';
+        }
+        if (preg_match('/iPhone|iPad|iPod/i', $userAgent)) {
+            return 'iOS';
+        }
+        if (preg_match('/Macintosh|Mac OS/i', $userAgent)) {
+            return 'macOS';
+        }
+        if (preg_match('/Linux/i', $userAgent)) {
+            return 'Linux';
+        }
 
         return 'Other';
     }
@@ -151,19 +173,45 @@ class TrackPageViews
     private function guessPageTitle(string $path): string
     {
         $path = trim($path, '/');
-        if ($path === '') return 'Acasă';
-        if ($path === 'magazin') return 'Magazin Online';
-        if ($path === 'magazin/cos') return 'Coș de cumpărături';
-        if (Str::startsWith($path, 'magazin/comanda')) return 'Confirmare Comandă';
-        if (Str::startsWith($path, 'magazin/')) return 'Produs Magazin';
-        if ($path === 'servicii') return 'Servicii';
-        if ($path === 'cerere-deviz') return 'Cerere de deviz';
-        if ($path === 'contact') return 'Contact';
-        if ($path === 'despre') return 'Despre Noi';
-        if ($path === 'blog') return 'Blog';
-        if (Str::startsWith($path, 'blog/')) return 'Articol Blog';
-        if ($path === 'termeni') return 'Termeni și Condiții';
-        if ($path === 'confidentialitate') return 'Politica de Confidențialitate';
+        if ($path === '') {
+            return 'Acasă';
+        }
+        if ($path === 'magazin') {
+            return 'Magazin Online';
+        }
+        if ($path === 'magazin/cos') {
+            return 'Coș de cumpărături';
+        }
+        if (Str::startsWith($path, 'magazin/comanda')) {
+            return 'Confirmare Comandă';
+        }
+        if (Str::startsWith($path, 'magazin/')) {
+            return 'Produs Magazin';
+        }
+        if ($path === 'servicii') {
+            return 'Servicii';
+        }
+        if ($path === 'cerere-deviz') {
+            return 'Cerere de deviz';
+        }
+        if ($path === 'contact') {
+            return 'Contact';
+        }
+        if ($path === 'despre') {
+            return 'Despre Noi';
+        }
+        if ($path === 'blog') {
+            return 'Blog';
+        }
+        if (Str::startsWith($path, 'blog/')) {
+            return 'Articol Blog';
+        }
+        if ($path === 'termeni') {
+            return 'Termeni și Condiții';
+        }
+        if ($path === 'confidentialitate') {
+            return 'Politica de Confidențialitate';
+        }
 
         return Str::headline($path);
     }

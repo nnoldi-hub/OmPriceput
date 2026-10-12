@@ -108,6 +108,7 @@ class PageController extends Controller
 
         if (is_array($content)) {
             $content['type'] ??= $sectionKey;
+
             return $this->sanitizeContent($content);
         }
 

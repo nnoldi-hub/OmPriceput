@@ -215,6 +215,7 @@ class Installation extends Model
             'final_profit' => $this->status === 'completed' ? round($offerValue - $totalCost - $actualExpenses, 2) : null,
         ];
     }
+
     public function requiredToolboxes(): Collection
     {
         return Toolbox::forServices(collect($this->service_items ?? [])->pluck('service_id'));

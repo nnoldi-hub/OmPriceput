@@ -11,9 +11,7 @@ class ActivityReminder extends Notification
 {
     use Queueable;
 
-    public function __construct(public Activity $activity)
-    {
-    }
+    public function __construct(public Activity $activity) {}
 
     public function via(object $notifiable): array
     {

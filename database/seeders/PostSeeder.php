@@ -28,7 +28,7 @@ class PostSeeder extends Seeder
             ],
             [
                 'title' => 'Deviz gratuit sau estimare online? Ce inseamna concret',
-                'excerpt' => "Diferenta dintre o estimare facuta pe calculator si un deviz intocmit dupa ce mesterul a vazut problema.",
+                'excerpt' => 'Diferenta dintre o estimare facuta pe calculator si un deviz intocmit dupa ce mesterul a vazut problema.',
                 'body' => "Estimarea online este utila pentru a va face o idee despre ordinul de marime, dar nu poate include surprizele care apar in teren: tevi vechi care trebuie inlocuite, cablu deteriorat in perete, structura de tavan pe care nu se poate ancora nimic.\n\nDevizul este exact opusul estimarii: este scris dupa ce problema a fost vazuta. De aceea la Om Priceput nu va dam un pret din birou. Vedem lucrarea, va spunem ce credem ca aveti nevoie, si va livram devizul scris pe loc. Daca nu este rentabil, nu aveti nicio obligatie.",
                 'meta_description' => 'Diferenta dintre estimarea online si devizul intocmit dupa constatarea la fata locului.',
             ],

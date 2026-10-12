@@ -13,6 +13,8 @@ Route::middleware(['auth', 'verified', 'role:admin'])->prefix('masuratori')->nam
     Route::post('/{measurement}/poze', [MeasurementController::class, 'storePhoto'])->name('photos.store');
     Route::delete('/{measurement}/poze', [MeasurementController::class, 'destroyPhoto'])->name('photos.destroy');
 
+    Route::post('/{measurement}/oferta', [MeasurementController::class, 'createOffer'])->name('offer');
+
     Route::post('/{measurement}/obiecte', [MeasurementController::class, 'storeObject'])->name('objects.store');
     Route::patch('/obiecte/{object}', [MeasurementController::class, 'updateObject'])->name('objects.update');
     Route::delete('/obiecte/{object}', [MeasurementController::class, 'destroyObject'])->name('objects.destroy');

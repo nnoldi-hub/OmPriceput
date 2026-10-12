@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Measurement extends Model
 {
@@ -35,6 +36,11 @@ class Measurement extends Model
     public function project(): BelongsTo
     {
         return $this->belongsTo(Project::class);
+    }
+
+    public function offer(): HasOne
+    {
+        return $this->hasOne(Offer::class, 'measurement_id');
     }
 
     public function objects(): HasMany

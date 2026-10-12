@@ -18,6 +18,7 @@ class Offer extends Model
         'client_id',
         'user_id',
         'visit_id',
+        'measurement_id',
         'title',
         'job_type',
         'status',
@@ -46,6 +47,11 @@ class Offer extends Model
     public function visit(): BelongsTo
     {
         return $this->belongsTo(Installation::class, 'visit_id');
+    }
+
+    public function measurement(): BelongsTo
+    {
+        return $this->belongsTo(Measurement::class);
     }
 
     public function items(): HasMany

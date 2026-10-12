@@ -14,6 +14,7 @@ class TrafficAnalyticsTest extends TestCase
     use RefreshDatabase;
 
     private User $adminUser;
+
     private User $regularUser;
 
     protected function setUp(): void

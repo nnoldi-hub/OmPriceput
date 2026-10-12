@@ -16,8 +16,7 @@ class OperationalReminder extends Notification
         public string $title,
         public string $message,
         public ?string $url = null,
-    ) {
-    }
+    ) {}
 
     public function via(object $notifiable): array
     {
@@ -32,7 +31,7 @@ class OperationalReminder extends Notification
 
     public function toMail(object $notifiable): MailMessage
     {
-        $mail = (new MailMessage())
+        $mail = (new MailMessage)
             ->subject($this->title)
             ->greeting($this->title)
             ->line($this->message);

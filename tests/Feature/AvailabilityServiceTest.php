@@ -24,7 +24,7 @@ class AvailabilityServiceTest extends TestCase
     {
         parent::setUp();
 
-        $this->service = new AvailabilityService();
+        $this->service = new AvailabilityService;
         $this->now = CarbonImmutable::parse('2026-10-09 10:00');
 
         config(['booking.min_notice_hours' => 12]);

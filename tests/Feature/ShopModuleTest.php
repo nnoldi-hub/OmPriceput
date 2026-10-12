@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Client;
 use App\Models\Discount;
 use App\Models\Equipment;
 use App\Models\Setting;
@@ -218,7 +219,7 @@ class ShopModuleTest extends TestCase
         $admin = User::factory()->create();
         $admin->assignRole('admin');
 
-        $client = \App\Models\Client::factory()->create();
+        $client = Client::factory()->create();
         $order = ShopOrder::factory()->create(['client_id' => $client->id]);
 
         $this->actingAs($admin)

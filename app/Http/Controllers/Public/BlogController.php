@@ -36,8 +36,7 @@ class BlogController extends Controller
         $filters = $this->filters($request);
 
         $seo = app(Seo::class)->title('Blog')->description(self::DESCRIPTION);
-       $this->applyIndexability($seo, $request, $filters, $filters['category'] !== null || $filters['tag'] !== null);
-
+        $this->applyIndexability($seo, $request, $filters, $filters['category'] !== null || $filters['tag'] !== null);
 
         return $this->render($request, $filters, 'Blog', self::DESCRIPTION);
     }
@@ -271,20 +270,21 @@ class BlogController extends Controller
     }
 
     private function applyIndexability(Seo $seo, Request $request, array $filters, bool $forceNoindex = false): void
-{
-    if (
-        $forceNoindex
-        || $filters['q'] !== ''
-        || $filters['sort'] !== 'newest'
-        || $request->integer('page') > 1
-    ) {
-        $seo->noindex();
+    {
+        if (
+            $forceNoindex
+            || $filters['q'] !== ''
+            || $filters['sort'] !== 'newest'
+            || $request->integer('page') > 1
+        ) {
+            $seo->noindex();
 
-        return;
+            return;
+        }
+
+        $seo->allowIndex();
     }
 
-    $seo->allowIndex();
-}
     /** @return Collection<int, Post> */
     private function relatedPosts(Post $post)
     {
