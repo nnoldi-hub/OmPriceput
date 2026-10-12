@@ -142,7 +142,7 @@ onMounted(refocus);
                                 <div class="font-medium text-slate-900">{{ item.title }}</div>
                                 <div class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500">
                                     <span class="rounded-full bg-slate-100 px-2 py-0.5">{{ typeLabels[item.type] }}</span>
-                                    <span v-if="item.project" class="text-slate-400">{{ item.project.name }}</span>
+                                    <span v-if="item.project"><Link :href="route('agenda.projects.show', item.project.id)" class="text-blue-600 hover:text-blue-500">{{ item.project.name }}</Link></span>
                                     <span v-if="item.due_at" class="text-slate-400">Termen: {{ formatDate(item.due_at) }}</span>
                                     <span v-if="item.repeat" class="rounded-full bg-purple-100 px-2 py-0.5 text-purple-700">repetabil</span>
                                     <span v-if="item.priority !== 'normal'" class="rounded-full px-2 py-0.5 font-medium" :class="priorityClasses[item.priority]">{{ priorityLabels[item.priority] }}</span>

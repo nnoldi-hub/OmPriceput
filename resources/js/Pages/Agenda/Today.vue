@@ -94,7 +94,7 @@ onMounted(refocus);
                                 <div class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500">
                                     <span class="font-semibold text-red-500">Termen: {{ dueLabel(item.due_at) }}</span>
                                     <span class="rounded-full bg-slate-100 px-2 py-0.5">{{ typeLabels[item.type] }}</span>
-                                    <span v-if="item.project" class="text-slate-400">{{ item.project.name }}</span>
+                                    <span v-if="item.project"><Link :href="route('agenda.projects.show', item.project.id)" class="text-blue-600 hover:text-blue-500">{{ item.project.name }}</Link></span>
                                     <span v-if="item.repeat" class="rounded-full bg-purple-100 px-2 py-0.5 text-purple-700">repetabil</span>
                                 </div>
                             </div>
@@ -113,7 +113,7 @@ onMounted(refocus);
                                 <div class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500">
                                     <span class="font-semibold text-orange-600">{{ timeLabel(item.due_at) }}</span>
                                     <span class="rounded-full bg-slate-100 px-2 py-0.5">{{ typeLabels[item.type] }}</span>
-                                    <span v-if="item.project" class="text-slate-400">{{ item.project.name }}</span>
+                                    <span v-if="item.project"><Link :href="route('agenda.projects.show', item.project.id)" class="text-blue-600 hover:text-blue-500">{{ item.project.name }}</Link></span>
                                     <span v-if="item.repeat" class="rounded-full bg-purple-100 px-2 py-0.5 text-purple-700">repetabil</span>
                                 </div>
                             </div>
@@ -153,7 +153,7 @@ onMounted(refocus);
                                 <div class="font-medium text-slate-900">{{ item.title }}</div>
                                 <div class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500">
                                     <span class="rounded-full bg-amber-100 px-2 py-0.5 text-amber-700">mementou: {{ timeLabel(item.reminder_at) }}</span>
-                                    <span v-if="item.project" class="text-slate-400">{{ item.project.name }}</span>
+                                    <span v-if="item.project"><Link :href="route('agenda.projects.show', item.project.id)" class="text-blue-600 hover:text-blue-500">{{ item.project.name }}</Link></span>
                                 </div>
                             </div>
                         </div>

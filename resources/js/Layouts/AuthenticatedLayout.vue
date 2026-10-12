@@ -22,6 +22,7 @@ const sections = [
         items: [
             { name: 'Azi', route: 'agenda.index' },
             { name: 'Inbox', route: 'agenda.inbox' },
+            { name: 'Proiecte', route: 'agenda.projects.index' },
         ],
     },
     {

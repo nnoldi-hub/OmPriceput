@@ -68,6 +68,7 @@ class DatabaseSeeder extends Seeder
             ToolboxSeeder::class,
             EquipmentSeeder::class,
             PostSeeder::class,
+            ProjectSeeder::class,
         ]);
     }
 }

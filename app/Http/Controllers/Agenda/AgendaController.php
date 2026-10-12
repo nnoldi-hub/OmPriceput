@@ -80,11 +80,16 @@ class AgendaController extends Controller
     {
         $data = $request->validate([
             'title' => ['required', 'string', 'max:255'],
+            'type' => ['sometimes', Rule::in(AgendaItem::TYPES)],
+            'status' => ['sometimes', Rule::in(AgendaItem::STATUSES)],
+            'project_id' => ['sometimes', 'nullable', 'exists:projects,id'],
         ]);
 
         AgendaItem::create([
             'title' => $data['title'],
-            'status' => 'inbox',
+            'type' => $data['type'] ?? 'task',
+            'status' => $data['status'] ?? 'inbox',
+            'project_id' => $data['project_id'] ?? null,
         ]);
 
         return back()->with('success', 'Adaugat in Inbox.');
