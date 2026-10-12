@@ -10,6 +10,13 @@ const typeLabels = { task: 'Task', nota: 'Nota', idee: 'Idee', obiectiv: 'Obiect
 const projectTypeLabels = { lucrare: 'Lucrare', propriu: 'Propriu' };
 const projectStatusLabels = { activ: 'Activ', in_pauza: 'In pauza', incheiat: 'Incheiat' };
 const projectStatusClasses = { activ: 'bg-green-100 text-green-700', in_pauza: 'bg-amber-100 text-amber-700', incheiat: 'bg-slate-100 text-slate-500' };
+const tagPalette = ['bg-blue-100 text-blue-700', 'bg-amber-100 text-amber-700', 'bg-emerald-100 text-emerald-700', 'bg-purple-100 text-purple-700', 'bg-pink-100 text-pink-700', 'bg-cyan-100 text-cyan-700'];
+
+function tagClasses(name) {
+    let hash = 0;
+    for (const char of String(name)) hash = (hash * 31 + char.codePointAt(0)) % 997;
+    return tagPalette[hash % tagPalette.length];
+}
 
 const showEdit = ref(false);
 const edit = ref({
@@ -175,6 +182,7 @@ function dueLabel(value) {
                                     <span class="rounded-full bg-slate-100 px-2 py-0.5">{{ typeLabels[item.type] }}</span>
                                     <span v-if="item.due_at" class="text-slate-400">Termen: {{ dueLabel(item.due_at) }}</span>
                                     <span v-if="item.repeat" class="rounded-full bg-purple-100 px-2 py-0.5 text-purple-700">repetabil</span>
+                                    <span v-for="tag in item.tags ?? []" :key="tag.id" class="rounded-full px-2 py-0.5" :class="tagClasses(tag.name)">#{{ tag.name }}</span>
                                 </div>
                             </div>
                             <button type="button" class="text-sm font-semibold text-red-400 hover:text-red-600" @click="remove(item)">Sterge</button>

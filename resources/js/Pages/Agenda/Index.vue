@@ -1,15 +1,17 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head, router, usePage } from '@inertiajs/vue3';
+import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import { computed, nextTick, onMounted, ref } from 'vue';
 
-const props = defineProps({ items: Array, projects: Array });
+const props = defineProps({ items: Array, projects: Array, tags: Array, tag: String });
 const page = usePage();
 
 const typeLabels = { task: 'Task', nota: 'Nota', idee: 'Idee', obiectiv: 'Obiectiv', masuratoare: 'Masuratoare' };
 const priorityClasses = { low: 'bg-slate-100 text-slate-600', normal: 'bg-blue-100 text-blue-700', high: 'bg-red-100 text-red-700' };
 const priorityLabels = { low: 'Scazuta', normal: 'Normala', high: 'Ridicata' };
+const tagPalette = ['bg-blue-100 text-blue-700', 'bg-amber-100 text-amber-700', 'bg-emerald-100 text-emerald-700', 'bg-purple-100 text-purple-700', 'bg-pink-100 text-pink-700', 'bg-cyan-100 text-cyan-700'];
 
+const activeTag = computed(() => props.tag ?? '');
 const capture = ref('');
 const captureInput = ref(null);
 
@@ -38,6 +40,25 @@ function patch(item, overrides = {}) {
         repeat: item.repeat ?? null,
         ...overrides,
     }, { preserveScroll: true });
+}
+
+function patchTags(item, raw) {
+    const tags = raw.split(',').map((name) => name.trim()).filter(Boolean);
+    router.patch(route('agenda.items.update', item.id), { tags }, { preserveScroll: true, onError: () => refocus() });
+}
+
+function tagsText(item) {
+    return (item.tags ?? []).map((tag) => tag.name).join(', ');
+}
+
+function tagClasses(name) {
+    let hash = 0;
+    for (const char of String(name)) hash = (hash * 31 + char.codePointAt(0)) % 997;
+    return tagPalette[hash % tagPalette.length];
+}
+
+function filterTag(name) {
+    router.get(route('agenda.inbox', name ? { tag: name } : {}), {}, { preserveScroll: true });
 }
 
 function toggleDone(item) {
@@ -91,7 +112,29 @@ onMounted(refocus);
                 </form>
 
                 <section class="mt-8">
-                    <h3 class="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500">Inbox ({{ inboxItems.length }})</h3>
+                    <div class="mb-3 flex items-center justify-between gap-3">
+                        <h3 class="text-sm font-semibold uppercase tracking-wide text-slate-500">Inbox ({{ inboxItems.length }})</h3>
+                        <div v-if="tags.length" class="flex flex-wrap gap-1.5">
+                            <button
+                                type="button"
+                                class="rounded-full px-2.5 py-1 text-xs font-medium transition"
+                                :class="activeTag === '' ? 'bg-slate-800 text-white' : 'bg-white text-slate-500 ring-1 ring-slate-200 hover:bg-slate-50'"
+                                @click="filterTag('')"
+                            >
+                                Toate
+                            </button>
+                            <button
+                                v-for="tag in tags"
+                                :key="tag.id"
+                                type="button"
+                                class="rounded-full px-2.5 py-1 text-xs font-medium transition"
+                                :class="activeTag === tag.name ? 'bg-slate-800 text-white' : 'bg-white text-slate-500 ring-1 ring-slate-200 hover:bg-slate-50'"
+                                @click="filterTag(tag.name)"
+                            >
+                                #{{ tag.name }} ({{ tag.agenda_items_count }})
+                            </button>
+                        </div>
+                    </div>
                     <div v-if="!inboxItems.length" class="rounded-xl border border-dashed border-slate-300 bg-white p-6 text-center text-sm text-slate-400">
                         Inbox-ul e gol. Tasteaza deasupra orice idee, nota sau task.
                     </div>
@@ -100,6 +143,9 @@ onMounted(refocus);
                             <div class="min-w-0 flex-1">
                                 <div class="font-medium text-slate-900">{{ item.title }}</div>
                                 <div v-if="item.text" class="mt-1 whitespace-pre-line text-sm text-slate-500">{{ item.text }}</div>
+                                <div v-if="item.tags?.length" class="mt-1.5 flex flex-wrap gap-1.5">
+                                    <span v-for="tag in item.tags" :key="tag.id" class="rounded-full px-2 py-0.5 text-xs" :class="tagClasses(tag.name)">#{{ tag.name }}</span>
+                                </div>
                             </div>
                             <button type="button" class="text-sm font-semibold text-blue-600 hover:text-blue-500" @click="moveToDo(item)">De facut</button>
                             <button type="button" class="text-sm font-semibold text-red-400 hover:text-red-600" @click="remove(item)">Sterge</button>
@@ -121,6 +167,15 @@ onMounted(refocus);
                                 <option value="monthly">Lunar</option>
                             </select>
                         </div>
+                        <input
+                            :value="tagsText(item)"
+                            type="text"
+                            placeholder="Etichete: separate cu virgula (ex: utilaj, iarna, plafon)"
+                            class="mt-2 block w-full rounded-md border-slate-300 text-sm"
+                            enterkeyhint="done"
+                            @keyup.enter="patchTags(item, $event.target.value)"
+                            @change="patchTags(item, $event.target.value)"
+                        />
                     </div>
                 </section>
 
@@ -146,6 +201,7 @@ onMounted(refocus);
                                     <span v-if="item.due_at" class="text-slate-400">Termen: {{ formatDate(item.due_at) }}</span>
                                     <span v-if="item.repeat" class="rounded-full bg-purple-100 px-2 py-0.5 text-purple-700">repetabil</span>
                                     <span v-if="item.priority !== 'normal'" class="rounded-full px-2 py-0.5 font-medium" :class="priorityClasses[item.priority]">{{ priorityLabels[item.priority] }}</span>
+                                    <span v-for="tag in item.tags ?? []" :key="tag.id" class="rounded-full px-2 py-0.5" :class="tagClasses(tag.name)">#{{ tag.name }}</span>
                                 </div>
                             </div>
                             <button type="button" class="text-sm font-semibold text-red-400 hover:text-red-600" @click="remove(item)">Sterge</button>

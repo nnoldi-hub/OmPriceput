@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class AgendaItem extends Model
 {
@@ -40,7 +41,7 @@ class AgendaItem extends Model
 
     protected $fillable = [
         'title', 'text', 'type', 'status', 'priority',
-        'due_at', 'reminder_at', 'repeat', 'project_id', 'pinned_at', 'completed_at',
+        'due_at', 'reminder_at', 'repeat', 'project_id', 'pinned_at', 'completed_at', 'reminded_at',
     ];
 
     protected $casts = [
@@ -48,11 +49,17 @@ class AgendaItem extends Model
         'reminder_at' => 'datetime',
         'pinned_at' => 'datetime',
         'completed_at' => 'datetime',
+        'reminded_at' => 'datetime',
     ];
 
     public function project(): BelongsTo
     {
         return $this->belongsTo(Project::class);
+    }
+
+    public function tags(): BelongsToMany
+    {
+        return $this->belongsToMany(AgendaTag::class, 'agenda_item_tag', 'agenda_item_id', 'agenda_tag_id')->orderBy('name');
     }
 
     public function typeLabel(): string

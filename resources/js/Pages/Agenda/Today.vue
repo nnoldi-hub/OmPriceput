@@ -8,6 +8,13 @@ const page = usePage();
 
 const typeLabels = { task: 'Task', nota: 'Nota', idee: 'Idee', obiectiv: 'Obiectiv', masuratoare: 'Masuratoare' };
 const installationLabels = { instalare: 'Instalare / montaj', reparatie: 'Reparatie', mentenanta: 'Mentenanta', verificare: 'Verificare / constatare', urgenta: 'Interventa urgenta' };
+const tagPalette = ['bg-blue-100 text-blue-700', 'bg-amber-100 text-amber-700', 'bg-emerald-100 text-emerald-700', 'bg-purple-100 text-purple-700', 'bg-pink-100 text-pink-700', 'bg-cyan-100 text-cyan-700'];
+
+function tagClasses(name) {
+    let hash = 0;
+    for (const char of String(name)) hash = (hash * 31 + char.codePointAt(0)) % 997;
+    return tagPalette[hash % tagPalette.length];
+}
 
 const capture = ref('');
 const captureInput = ref(null);
@@ -96,6 +103,7 @@ onMounted(refocus);
                                     <span class="rounded-full bg-slate-100 px-2 py-0.5">{{ typeLabels[item.type] }}</span>
                                     <span v-if="item.project"><Link :href="route('agenda.projects.show', item.project.id)" class="text-blue-600 hover:text-blue-500">{{ item.project.name }}</Link></span>
                                     <span v-if="item.repeat" class="rounded-full bg-purple-100 px-2 py-0.5 text-purple-700">repetabil</span>
+                                    <span v-for="tag in item.tags ?? []" :key="tag.id" class="rounded-full px-2 py-0.5" :class="tagClasses(tag.name)">#{{ tag.name }}</span>
                                 </div>
                             </div>
                         </div>
@@ -115,6 +123,7 @@ onMounted(refocus);
                                     <span class="rounded-full bg-slate-100 px-2 py-0.5">{{ typeLabels[item.type] }}</span>
                                     <span v-if="item.project"><Link :href="route('agenda.projects.show', item.project.id)" class="text-blue-600 hover:text-blue-500">{{ item.project.name }}</Link></span>
                                     <span v-if="item.repeat" class="rounded-full bg-purple-100 px-2 py-0.5 text-purple-700">repetabil</span>
+                                    <span v-for="tag in item.tags ?? []" :key="tag.id" class="rounded-full px-2 py-0.5" :class="tagClasses(tag.name)">#{{ tag.name }}</span>
                                 </div>
                             </div>
                         </div>
@@ -154,6 +163,7 @@ onMounted(refocus);
                                 <div class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500">
                                     <span class="rounded-full bg-amber-100 px-2 py-0.5 text-amber-700">mementou: {{ timeLabel(item.reminder_at) }}</span>
                                     <span v-if="item.project"><Link :href="route('agenda.projects.show', item.project.id)" class="text-blue-600 hover:text-blue-500">{{ item.project.name }}</Link></span>
+                                    <span v-for="tag in item.tags ?? []" :key="tag.id" class="rounded-full px-2 py-0.5" :class="tagClasses(tag.name)">#{{ tag.name }}</span>
                                 </div>
                             </div>
                         </div>

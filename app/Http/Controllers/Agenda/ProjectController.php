@@ -44,7 +44,7 @@ class ProjectController extends Controller
         $project->load('client:id,name');
 
         $items = $project->agendaItems()
-            ->with('project:id,name')
+            ->with(['project:id,name', 'tags:id,name'])
             ->whereNot('status', 'arhivat')
             ->orderByRaw("case status when 'gata' then 1 else 0 end")
             ->orderBy('due_at')

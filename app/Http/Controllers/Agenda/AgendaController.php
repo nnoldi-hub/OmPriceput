@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Agenda;
 
 use App\Http\Controllers\Controller;
 use App\Models\AgendaItem;
+use App\Models\AgendaTag;
 use App\Models\Installation;
 use App\Models\Project;
 use Illuminate\Http\RedirectResponse;
@@ -22,7 +23,7 @@ class AgendaController extends Controller
 
         /** @var Collection<int, AgendaItem> $openItems */
         $openItems = AgendaItem::query()
-            ->with('project:id,name')
+            ->with(['project:id,name', 'tags:id,name'])
             ->whereNot('status', 'gata')
             ->whereNot('status', 'arhivat')
             ->get();
@@ -57,11 +58,14 @@ class AgendaController extends Controller
         ]);
     }
 
-    public function index(): Response
+    public function index(Request $request): Response
     {
+        $tag = $request->string('tag')->trim()->toString();
+
         $items = AgendaItem::query()
-            ->with('project:id,name')
+            ->with(['project:id,name', 'tags:id,name'])
             ->whereNot('status', 'arhivat')
+            ->when($tag !== '', fn ($q) => $q->whereHas('tags', fn ($t) => $t->where('name', $tag)))
             ->orderByDesc('pinned_at')
             ->orderByRaw("case status when 'inbox' then 0 when 'de_facut' then 1 when 'in_lucru' then 2 else 3 end")
             ->orderBy('due_at')
@@ -73,6 +77,8 @@ class AgendaController extends Controller
                 ->whereNot('status', 'incheiat')
                 ->orderBy('name')
                 ->get(['id', 'name']),
+            'tags' => AgendaTag::withCount('agendaItems')->orderBy('name')->get(['id', 'name']),
+            'tag' => $tag,
         ]);
     }
 
@@ -83,14 +89,18 @@ class AgendaController extends Controller
             'type' => ['sometimes', Rule::in(AgendaItem::TYPES)],
             'status' => ['sometimes', Rule::in(AgendaItem::STATUSES)],
             'project_id' => ['sometimes', 'nullable', 'exists:projects,id'],
+            'tags' => ['sometimes', 'array'],
+            'tags.*' => ['string', 'max:255'],
         ]);
 
-        AgendaItem::create([
+        $item = AgendaItem::create([
             'title' => $data['title'],
             'type' => $data['type'] ?? 'task',
             'status' => $data['status'] ?? 'inbox',
             'project_id' => $data['project_id'] ?? null,
         ]);
+
+        $this->syncTags($item, $data['tags'] ?? []);
 
         return back()->with('success', 'Adaugat in Inbox.');
     }
@@ -105,11 +115,18 @@ class AgendaController extends Controller
             'priority' => ['sometimes', 'required', Rule::in(AgendaItem::PRIORITIES)],
             'project_id' => ['sometimes', 'nullable', 'exists:projects,id'],
             'due_at' => ['sometimes', 'nullable', 'date'],
+            'reminder_at' => ['sometimes', 'nullable', 'date'],
             'repeat' => ['sometimes', 'nullable', 'string', 'max:20'],
+            'tags' => ['sometimes', 'array'],
+            'tags.*' => ['string', 'max:255'],
         ]);
 
         if (array_key_exists('due_at', $data) && empty($data['due_at'])) {
             $data['due_at'] = null;
+        }
+
+        if (array_key_exists('reminder_at', $data)) {
+            $data['reminded_at'] = null;
         }
 
         if (array_key_exists('project_id', $data) && empty($data['project_id'])) {
@@ -121,6 +138,10 @@ class AgendaController extends Controller
         }
 
         $agendaItem->update($data);
+
+        if (array_key_exists('tags', $data)) {
+            $this->syncTags($agendaItem, $data['tags']);
+        }
 
         return back()->with('success', 'Item actualizat.');
     }
@@ -143,5 +164,20 @@ class AgendaController extends Controller
         $agendaItem->delete();
 
         return back()->with('success', 'Item sters.');
+    }
+
+    /**
+     * Sincronizeaza etichetele unui item: creeaza etichetele noi si leaga/deselecteaza.
+     */
+    private function syncTags(AgendaItem $item, array $names): void
+    {
+        $tagIds = collect($names)
+            ->map(fn ($name) => trim((string) $name))
+            ->filter()
+            ->unique()
+            ->map(fn (string $name) => AgendaTag::firstOrCreate(['name' => $name])->id)
+            ->values();
+
+        $item->tags()->sync($tagIds);
     }
 }

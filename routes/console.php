@@ -10,3 +10,4 @@ Artisan::command('inspire', function () {
 
 Schedule::command('crm:send-reminders')->dailyAt('08:00');
 Schedule::command('operations:send-reminders')->dailyAt('08:15');
+Schedule::command('agenda:send-reminders')->everyMinute()->withoutOverlapping();
