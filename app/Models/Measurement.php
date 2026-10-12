@@ -19,11 +19,12 @@ class Measurement extends Model
     ];
 
     protected $fillable = [
-        'name', 'location', 'client_id', 'project_id', 'status', 'notes', 'measured_at',
+        'name', 'location', 'client_id', 'project_id', 'status', 'notes', 'measured_at', 'photos',
     ];
 
     protected $casts = [
         'measured_at' => 'datetime',
+        'photos' => 'array',
     ];
 
     public function client(): BelongsTo

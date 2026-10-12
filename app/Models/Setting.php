@@ -28,6 +28,8 @@ class Setting extends Model
         'google_analytics_id' => '',
         'google_tag_manager_id' => '',
         'meta_pixel_id' => '',
+        'pricing_area_m2' => '25',
+        'pricing_perimeter_ml' => '10',
     ];
 
     public static function get(string $key, ?string $default = null): ?string

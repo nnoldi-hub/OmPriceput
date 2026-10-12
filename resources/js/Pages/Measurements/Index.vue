@@ -1,6 +1,6 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head, router, usePage } from '@inertiajs/vue3';
+import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import { computed, nextTick, onMounted, ref } from 'vue';
 
 const props = defineProps({ measurements: Array, clients: Array, statuses: Object, measurementsCount: Number });
@@ -113,7 +113,9 @@ onMounted(refocus);
                     <div v-for="m in openMeasurements" :key="m.id" class="mb-3 rounded-xl bg-white p-4 shadow-sm">
                         <div class="flex items-start gap-3">
                             <div class="min-w-0 flex-1">
-                                <div class="font-medium text-slate-900">{{ m.name }}</div>
+                                <div class="font-medium text-slate-900">
+                                    <Link :href="route('measurements.show', m.id)" class="hover:text-blue-600">{{ m.name }}</Link>
+                                </div>
                                 <div class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500">
                                     <span v-if="m.location" class="text-slate-400">{{ m.location }}</span>
                                     <span v-if="m.client_name">{{ m.client_name }}</span>
