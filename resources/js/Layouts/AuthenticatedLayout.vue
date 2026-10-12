@@ -20,7 +20,8 @@ const sections = [
         icon: 'calendar',
         roles: ['admin'],
         items: [
-            { name: 'Inbox', route: 'agenda.index' },
+            { name: 'Azi', route: 'agenda.index' },
+            { name: 'Inbox', route: 'agenda.inbox' },
         ],
     },
     {

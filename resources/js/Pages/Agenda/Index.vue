@@ -35,6 +35,7 @@ function patch(item, overrides = {}) {
         priority: item.priority,
         project_id: item.project_id ?? null,
         due_at: item.due_at ? String(item.due_at).slice(0, 10) : null,
+        repeat: item.repeat ?? null,
         ...overrides,
     }, { preserveScroll: true });
 }
@@ -103,7 +104,7 @@ onMounted(refocus);
                             <button type="button" class="text-sm font-semibold text-blue-600 hover:text-blue-500" @click="moveToDo(item)">De facut</button>
                             <button type="button" class="text-sm font-semibold text-red-400 hover:text-red-600" @click="remove(item)">Sterge</button>
                         </div>
-                        <div class="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3">
+                        <div class="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-4">
                             <select v-model="item.type" class="rounded-md border-slate-300 text-sm" @change="patch(item)">
                                 <option v-for="(label, value) in typeLabels" :key="value" :value="value">{{ label }}</option>
                             </select>
@@ -112,6 +113,13 @@ onMounted(refocus);
                                 <option v-for="project in projects" :key="project.id" :value="project.id">{{ project.name }}</option>
                             </select>
                             <input v-model="item.due_at" type="date" class="rounded-md border-slate-300 text-sm" @change="patch(item)" />
+                            <select v-model="item.repeat" class="rounded-md border-slate-300 text-sm" @change="patch(item)">
+                                <option :value="null">Fara repetare</option>
+                                <option value="daily">Zilnic</option>
+                                <option value="3d">La 3 zile</option>
+                                <option value="weekly">Saptamanal</option>
+                                <option value="monthly">Lunar</option>
+                            </select>
                         </div>
                     </div>
                 </section>
@@ -136,6 +144,7 @@ onMounted(refocus);
                                     <span class="rounded-full bg-slate-100 px-2 py-0.5">{{ typeLabels[item.type] }}</span>
                                     <span v-if="item.project" class="text-slate-400">{{ item.project.name }}</span>
                                     <span v-if="item.due_at" class="text-slate-400">Termen: {{ formatDate(item.due_at) }}</span>
+                                    <span v-if="item.repeat" class="rounded-full bg-purple-100 px-2 py-0.5 text-purple-700">repetabil</span>
                                     <span v-if="item.priority !== 'normal'" class="rounded-full px-2 py-0.5 font-medium" :class="priorityClasses[item.priority]">{{ priorityLabels[item.priority] }}</span>
                                 </div>
                             </div>

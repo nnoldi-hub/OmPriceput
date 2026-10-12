@@ -38,12 +38,12 @@ class AgendaPageTest extends TestCase
         $this->actingAs($sales)->post(route('agenda.items.store'), ['title' => 'X'])->assertForbidden();
     }
 
-    public function test_admin_sees_agenda_page_with_inbox_items(): void
+    public function test_admin_sees_inbox_page_with_items(): void
     {
         $item = AgendaItem::factory()->create(['status' => 'inbox', 'title' => 'Idee de adaugat']);
 
         $this->actingAs($this->admin)
-            ->get(route('agenda.index'))
+            ->get(route('agenda.inbox'))
             ->assertOk()
             ->assertInertia(fn ($page) => $page
                 ->component('Agenda/Index')
@@ -142,12 +142,12 @@ class AgendaPageTest extends TestCase
         $this->assertNull($item->fresh()->completed_at);
     }
 
-    public function test_archived_items_do_not_appear_on_the_agenda_page(): void
+    public function test_archived_items_do_not_appear_in_the_inbox(): void
     {
         AgendaItem::factory()->create(['status' => 'arhivat', 'title' => 'Ascuns']);
 
         $this->actingAs($this->admin)
-            ->get(route('agenda.index'))
+            ->get(route('agenda.inbox'))
             ->assertInertia(fn ($page) => $page->has('items', 0));
     }
 
