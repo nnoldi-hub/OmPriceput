@@ -3,13 +3,16 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import { ref } from 'vue';
 
-const props = defineProps({ project: Object, items: Array, progress: Number, clients: Array });
+const props = defineProps({ project: Object, items: Array, progress: Number, clients: Array, measurements: Array, offers: Array });
 const page = usePage();
 
 const typeLabels = { task: 'Task', nota: 'Nota', idee: 'Idee', obiectiv: 'Obiectiv', masuratoare: 'Masuratoare' };
 const projectTypeLabels = { lucrare: 'Lucrare', propriu: 'Propriu' };
 const projectStatusLabels = { activ: 'Activ', in_pauza: 'In pauza', incheiat: 'Incheiat' };
 const projectStatusClasses = { activ: 'bg-green-100 text-green-700', in_pauza: 'bg-amber-100 text-amber-700', incheiat: 'bg-slate-100 text-slate-500' };
+const measurementStatusClasses = { in_progress: 'bg-amber-100 text-amber-700', completed: 'bg-green-100 text-green-700' };
+const offerStatusLabels = { draft: 'Draft', sent: 'Trimisa', accepted: 'Acceptata', rejected: 'Respinsa', expired: 'Expirata' };
+const offerStatusClasses = { draft: 'bg-slate-100 text-slate-600', sent: 'bg-blue-100 text-blue-700', accepted: 'bg-green-100 text-green-700', rejected: 'bg-red-100 text-red-700', expired: 'bg-amber-100 text-amber-700' };
 const tagPalette = ['bg-blue-100 text-blue-700', 'bg-amber-100 text-amber-700', 'bg-emerald-100 text-emerald-700', 'bg-purple-100 text-purple-700', 'bg-pink-100 text-pink-700', 'bg-cyan-100 text-cyan-700'];
 
 function tagClasses(name) {
@@ -30,6 +33,7 @@ const edit = ref({
 const capture = ref('');
 const captureType = ref('task');
 const captureInput = ref(null);
+const measurementName = ref('');
 
 const doneItems = props.items.filter((i) => i.status === 'gata');
 const openItems = props.items.filter((i) => i.status !== 'gata');
@@ -56,6 +60,14 @@ function addItem() {
             captureType.value = 'task';
             captureInput.value?.focus();
         },
+    });
+}
+
+function addMeasurement() {
+    const name = measurementName.value.trim() || props.project.name;
+    router.post(route('agenda.projects.measurements.store', props.project.id), { name }, {
+        preserveScroll: true,
+        onSuccess: () => { measurementName.value = ''; },
     });
 }
 
@@ -150,6 +162,43 @@ function dueLabel(value) {
                         <span class="text-sm font-semibold text-slate-600">{{ progress }}%</span>
                     </div>
                 </div>
+
+                <section class="mb-6 rounded-xl bg-white p-4 shadow-sm">
+                    <h3 class="text-sm font-semibold uppercase tracking-wide text-slate-500">Masuratori ({{ measurements.length }})</h3>
+                    <form class="mt-3 flex gap-2" @submit.prevent="addMeasurement">
+                        <input
+                            v-model="measurementName"
+                            type="text"
+                            :placeholder="'Ex: ' + project.name"
+                            class="min-w-0 flex-1 rounded-xl border-slate-300 px-4 py-3 text-sm shadow-sm outline-none focus:border-brand-navy focus:ring-brand-navy"
+                            enterkeyhint="done"
+                        />
+                        <button type="submit" class="shrink-0 rounded-xl bg-brand-navy px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-700">Masuratoare noua</button>
+                    </form>
+                    <div v-if="measurements.length" class="mt-3 space-y-2">
+                        <div v-for="m in measurements" :key="m.id" class="flex items-center gap-3 border-t border-slate-100 pt-2">
+                            <div class="min-w-0 flex-1">
+                                <Link :href="route('measurements.show', m.id)" class="font-medium text-slate-900 hover:text-blue-600">{{ m.name }}</Link>
+                                <div class="text-xs text-slate-500">{{ m.total_area }} mp · {{ m.total_perimeter }} ml · {{ m.created_at }}</div>
+                            </div>
+                            <span class="rounded-full px-2 py-0.5 text-xs font-medium" :class="measurementStatusClasses[m.status]">{{ m.status_label }}</span>
+                            <Link v-if="m.offer" :href="route('sales.offers.show', m.offer.id)" class="text-xs font-medium text-blue-600 hover:text-blue-500">Oferta #{{ m.offer.id }}</Link>
+                            <span v-else class="text-xs text-slate-300">fara oferta</span>
+                        </div>
+                    </div>
+                    <p v-else class="mt-3 text-sm text-slate-400">Nicio masuratoare. Porneste una, noteaza cotele si adauga poze.</p>
+                </section>
+
+                <section v-if="offers.length" class="mb-6 rounded-xl bg-white p-4 shadow-sm">
+                    <h3 class="text-sm font-semibold uppercase tracking-wide text-slate-500">Oferte ({{ offers.length }})</h3>
+                    <div class="mt-3 space-y-2">
+                        <div v-for="o in offers" :key="o.id" class="flex items-center gap-3 border-t border-slate-100 pt-2">
+                            <Link :href="route('sales.offers.show', o.id)" class="min-w-0 flex-1 truncate font-medium text-slate-900 hover:text-blue-600">{{ o.title }}</Link>
+                            <span class="text-xs text-slate-500">{{ o.total_amount }} lei</span>
+                            <span class="rounded-full px-2 py-0.5 text-xs font-medium" :class="offerStatusClasses[o.status]">{{ o.status_label }}</span>
+                        </div>
+                    </div>
+                </section>
 
                 <form @submit.prevent="addItem">
                     <div class="flex gap-2">

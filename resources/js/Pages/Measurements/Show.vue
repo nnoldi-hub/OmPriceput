@@ -3,13 +3,14 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 
-const props = defineProps({ measurement: Object, clients: Array, statuses: Object, pricing: Object });
+const props = defineProps({ measurement: Object, clients: Array, projects: Array, statuses: Object, pricing: Object });
 const page = usePage();
 
 const m = props.measurement;
 const location = ref(m.location ?? '');
 const notes = ref(m.notes ?? '');
 const clientId = ref(m.client_id ?? null);
+const projectId = ref(m.project_id ?? null);
 const newObjectName = ref('');
 const photoInput = ref(null);
 
@@ -24,6 +25,7 @@ function patch(overrides = {}) {
         name: m.name,
         location: location.value ?? null,
         client_id: clientId.value ?? null,
+        project_id: projectId.value ?? null,
         status: m.status,
         notes: notes.value ?? null,
         ...overrides,
@@ -145,6 +147,13 @@ function formatDate(value) {
                             <select v-model="clientId" class="mt-1 w-full rounded-md border-slate-300 text-sm" @change="saveDetails">
                                 <option :value="null">Fara client</option>
                                 <option v-for="client in clients" :key="client.id" :value="client.id">{{ client.name }}</option>
+                            </select>
+                        </div>
+                        <div class="sm:col-span-2">
+                            <label class="block text-xs font-medium uppercase tracking-wide text-slate-500">Proiect</label>
+                            <select v-model="projectId" class="mt-1 w-full rounded-md border-slate-300 text-sm" @change="saveDetails">
+                                <option :value="null">Fara proiect</option>
+                                <option v-for="project in projects" :key="project.id" :value="project.id">{{ project.name }}</option>
                             </select>
                         </div>
                     </div>

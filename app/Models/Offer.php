@@ -14,11 +14,22 @@ class Offer extends Model
 
     public const DEFAULT_VALIDITY_DAYS = 30;
 
+    public const STATUSES = ['draft', 'sent', 'accepted', 'rejected', 'expired'];
+
+    public const STATUS_LABELS = [
+        'draft' => 'Draft',
+        'sent' => 'Trimisa',
+        'accepted' => 'Acceptata',
+        'rejected' => 'Respinsa',
+        'expired' => 'Expirata',
+    ];
+
     protected $fillable = [
         'client_id',
         'user_id',
         'visit_id',
         'measurement_id',
+        'project_id',
         'title',
         'job_type',
         'status',
@@ -52,6 +63,11 @@ class Offer extends Model
     public function measurement(): BelongsTo
     {
         return $this->belongsTo(Measurement::class);
+    }
+
+    public function project(): BelongsTo
+    {
+        return $this->belongsTo(Project::class);
     }
 
     public function items(): HasMany

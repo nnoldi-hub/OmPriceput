@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Agenda;
 
 use App\Http\Controllers\Controller;
 use App\Models\Client;
+use App\Models\Measurement;
+use App\Models\Offer;
 use App\Models\Project;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -53,12 +55,62 @@ class ProjectController extends Controller
         $doneCount = $items->where('status', 'gata')->count();
         $totalCount = $items->count();
 
+        $measurements = $project->measurements()
+            ->with('offer:id,measurement_id,total_amount')
+            ->orderByDesc('created_at')
+            ->get()
+            ->map(fn (Measurement $measurement) => [
+                'id' => $measurement->id,
+                'name' => $measurement->name,
+                'status' => $measurement->status,
+                'status_label' => $measurement->statusLabel(),
+                'total_area' => $measurement->totalArea(),
+                'total_perimeter' => $measurement->totalPerimeter(),
+                'created_at' => $measurement->created_at?->format('d.m.Y'),
+                'offer' => $measurement->offer ? [
+                    'id' => $measurement->offer->id,
+                    'total_amount' => (float) $measurement->offer->total_amount,
+                ] : null,
+            ]);
+
+        $offers = $project->offers()
+            ->orderByDesc('created_at')
+            ->get()
+            ->map(fn (Offer $offer) => [
+                'id' => $offer->id,
+                'title' => $offer->title,
+                'status' => $offer->status,
+                'status_label' => Offer::STATUS_LABELS[$offer->status] ?? $offer->status,
+                'total_amount' => (float) $offer->total_amount,
+                'valid_until' => $offer->valid_until?->format('d.m.Y'),
+                'created_at' => $offer->created_at?->format('d.m.Y'),
+            ]);
+
         return Inertia::render('Agenda/Projects/Show', [
             'project' => $project,
             'items' => $items,
             'progress' => $totalCount > 0 ? (int) round(($doneCount / $totalCount) * 100) : 0,
             'clients' => Client::orderBy('name')->get(['id', 'name']),
+            'measurements' => $measurements,
+            'offers' => $offers,
         ]);
+    }
+
+    public function storeMeasurement(Request $request, Project $project): RedirectResponse
+    {
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'location' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        $measurement = $project->measurements()->create([
+            'name' => $data['name'],
+            'location' => $data['location'] ?? null,
+            'client_id' => $project->client_id,
+            'status' => 'in_progress',
+        ]);
+
+        return redirect()->route('measurements.show', $measurement)->with('success', 'Masuratoare pornita.');
     }
 
     public function update(Request $request, Project $project): RedirectResponse

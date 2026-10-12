@@ -8,6 +8,7 @@ use App\Models\Measurement;
 use App\Models\MeasurementObject;
 use App\Models\Offer;
 use App\Models\OfferItem;
+use App\Models\Project;
 use App\Models\Setting;
 use App\Support\ImageOptimizer;
 use Illuminate\Http\RedirectResponse;
@@ -47,6 +48,7 @@ class MeasurementController extends Controller
         return Inertia::render('Measurements/Show', [
             'measurement' => $this->toArray($measurement),
             'clients' => Client::query()->orderBy('name')->get(['id', 'name']),
+            'projects' => Project::query()->orderBy('name')->get(['id', 'name']),
             'statuses' => Measurement::STATUS_LABELS,
             'pricing' => [
                 'area_m2' => $areaPrice,
@@ -176,6 +178,7 @@ class MeasurementController extends Controller
             'client_id' => $clientId,
             'user_id' => $request->user()->id,
             'measurement_id' => $measurement->id,
+            'project_id' => $measurement->project_id,
             'title' => 'Oferta - '.$measurement->name,
             'job_type' => 'instalare',
             'status' => 'draft',

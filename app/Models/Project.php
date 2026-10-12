@@ -40,6 +40,16 @@ class Project extends Model
         return $this->hasMany(AgendaItem::class);
     }
 
+    public function measurements(): HasMany
+    {
+        return $this->hasMany(Measurement::class);
+    }
+
+    public function offers(): HasMany
+    {
+        return $this->hasMany(Offer::class);
+    }
+
     public function typeLabel(): string
     {
         return self::TYPE_LABELS[$this->type] ?? $this->type;

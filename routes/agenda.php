@@ -11,6 +11,7 @@ Route::middleware(['auth', 'verified', 'role:admin'])->prefix('agenda')->name('a
     Route::get('/proiecte', [ProjectController::class, 'index'])->name('projects.index');
     Route::get('/proiecte/{project}', [ProjectController::class, 'show'])->name('projects.show');
     Route::post('/proiecte', [ProjectController::class, 'store'])->name('projects.store');
+    Route::post('/proiecte/{project}/masuratori', [ProjectController::class, 'storeMeasurement'])->name('projects.measurements.store');
     Route::patch('/proiecte/{project}', [ProjectController::class, 'update'])->name('projects.update');
     Route::delete('/proiecte/{project}', [ProjectController::class, 'destroy'])->name('projects.destroy');
 
