@@ -51,9 +51,14 @@ function money(value) {
         <template #header>
             <div class="flex items-center justify-between">
                 <h2 class="text-xl font-semibold leading-tight text-gray-800">Rapoarte</h2>
-                <Link :href="route('admin.reports.profit')" class="rounded-md bg-slate-900 px-3 py-2 text-sm font-semibold text-white hover:bg-slate-700">
-                    Raport profit
-                </Link>
+                <div class="flex gap-2">
+                    <Link :href="route('admin.reports.measurements')" class="rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-500">
+                        Raport masuratori
+                    </Link>
+                    <Link :href="route('admin.reports.profit')" class="rounded-md bg-slate-900 px-3 py-2 text-sm font-semibold text-white hover:bg-slate-700">
+                        Raport profit
+                    </Link>
+                </div>
             </div>
         </template>
 

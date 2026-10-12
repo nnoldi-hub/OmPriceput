@@ -7,7 +7,9 @@ use App\Models\Client;
 use App\Models\Expense;
 use App\Models\Installation;
 use App\Models\Invoice;
+use App\Models\Measurement;
 use App\Models\Offer;
+use App\Models\Setting;
 use App\Models\Ticket;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -143,6 +145,85 @@ class ReportController extends Controller
             'byClient' => $byClient,
             'byTechnician' => $byTechnician,
             'installations' => $installations->sortByDesc('completed_at')->values(),
+        ]);
+    }
+
+    public function measurements(Request $request): Response
+    {
+        $from = $request->date('from') ?? now()->subMonths(5)->startOfMonth();
+        $to = $request->date('to') ?? now()->endOfMonth();
+
+        $areaPrice = (float) (Setting::get('pricing_area_m2') ?? '0');
+        $perimeterPrice = (float) (Setting::get('pricing_perimeter_ml') ?? '0');
+
+        $measurements = Measurement::query()
+            ->with(['client:id,name', 'objects', 'offer:id,measurement_id,total_amount'])
+            ->whereBetween('created_at', [$from, $to])
+            ->get();
+
+        $rows = $measurements->map(function (Measurement $measurement) use ($areaPrice, $perimeterPrice) {
+            $area = $measurement->totalArea();
+            $perimeter = $measurement->totalPerimeter();
+
+            return [
+                'id' => $measurement->id,
+                'name' => $measurement->name,
+                'location' => $measurement->location,
+                'client_name' => $measurement->client?->name ?? 'Fara client',
+                'status' => $measurement->status,
+                'created_at' => $measurement->created_at?->format('d.m.Y'),
+                'area' => round($area, 1),
+                'perimeter' => round($perimeter, 1),
+                'estimate' => round($area * $areaPrice + $perimeter * $perimeterPrice, 2),
+                'offer' => $measurement->offer ? [
+                    'id' => $measurement->offer->id,
+                    'total_amount' => (float) $measurement->offer->total_amount,
+                ] : null,
+            ];
+        });
+
+        $months = collect();
+        $cursor = $from->copy()->startOfMonth();
+        while ($cursor->lte($to->copy()->startOfMonth())) {
+            $months->push($cursor->copy());
+            $cursor->addMonth();
+        }
+
+        $byMonth = $months->map(function ($month) {
+            return [
+                'month' => $month->format('M Y'),
+                'amount' => Measurement::whereBetween('created_at', [$month, $month->copy()->endOfMonth()])->count(),
+            ];
+        });
+
+        $byStatus = array_merge(
+            ['in_progress' => 0, 'completed' => 0],
+            Measurement::select('status', DB::raw('count(*) as total'))
+                ->whereBetween('created_at', [$from, $to])
+                ->groupBy('status')
+                ->pluck('total', 'status')
+                ->all()
+        );
+
+        return Inertia::render('Admin/Reports/Measurements', [
+            'filters' => [
+                'from' => $from->format('Y-m-d'),
+                'to' => $to->format('Y-m-d'),
+            ],
+            'summary' => [
+                'measurements' => $measurements->count(),
+                'completed' => $measurements->where('status', 'completed')->count(),
+                'offers' => $measurements->filter(fn ($m) => $m->offer)->count(),
+                'totalArea' => round($measurements->sum(fn ($m) => $m->totalArea()), 1),
+                'totalPerimeter' => round($measurements->sum(fn ($m) => $m->totalPerimeter()), 1),
+                'estimatedValue' => round($measurements->sum(function ($m) use ($areaPrice, $perimeterPrice) {
+                    return $m->totalArea() * $areaPrice + $m->totalPerimeter() * $perimeterPrice;
+                }), 2),
+                'offerValue' => round($measurements->sum(fn ($m) => (float) optional($m->offer)->total_amount), 2),
+            ],
+            'byMonth' => $byMonth,
+            'byStatus' => $byStatus,
+            'measurements' => $rows->sortByDesc('id')->values(),
         ]);
     }
 }

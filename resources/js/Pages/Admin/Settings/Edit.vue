@@ -27,6 +27,8 @@ const form = useForm({
     google_analytics_id: props.settings.google_analytics_id ?? '',
     google_tag_manager_id: props.settings.google_tag_manager_id ?? '',
     meta_pixel_id: props.settings.meta_pixel_id ?? '',
+    pricing_area_m2: Number(props.settings.pricing_area_m2),
+    pricing_perimeter_ml: Number(props.settings.pricing_perimeter_ml),
 });
 
 function submit() {
@@ -136,6 +138,20 @@ function submit() {
                         <div>
                             <label class="block text-sm font-medium text-slate-700">Cost livrare sub prag (lei)</label>
                             <input v-model.number="form.shop_shipping_cost" type="number" min="0" step="0.01" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm" />
+                        </div>
+                        <div class="sm:col-span-2 border-t border-slate-200 pt-5">
+                            <h3 class="text-sm font-semibold text-slate-900">Tarife masuratori</h3>
+                            <p class="mt-1 text-xs text-slate-500">Preturile de estimare folosite la calculul ofertelor generate din masuratori.</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700">Pret estimare pe mp (lei)</label>
+                            <input v-model.number="form.pricing_area_m2" type="number" min="0" step="0.01" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm" />
+                            <p v-if="form.errors.pricing_area_m2" class="mt-1 text-sm text-red-600">{{ form.errors.pricing_area_m2 }}</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700">Pret estimare pe ml (lei)</label>
+                            <input v-model.number="form.pricing_perimeter_ml" type="number" min="0" step="0.01" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm" />
+                            <p v-if="form.errors.pricing_perimeter_ml" class="mt-1 text-sm text-red-600">{{ form.errors.pricing_perimeter_ml }}</p>
                         </div>
                         <div class="sm:col-span-2 border-t border-slate-200 pt-5">
                             <h3 class="text-sm font-semibold text-slate-900">Integrari Marketing & Analitica (Google & Facebook)</h3>

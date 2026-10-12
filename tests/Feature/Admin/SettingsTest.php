@@ -30,6 +30,8 @@ class SettingsTest extends TestCase
             ->assertInertia(fn ($page) => $page
                 ->component('Admin/Settings/Edit')
                 ->where('settings.company_name', 'Om Priceput')
+                ->where('settings.pricing_area_m2', '25')
+                ->where('settings.pricing_perimeter_ml', '10')
             );
     }
 
@@ -46,5 +48,21 @@ class SettingsTest extends TestCase
 
         $this->assertEquals('Noua Firma SRL', Setting::get('company_name'));
         $this->assertEquals('NF', Setting::get('invoice_series'));
+    }
+
+    public function test_admin_can_update_measurement_pricing(): void
+    {
+        $this->actingAs($this->adminUser)->put(route('admin.settings.update'), [
+            'company_name' => 'Om Priceput',
+            'company_email' => 'contact@ompriceput.test',
+            'company_phone' => '0700 000 000',
+            'invoice_series' => 'OP',
+            'vat_percentage' => 19,
+            'pricing_area_m2' => 45.5,
+            'pricing_perimeter_ml' => 12,
+        ])->assertRedirect();
+
+        $this->assertEquals('45.5', Setting::get('pricing_area_m2'));
+        $this->assertEquals('12', Setting::get('pricing_perimeter_ml'));
     }
 }

@@ -39,6 +39,8 @@ class SettingsController extends Controller
             'google_analytics_id' => ['nullable', 'string', 'max:50'],
             'google_tag_manager_id' => ['nullable', 'string', 'max:50'],
             'meta_pixel_id' => ['nullable', 'string', 'max:50'],
+            'pricing_area_m2' => ['nullable', 'numeric', 'min:0'],
+            'pricing_perimeter_ml' => ['nullable', 'numeric', 'min:0'],
         ]);
 
         $data['operational_reminders_email_enabled'] = $request->boolean('operational_reminders_email_enabled') ? '1' : '0';
@@ -47,6 +49,8 @@ class SettingsController extends Controller
         $data['minimum_profit_margin'] = $data['minimum_profit_margin'] ?? Setting::get('minimum_profit_margin');
         $data['shop_free_shipping_threshold'] = $data['shop_free_shipping_threshold'] ?? Setting::get('shop_free_shipping_threshold');
         $data['shop_shipping_cost'] = $data['shop_shipping_cost'] ?? Setting::get('shop_shipping_cost');
+        $data['pricing_area_m2'] = $data['pricing_area_m2'] ?? Setting::get('pricing_area_m2');
+        $data['pricing_perimeter_ml'] = $data['pricing_perimeter_ml'] ?? Setting::get('pricing_perimeter_ml');
 
         Setting::setMany($data);
 
