@@ -17,7 +17,7 @@ const page = usePage();
 const phone = computed(() => page.props.siteSettings?.company_phone || '');
 const phoneHref = computed(() => `tel:${String(phone.value).replace(/[^\d+]/g, '')}`);
 const heroTitle = computed(() => props.page?.content?.hero_title || 'Reparam. Montam. Fara batai de cap.');
-const heroIntro = computed(() => props.page?.content?.intro || 'Meserias de incredere pentru apartamente si case din Bucuresti si Ilfov.\nPrimesti constatare, deviz scris si programare clara inainte de inceperea lucrarii.');
+const heroIntro = computed(() => props.page?.content?.intro || 'Un singur meserias de incredere pentru toate lucrarile din casa ta.\nPrimesti constatare, deviz scris si programare clara inainte de inceperea lucrarii.');
 
 const heroParts = computed(() => {
     const title = heroTitle.value;
