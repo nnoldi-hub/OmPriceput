@@ -13,7 +13,7 @@ const props = defineProps({
     page: Object,
 });
 const heroTitle = computed(() => props.page?.content?.hero_title || 'Reparam. Montam. Fara batai de cap.');
-const heroIntro = computed(() => props.page?.content?.intro || 'Lucrari de electrician, instalator, zugrav si montaj pentru casa si apartament. Ne spui ce ai de facut, venim la constatare si primesti devizul scris inainte sa incepem. Fara batai de cap, fara surprize.');
+const heroIntro = computed(() => props.page?.content?.intro || 'Meserias de incredere pentru apartamente si case din Bucuresti si Ilfov.\nPrimesti constatare, deviz scris si programare clara inainte de inceperea lucrarii.');
 
 const heroParts = computed(() => {
     const title = heroTitle.value;
@@ -21,6 +21,19 @@ const heroParts = computed(() => {
 
     return split === -1 ? [title, ''] : [title.slice(0, split + 1), title.slice(split + 2)];
 });
+
+const heroIntroParts = computed(() => {
+    const lines = heroIntro.value.split('\n').map((line) => line.trim()).filter(Boolean);
+
+    return [lines[0] || heroIntro.value, lines.slice(1).join(' ')];
+});
+
+const heroGuarantees = [
+    'Constatare si discutie inainte de inceperea lucrarii',
+    'Deviz scris, cu materiale si manopera separate',
+    'Fara obligatie de acceptare',
+];
+
 const sections = computed(() => props.page?.sections || []);
 const hasSection = (type) => sections.value.some((section) => section.content?.type === type || section.section_key === type);
 const sectionContent = (section) => section.content || {};
@@ -36,14 +49,6 @@ const fallbackStats = [
     { icon: 'bolt', value: 'Fara surprize', label: 'Pret final la locul lucrarii' },
 ];
 
-const steps = [
-    { icon: 'clipboard', title: 'Trimiti solicitarea', text: 'Descrii problema sau serviciul dorit, direct din formular.' },
-    { icon: 'file-text', title: 'Primesti estimarea', text: 'Analizam cererea si iti comunicam costurile estimative.' },
-    { icon: 'calendar', title: 'Stabilim interventia', text: 'Confirmam programarea si detaliile lucrarii.' },
-    { icon: 'wrench', title: 'Executam lucrarea', text: 'Respectam solutia agreata si termenul stabilit.' },
-    { icon: 'shield-check', title: 'Confirmare finala', text: 'Verificam impreuna rezultatul lucrarii.' },
-];
-
 const reasons = [
     { icon: 'user', title: 'Un singur contact', text: 'Nu cauti separat electrician, instalator si montator. Te ocupi de o singura persoana pentru toate lucrarile.' },
     { icon: 'file-text', title: 'Deviz scris inainte de lucrare', text: 'Stii costul materialelor si al manoperei inainte sa incepem.' },
@@ -53,6 +58,22 @@ const reasons = [
     { icon: 'wrench', title: 'Executie personala sau cu meseriasi de incredere', text: 'Lucrez personal sau cu oameni cu care am mai lucrat, nu cu necunoscuti.' },
 ];
 
+const steps = [
+    { icon: 'clipboard', title: 'Trimiti solicitarea', text: 'Descrii problema sau serviciul dorit, direct din formular.' },
+    { icon: 'file-text', title: 'Primesti estimarea', text: 'Analizam cererea si iti comunicam costurile estimative.' },
+    { icon: 'calendar', title: 'Stabilim interventia', text: 'Confirmam programarea si detaliile lucrarii.' },
+    { icon: 'wrench', title: 'Executam lucrarea', text: 'Respectam solutia agreata si termenul stabilit.' },
+    { icon: 'shield-check', title: 'Confirmare finala', text: 'Verificam impreuna rezultatul lucrarii.' },
+];
+
+const services = [
+    { icon: 'bolt', title: 'Electrician', text: 'Prize, intrerupatoare, corpuri de iluminat, tablouri electrice.' },
+    { icon: 'lifebuoy', title: 'Instalatii sanitare', text: 'Baterii, chiuvete, vase WC, scurgeri si reparatii.' },
+    { icon: 'wrench', title: 'Montaj mobilier', text: 'Mobilier IKEA, JYSK, Dedeman si mobilier personalizat.' },
+    { icon: 'home', title: 'Intretinere locuinta', text: 'Reglaje, reparatii si interventii periodice.' },
+];
+
+const workPhotos = ref([]);
 const founderPhotoOk = ref(true);
 </script>
 
@@ -78,8 +99,11 @@ const founderPhotoOk = ref(true);
                         {{ heroParts[0] }}
                         <span v-if="heroParts[1]" class="block text-orange-500">{{ heroParts[1] }}</span>
                     </h1>
-                    <p class="mt-6 max-w-[620px] text-lg leading-8 text-slate-300">
-                        {{ heroIntro }}
+                    <p class="mt-6 max-w-[620px] text-lg font-semibold leading-8 text-white">
+                        {{ heroIntroParts[0] }}
+                    </p>
+                    <p v-if="heroIntroParts[1]" class="mt-2 max-w-[620px] text-base leading-7 text-slate-300">
+                        {{ heroIntroParts[1] }}
                     </p>
                     <div class="mt-8 flex flex-wrap gap-4">
                         <Link
@@ -95,6 +119,12 @@ const founderPhotoOk = ref(true);
                             Ce facem
                         </Link>
                     </div>
+                    <ul class="mt-6 space-y-2 text-sm text-slate-300">
+                        <li v-for="guarantee in heroGuarantees" :key="guarantee" class="flex items-start gap-2">
+                            <Icon name="check" class="mt-0.5 h-4 w-4 flex-none text-orange-400" />
+                            <span>{{ guarantee }}</span>
+                        </li>
+                    </ul>
                 </div>
 
                 <div class="grid grid-cols-2 gap-4 lg:max-w-xl lg:justify-self-end">
@@ -138,33 +168,6 @@ const founderPhotoOk = ref(true);
                 <div v-for="item in sectionContent(section).items" :key="item.label" class="rounded-xl border border-slate-200 bg-white p-5 text-center shadow-sm"><div class="text-2xl font-bold text-blue-600">{{ item.value }}</div><div class="mt-1 text-sm text-slate-500">{{ item.label }}</div></div>
             </div>
         </section>
-        <section v-if="hasSection('packages')" class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-            <div v-for="section in sections.filter((item) => (item.content?.type || item.section_key) === 'packages')" :key="section.id">
-                <div class="text-center"><h2 class="font-display text-3xl font-bold text-slate-900">{{ sectionContent(section).title || 'Pachete de intretinere' }}</h2></div>
-                <div class="mt-10 grid grid-cols-1 gap-8 lg:grid-cols-3"><PackageCard v-for="pkg in packages.filter((item) => !sectionContent(section).items?.length || sectionContent(section).items.includes(item.id))" :key="pkg.key" :pkg="pkg" /></div>
-            </div>
-        </section>
-        <section v-if="hasSection('process') || hasSection('benefits')" class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-            <div v-for="section in sections.filter((item) => ['process', 'benefits'].includes(item.content?.type || item.section_key))" :key="section.id" class="mb-10 text-center">
-                <h2 class="font-display text-3xl font-bold text-slate-900">{{ sectionContent(section).title || (section.section_key === 'process' ? 'Cum lucram' : 'Beneficii') }}</h2>
-                <div class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4"><div v-for="item in sectionContent(section).items" :key="item.title || item" class="rounded-xl border border-slate-200 p-5 text-slate-600">{{ item.title || item }}</div></div>
-            </div>
-        </section>
-        <section v-for="section in sections.filter((item) => ['cta', 'text_image', 'gallery', 'html'].includes(item.content?.type || item.section_key))" :key="section.id" class="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-            <div v-if="(section.content?.type || section.section_key) === 'cta'" class="rounded-2xl bg-brand-navy p-10 text-center text-white"><h2 class="text-3xl font-bold">{{ sectionContent(section).title }}</h2><p class="mx-auto mt-3 max-w-2xl text-slate-300">{{ sectionContent(section).text }}</p><Link :href="sectionContent(section).button_link || route('public.quote')" class="mt-6 inline-block rounded-md bg-orange-500 px-5 py-3 font-semibold">{{ sectionContent(section).button_text || 'Contactati-ne' }}</Link></div>
-            <div v-else-if="(section.content?.type || section.section_key) === 'text_image'" class="grid items-center gap-8 md:grid-cols-2"><div><h2 class="text-3xl font-bold text-slate-900">{{ sectionContent(section).title }}</h2><p class="mt-4 whitespace-pre-line text-slate-600">{{ sectionContent(section).text }}</p></div><img v-if="sectionContent(section).image" :src="sectionContent(section).image" :alt="sectionContent(section).image_alt || sectionContent(section).title" class="w-full rounded-xl object-cover" loading="lazy" decoding="async" /></div>
-            <div v-else-if="(section.content?.type || section.section_key) === 'gallery'" class="grid grid-cols-2 gap-4 md:grid-cols-4"><img v-for="image in sectionContent(section).images" :key="image" :src="image" alt="" class="h-40 w-full rounded-lg object-cover" loading="lazy" decoding="async" /></div>
-            <div v-else class="prose max-w-none" v-html="sectionContent(section).html"></div>
-        </section>
-        <section v-if="!hasSection('packages')" class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-            <div class="text-center">
-                <h2 class="font-display text-3xl font-bold text-slate-900">Pachete de intretinere</h2>
-                <p class="mt-3 text-slate-500">Alegeti un pachet cu un numar fix de vizite sau solicitati un deviz dupa constatare.</p>
-            </div>
-            <div class="mt-10 grid grid-cols-1 gap-8 lg:grid-cols-3">
-                <PackageCard v-for="pkg in packages" :key="pkg.key" :pkg="pkg" />
-            </div>
-        </section>
 
         <section class="relative overflow-hidden bg-slate-50 py-16">
             <div class="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,rgba(15,23,42,0.05)_1px,transparent_1px),linear-gradient(to_bottom,rgba(15,23,42,0.05)_1px,transparent_1px)] bg-[size:40px_40px]"></div>
@@ -187,6 +190,34 @@ const founderPhotoOk = ref(true);
             </div>
         </section>
 
+        <section v-if="hasSection('process') || hasSection('benefits')" class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+            <div v-for="section in sections.filter((item) => ['process', 'benefits'].includes(item.content?.type || item.section_key))" :key="section.id" class="mb-10 text-center">
+                <h2 class="font-display text-3xl font-bold text-slate-900">{{ sectionContent(section).title || (section.section_key === 'process' ? 'Cum lucram' : 'Beneficii') }}</h2>
+                <div class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4"><div v-for="item in sectionContent(section).items" :key="item.title || item" class="rounded-xl border border-slate-200 p-5 text-slate-600">{{ item.title || item }}</div></div>
+            </div>
+        </section>
+
+        <section class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+            <div class="text-center">
+                <h2 class="font-display text-3xl font-bold text-slate-900">Servicii oferite</h2>
+                <p class="mx-auto mt-3 max-w-2xl text-slate-500">Lucrari de reparatii si intretinere pentru apartamente si case: de la o priza noua pana la montajul mobilierului.</p>
+            </div>
+            <div class="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                <div v-for="service in services" :key="service.title" class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
+                    <div class="flex h-11 w-11 items-center justify-center rounded-full bg-orange-500/10 text-orange-500">
+                        <Icon :name="service.icon" class="h-5 w-5" />
+                    </div>
+                    <h3 class="mt-4 font-display font-semibold text-slate-900">{{ service.title }}</h3>
+                    <p class="mt-2 text-sm text-slate-500">{{ service.text }}</p>
+                </div>
+            </div>
+            <div class="mt-8 text-center">
+                <Link :href="route('public.services')" class="text-sm font-semibold text-blue-600 hover:text-blue-500">
+                    Vezi toate serviciile &rarr;
+                </Link>
+            </div>
+        </section>
+
         <section class="bg-white py-16">
             <div class="mx-auto grid max-w-6xl items-center gap-10 px-4 sm:px-6 lg:grid-cols-[0.8fr_1.2fr] lg:px-8">
                 <div class="justify-self-center">
@@ -206,16 +237,17 @@ const founderPhotoOk = ref(true);
                 <div>
                     <span class="inline-flex items-center gap-2 rounded-full border border-orange-400/40 bg-orange-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-orange-600">
                         <Icon name="user" class="h-3.5 w-3.5" />
-                        Cine sunt
+                        Despre mine
                     </span>
                     <h2 class="mt-4 font-display text-3xl font-bold text-slate-900">Salut, sunt Noldi Nyikora.</h2>
                     <p class="mt-4 text-slate-600">
-                        Am construit Om Priceput pentru ca prea multi oameni pierd timp cautand cate un meserias diferit
-                        pentru fiecare problema. Aici ai un singur punct de contact pentru lucrarile si intretinerea locuintei.
+                        Am creat Om Priceput pentru proprietarii care s-au saturat sa caute mai multi meseriasi pentru
+                        fiecare problema din locuinta.
                     </p>
                     <p class="mt-4 text-slate-600">
-                        Te ascult, vin la constatare, iti dau devizul scris, iar apoi execut personal lucrarea sau lucrez cu
-                        un meserias de incredere. Fara intermediari si fara costuri ascunse.
+                        Fie ca ai nevoie de montaj mobilier, reparatii electrice sau interventii sanitare, scopul meu este
+                        sa primesti o solutie clara, un pret comunicat inainte de lucrare si un rezultat realizat cu
+                        responsabilitate.
                     </p>
                     <Link
                         :href="route('public.quote')"
@@ -223,6 +255,51 @@ const founderPhotoOk = ref(true);
                     >
                         Cere un deviz
                     </Link>
+                </div>
+            </div>
+        </section>
+
+        <section v-for="section in sections.filter((item) => ['cta', 'text_image', 'gallery', 'html'].includes(item.content?.type || item.section_key))" :key="section.id" class="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+            <div v-if="(section.content?.type || section.section_key) === 'cta'" class="rounded-2xl bg-brand-navy p-10 text-center text-white"><h2 class="text-3xl font-bold">{{ sectionContent(section).title }}</h2><p class="mx-auto mt-3 max-w-2xl text-slate-300">{{ sectionContent(section).text }}</p><Link :href="sectionContent(section).button_link || route('public.quote')" class="mt-6 inline-block rounded-md bg-orange-500 px-5 py-3 font-semibold">{{ sectionContent(section).button_text || 'Contactati-ne' }}</Link></div>
+            <div v-else-if="(section.content?.type || section.section_key) === 'text_image'" class="grid items-center gap-8 md:grid-cols-2"><div><h2 class="text-3xl font-bold text-slate-900">{{ sectionContent(section).title }}</h2><p class="mt-4 whitespace-pre-line text-slate-600">{{ sectionContent(section).text }}</p></div><img v-if="sectionContent(section).image" :src="sectionContent(section).image" :alt="sectionContent(section).image_alt || sectionContent(section).title" class="w-full rounded-xl object-cover" loading="lazy" decoding="async" /></div>
+            <div v-else-if="(section.content?.type || section.section_key) === 'gallery'" class="grid grid-cols-2 gap-4 md:grid-cols-4"><img v-for="image in sectionContent(section).images" :key="image" :src="image" alt="" class="h-40 w-full rounded-lg object-cover" loading="lazy" decoding="async" /></div>
+            <div v-else class="prose max-w-none" v-html="sectionContent(section).html"></div>
+        </section>
+
+        <section v-if="hasSection('packages')" class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+            <div v-for="section in sections.filter((item) => (item.content?.type || item.section_key) === 'packages')" :key="section.id">
+                <div class="text-center"><h2 class="font-display text-3xl font-bold text-slate-900">{{ sectionContent(section).title || 'Planuri de mentenanta pentru proprietari' }}</h2></div>
+                <div class="mt-10 grid grid-cols-1 gap-8 lg:grid-cols-3"><PackageCard v-for="pkg in packages.filter((item) => !sectionContent(section).items?.length || sectionContent(section).items.includes(item.id))" :key="pkg.key" :pkg="pkg" /></div>
+            </div>
+        </section>
+        <section v-else class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+            <div class="text-center">
+                <h2 class="font-display text-3xl font-bold text-slate-900">Planuri de mentenanta pentru proprietari</h2>
+                <p class="mx-auto mt-3 max-w-2xl text-slate-500">Serviciu optional de intretinere recurenta. Cel mai des apelezi la noi pentru o lucrare punctuala, dar poti alege si un plan cu un numar fix de vizite.</p>
+            </div>
+            <div class="mt-10 grid grid-cols-1 gap-8 lg:grid-cols-3">
+                <PackageCard v-for="pkg in packages" :key="pkg.key" :pkg="pkg" />
+            </div>
+        </section>
+
+        <section v-if="!hasSection('gallery')" class="bg-white py-16">
+            <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                <div class="text-center">
+                    <h2 class="font-display text-3xl font-bold text-slate-900">Lucrari realizate</h2>
+                    <p class="mx-auto mt-3 max-w-2xl text-slate-500">Fotografii reale din lucrari: montaj de prize, corpuri de iluminat, mobilier si mici reparatii.</p>
+                </div>
+                <div class="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-3">
+                    <template v-if="workPhotos.length">
+                        <img v-for="photo in workPhotos" :key="photo" :src="photo" alt="Lucrare realizata" class="h-48 w-full rounded-xl object-cover" loading="lazy" decoding="async" />
+                    </template>
+                    <template v-else>
+                        <div v-for="index in 6" :key="index" class="flex h-48 items-center justify-center rounded-xl border border-dashed border-slate-300 bg-slate-50 text-slate-400">
+                            <div class="text-center">
+                                <Icon name="camera" class="mx-auto h-7 w-7" />
+                                <p class="mt-2 text-xs font-medium">Foto in curand</p>
+                            </div>
+                        </div>
+                    </template>
                 </div>
             </div>
         </section>
@@ -249,6 +326,22 @@ const founderPhotoOk = ref(true);
                         <h3 class="mt-2 font-display font-semibold text-slate-900 group-hover:text-blue-600">{{ post.title }}</h3>
                         <p class="mt-2 text-sm text-slate-500">{{ post.excerpt }}</p>
                     </div>
+                </Link>
+            </div>
+        </section>
+
+        <section class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+            <div class="rounded-3xl bg-brand-navy px-6 py-14 text-center text-white sm:px-10">
+                <h2 class="font-display text-3xl font-bold">Cerere deviz</h2>
+                <p class="mx-auto mt-3 max-w-2xl text-slate-300">
+                    Trimite cererea si iti raspundem in cel mai scurt timp pentru a stabili constatarea. Primesti devizul
+                    scris inainte de inceperea lucrarii, fara obligatie de acceptare.
+                </p>
+                <Link
+                    :href="route('public.quote')"
+                    class="mt-6 inline-block rounded-md bg-orange-500 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-orange-500/25 transition hover:bg-orange-400"
+                >
+                    Cerere deviz gratuit
                 </Link>
             </div>
         </section>

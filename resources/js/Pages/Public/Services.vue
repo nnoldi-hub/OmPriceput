@@ -95,9 +95,9 @@ const howItWorks = [
         <section class="bg-slate-50 py-16">
             <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                 <div class="text-center">
-                    <h2 class="font-display text-3xl font-bold text-slate-900">Pachete de intretinere</h2>
+                    <h2 class="font-display text-3xl font-bold text-slate-900">Planuri de mentenanta pentru proprietari</h2>
                     <p class="mt-3 text-slate-500">
-                        Cu un numar fix de vizite si conditii clare, pentru intretinerea recurenta a instalatiilor.
+                        Serviciu optional de intretinere recurenta, cu un numar fix de vizite si conditii clare.
                     </p>
                 </div>
                 <div class="mt-10 grid grid-cols-1 gap-8 lg:grid-cols-3">
