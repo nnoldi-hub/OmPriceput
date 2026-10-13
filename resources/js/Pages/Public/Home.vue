@@ -3,7 +3,7 @@ import Icon from '@/Components/Icon.vue';
 import PackageCard from '@/Components/PackageCard.vue';
 import SeoHead from '@/Components/SeoHead.vue';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
-import { Link } from '@inertiajs/vue3';
+import { Link, usePage } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 
 const props = defineProps({
@@ -12,6 +12,10 @@ const props = defineProps({
     stats: Array,
     page: Object,
 });
+
+const page = usePage();
+const phone = computed(() => page.props.siteSettings?.company_phone || '');
+const phoneHref = computed(() => `tel:${String(phone.value).replace(/[^\d+]/g, '')}`);
 const heroTitle = computed(() => props.page?.content?.hero_title || 'Reparam. Montam. Fara batai de cap.');
 const heroIntro = computed(() => props.page?.content?.intro || 'Meserias de incredere pentru apartamente si case din Bucuresti si Ilfov.\nPrimesti constatare, deviz scris si programare clara inainte de inceperea lucrarii.');
 
@@ -66,12 +70,22 @@ const steps = [
     { icon: 'shield-check', title: 'Confirmare finala', text: 'Verificam impreuna rezultatul lucrarii.' },
 ];
 
-const services = [
-    { icon: 'bolt', title: 'Electrician', text: 'Prize, intrerupatoare, corpuri de iluminat, tablouri electrice.' },
-    { icon: 'lifebuoy', title: 'Instalatii sanitare', text: 'Baterii, chiuvete, vase WC, scurgeri si reparatii.' },
-    { icon: 'wrench', title: 'Montaj mobilier', text: 'Mobilier IKEA, JYSK, Dedeman si mobilier personalizat.' },
-    { icon: 'home', title: 'Intretinere locuinta', text: 'Reglaje, reparatii si interventii periodice.' },
+const trustTrades = [
+    { icon: 'bolt', title: 'Electricitate' },
+    { icon: 'lifebuoy', title: 'Instalatii sanitare' },
+    { icon: 'wrench', title: 'Montaj mobilier' },
+    { icon: 'sparkles', title: 'Zugraveli si reparatii' },
+    { icon: 'home', title: 'Intretinere locuinta' },
 ];
+
+const popularServices = [
+    { icon: 'wrench', title: 'Montaj mobilier', text: 'Montam mobilier IKEA, JYSK, Dedeman si mobilier personalizat.' },
+    { icon: 'lifebuoy', title: 'Inlocuire baterii si obiecte sanitare', text: 'Reparatii rapide si montaj profesional.' },
+    { icon: 'bolt', title: 'Prize si corpuri de iluminat', text: 'Montaj si inlocuire componente electrice.' },
+    { icon: 'sparkles', title: 'Zugraveli si reimprospatari', text: 'Lucrari pentru apartamente si case.' },
+];
+
+const serviceAreas = ['Bucuresti', 'Cernica', 'Pantelimon', 'Voluntari', 'Popesti-Leordeni', 'Bragadiru', 'Chiajna', 'Otopeni'];
 
 const workPhotos = ref([]);
 const founderPhotoOk = ref(true);
@@ -119,6 +133,13 @@ const founderPhotoOk = ref(true);
                             Ce facem
                         </Link>
                     </div>
+                    <a v-if="phone" :href="phoneHref" class="mt-6 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                        <span class="inline-flex items-center gap-2 text-2xl font-extrabold text-white">
+                            <Icon name="smartphone" class="h-6 w-6 text-orange-400" />
+                            {{ phone }}
+                        </span>
+                        <span class="text-sm text-slate-300">Suna acum pentru constatare</span>
+                    </a>
                     <ul class="mt-6 space-y-2 text-sm text-slate-300">
                         <li v-for="guarantee in heroGuarantees" :key="guarantee" class="flex items-start gap-2">
                             <Icon name="check" class="mt-0.5 h-4 w-4 flex-none text-orange-400" />
@@ -138,6 +159,19 @@ const founderPhotoOk = ref(true);
                         </div>
                         <dd class="mt-4 text-3xl font-bold text-white">{{ stat.value }}</dd>
                         <dt class="mt-1 text-sm text-slate-300">{{ stat.label }}</dt>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="border-y border-slate-200 bg-slate-50">
+            <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+                <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+                    <div v-for="trade in trustTrades" :key="trade.title" class="flex items-center gap-3">
+                        <span class="flex h-9 w-9 flex-none items-center justify-center rounded-full bg-orange-500/10 text-orange-500">
+                            <Icon :name="trade.icon" class="h-5 w-5" />
+                        </span>
+                        <span class="text-sm font-semibold text-slate-700">{{ trade.title }}</span>
                     </div>
                 </div>
             </div>
@@ -199,16 +233,18 @@ const founderPhotoOk = ref(true);
 
         <section class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
             <div class="text-center">
-                <h2 class="font-display text-3xl font-bold text-slate-900">Servicii oferite</h2>
-                <p class="mx-auto mt-3 max-w-2xl text-slate-500">Lucrari de reparatii si intretinere pentru apartamente si case: de la o priza noua pana la montajul mobilierului.</p>
+                <h2 class="font-display text-3xl font-bold text-slate-900">Servicii populare</h2>
+                <p class="mx-auto mt-3 max-w-2xl text-slate-500">Cele mai cerute lucrari pentru apartamente si case, executate curat si la timp.</p>
             </div>
-            <div class="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-                <div v-for="service in services" :key="service.title" class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
-                    <div class="flex h-11 w-11 items-center justify-center rounded-full bg-orange-500/10 text-orange-500">
-                        <Icon :name="service.icon" class="h-5 w-5" />
+            <div class="mt-10 grid grid-cols-1 gap-6 lg:grid-cols-2">
+                <div v-for="service in popularServices" :key="service.title" class="flex items-start gap-5 rounded-3xl border border-slate-200 bg-white p-8 shadow-sm transition hover:-translate-y-1 hover:shadow-xl">
+                    <div class="flex h-14 w-14 flex-none items-center justify-center rounded-2xl bg-gradient-to-br from-orange-500 to-blue-600 text-white shadow-lg shadow-orange-500/20">
+                        <Icon :name="service.icon" class="h-7 w-7" />
                     </div>
-                    <h3 class="mt-4 font-display font-semibold text-slate-900">{{ service.title }}</h3>
-                    <p class="mt-2 text-sm text-slate-500">{{ service.text }}</p>
+                    <div>
+                        <h3 class="font-display text-xl font-bold text-slate-900">{{ service.title }}</h3>
+                        <p class="mt-2 text-slate-500">{{ service.text }}</p>
+                    </div>
                 </div>
             </div>
             <div class="mt-8 text-center">
@@ -241,8 +277,9 @@ const founderPhotoOk = ref(true);
                     </span>
                     <h2 class="mt-4 font-display text-3xl font-bold text-slate-900">Salut, sunt Noldi Nyikora.</h2>
                     <p class="mt-4 text-slate-600">
-                        Am creat Om Priceput pentru proprietarii care s-au saturat sa caute mai multi meseriasi pentru
-                        fiecare problema din locuinta.
+                        Am creat Om Priceput pentru persoanele care isi doresc un singur contact de incredere pentru
+                        reparatiile si intretinerea locuintei. Fara alergat dupa mai multi meseriasi, fara surprize si
+                        fara costuri ascunse.
                     </p>
                     <p class="mt-4 text-slate-600">
                         Fie ca ai nevoie de montaj mobilier, reparatii electrice sau interventii sanitare, scopul meu este
@@ -268,13 +305,14 @@ const founderPhotoOk = ref(true);
 
         <section v-if="hasSection('packages')" class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
             <div v-for="section in sections.filter((item) => (item.content?.type || item.section_key) === 'packages')" :key="section.id">
-                <div class="text-center"><h2 class="font-display text-3xl font-bold text-slate-900">{{ sectionContent(section).title || 'Planuri de mentenanta pentru proprietari' }}</h2></div>
+                <div class="text-center"><span class="text-[11px] font-semibold uppercase tracking-[0.18em] text-orange-600">Pentru proprietarii care doresc intretinere periodica</span><h2 class="mt-2 font-display text-3xl font-bold text-slate-900">{{ sectionContent(section).title || 'Planuri de mentenanta pentru locuinta' }}</h2></div>
                 <div class="mt-10 grid grid-cols-1 gap-8 lg:grid-cols-3"><PackageCard v-for="pkg in packages.filter((item) => !sectionContent(section).items?.length || sectionContent(section).items.includes(item.id))" :key="pkg.key" :pkg="pkg" /></div>
             </div>
         </section>
         <section v-else class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
             <div class="text-center">
-                <h2 class="font-display text-3xl font-bold text-slate-900">Planuri de mentenanta pentru proprietari</h2>
+                <span class="text-[11px] font-semibold uppercase tracking-[0.18em] text-orange-600">Pentru proprietarii care doresc intretinere periodica</span>
+                <h2 class="mt-2 font-display text-3xl font-bold text-slate-900">Planuri de mentenanta pentru locuinta</h2>
                 <p class="mx-auto mt-3 max-w-2xl text-slate-500">Serviciu optional de intretinere recurenta. Cel mai des apelezi la noi pentru o lucrare punctuala, dar poti alege si un plan cu un numar fix de vizite.</p>
             </div>
             <div class="mt-10 grid grid-cols-1 gap-8 lg:grid-cols-3">
@@ -330,19 +368,43 @@ const founderPhotoOk = ref(true);
             </div>
         </section>
 
+        <section class="bg-slate-50 py-16">
+            <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                <div class="text-center">
+                    <h2 class="font-display text-3xl font-bold text-slate-900">Zone deservite</h2>
+                    <p class="mx-auto mt-3 max-w-2xl text-slate-500">Intervenim in Bucuresti si in localitatile din jurul orasului, cu programare la ora stabilita.</p>
+                </div>
+                <ul class="mx-auto mt-10 flex max-w-3xl flex-wrap justify-center gap-3">
+                    <li v-for="area in serviceAreas" :key="area" class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm">
+                        <Icon name="check" class="h-4 w-4 text-orange-500" />
+                        {{ area }}
+                    </li>
+                </ul>
+            </div>
+        </section>
+
         <section class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
             <div class="rounded-3xl bg-brand-navy px-6 py-14 text-center text-white sm:px-10">
-                <h2 class="font-display text-3xl font-bold">Cerere deviz</h2>
+                <h2 class="font-display text-3xl font-bold sm:text-4xl">Ai nevoie de o reparatie sau un montaj?</h2>
                 <p class="mx-auto mt-3 max-w-2xl text-slate-300">
-                    Trimite cererea si iti raspundem in cel mai scurt timp pentru a stabili constatarea. Primesti devizul
-                    scris inainte de inceperea lucrarii, fara obligatie de acceptare.
+                    Primesti constatare, deviz scris si programare clara inainte de inceperea lucrarii.
                 </p>
-                <Link
-                    :href="route('public.quote')"
-                    class="mt-6 inline-block rounded-md bg-orange-500 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-orange-500/25 transition hover:bg-orange-400"
-                >
-                    Cerere deviz gratuit
-                </Link>
+                <div class="mt-8 flex flex-wrap justify-center gap-4">
+                    <Link
+                        :href="route('public.quote')"
+                        class="rounded-md bg-orange-500 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-orange-500/25 transition hover:bg-orange-400"
+                    >
+                        Cere un deviz gratuit
+                    </Link>
+                    <a
+                        v-if="phone"
+                        :href="phoneHref"
+                        class="inline-flex items-center gap-2 rounded-md border border-slate-600 px-6 py-3 text-sm font-semibold text-white transition hover:border-slate-400 hover:bg-white/5"
+                    >
+                        <Icon name="smartphone" class="h-4 w-4 text-orange-400" />
+                        Suna acum
+                    </a>
+                </div>
             </div>
         </section>
     </PublicLayout>
