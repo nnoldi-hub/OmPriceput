@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Client;
 use App\Models\Equipment;
 use App\Models\Media;
+use App\Models\Page;
 use App\Models\Post;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -16,6 +17,27 @@ class PublicPagesTest extends TestCase
     public function test_home_page_loads(): void
     {
         $this->get(route('public.home'))->assertOk();
+    }
+
+    public function test_home_page_exposes_gallery_section_images(): void
+    {
+        $images = ['/storage/media/lucrare-1.jpg', '/storage/media/lucrare-2.jpg'];
+
+        $page = Page::where('slug', 'acasa')->firstOrFail();
+        $page->sections()->create([
+            'section_key' => 'gallery',
+            'content' => ['images' => $images],
+            'sort_order' => 0,
+        ]);
+
+        $this->get(route('public.home'))
+            ->assertOk()
+            ->assertInertia(fn ($pageAssert) => $pageAssert
+                ->component('Public/Home')
+                ->has('page.sections', 1)
+                ->where('page.sections.0.section_key', 'gallery')
+                ->where('page.sections.0.content.images', $images)
+            );
     }
 
     public function test_about_page_loads(): void

@@ -1,6 +1,8 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import MediaPicker from '@/Components/MediaPicker.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
+import { ref } from 'vue';
 
 const props = defineProps({ page: Object });
 const initialContent = props.page.content || {};
@@ -84,6 +86,24 @@ function moveSection(index, direction) {
 function addListItem(section, key, value = '') { if (!Array.isArray(section.content[key])) section.content[key] = []; section.content[key].push(value); }
 function removeListItem(section, key, index) { section.content[key].splice(index, 1); }
 function submit() { syncVisualContent(); form.put(route('admin.pages.update', props.page.id)); }
+
+const showMediaPicker = ref(false);
+const pickerSection = ref(null);
+function openGalleryPicker(section) { pickerSection.value = section; showMediaPicker.value = true; }
+function onMediaSelect(items) {
+    if (!pickerSection.value) return;
+    const section = pickerSection.value;
+    if (!Array.isArray(section.content.images)) section.content.images = [];
+    items.forEach((item) => { if (!section.content.images.includes(item.url)) section.content.images.push(item.url); });
+    pickerSection.value = null;
+}
+function removeGalleryImage(section, index) { section.content.images.splice(index, 1); }
+function moveGalleryImage(section, index, direction) {
+    const target = index + direction;
+    if (target < 0 || target >= section.content.images.length) return;
+    const list = section.content.images;
+    [list[index], list[target]] = [list[target], list[index]];
+}
 </script>
 
 <template>
@@ -120,12 +140,37 @@ function submit() { syncVisualContent(); form.put(route('admin.pages.update', pr
                         <template v-else-if="section.section_key === 'blog'"><label class="text-sm text-slate-600">Numar articole<input v-model.number="section.content.limit" type="number" min="1" max="12" class="mt-1 block w-full rounded-md border-slate-300" /></label></template>
                         <template v-else-if="section.section_key === 'cta'"><input v-model="section.content.title" placeholder="Titlu" class="rounded-md border-slate-300" /><input v-model="section.content.button_text" placeholder="Text buton" class="rounded-md border-slate-300" /><textarea v-model="section.content.text" placeholder="Text" rows="2" class="rounded-md border-slate-300 sm:col-span-2" /><input v-model="section.content.button_link" placeholder="/contact" class="rounded-md border-slate-300 sm:col-span-2" /></template>
                         <template v-else-if="section.section_key === 'text_image'"><input v-model="section.content.title" placeholder="Titlu" class="rounded-md border-slate-300" /><input v-model="section.content.image" placeholder="/storage/imagine.jpg" class="rounded-md border-slate-300" /><textarea v-model="section.content.text" placeholder="Text" rows="3" class="rounded-md border-slate-300 sm:col-span-2" /><input v-model="section.content.image_alt" placeholder="Descriere imagine" class="rounded-md border-slate-300 sm:col-span-2" /></template>
-                        <template v-else-if="section.section_key === 'gallery'"><label class="text-sm text-slate-600 sm:col-span-2">Imagini, câte una pe rând<textarea :value="section.content.images.join('\n')" rows="4" class="mt-1 block w-full rounded-md border-slate-300" @input="section.content.images = $event.target.value.split('\n').map((value) => value.trim()).filter(Boolean)" /></label></template>
+                        <template v-else-if="section.section_key === 'gallery'">
+                            <div class="sm:col-span-2">
+                                <div class="mb-2 flex items-center justify-between">
+                                    <span class="text-sm text-slate-600">Imagini galerie</span>
+                                    <button type="button" class="text-sm font-semibold text-blue-600" @click="openGalleryPicker(section)">+ Adaugă din bibliotecă</button>
+                                </div>
+                                <p v-if="!section.content.images || !section.content.images.length" class="rounded-md border border-dashed border-slate-300 p-4 text-center text-sm text-slate-400">Nicio imagine. Adaugă din biblioteca media.</p>
+                                <div v-else class="grid grid-cols-3 gap-2 sm:grid-cols-4">
+                                    <div v-for="(image, imageIndex) in section.content.images" :key="image" class="group relative overflow-hidden rounded-md border border-slate-200">
+                                        <img :src="image" alt="" class="h-24 w-full object-cover" />
+                                        <div class="absolute inset-x-0 bottom-0 flex items-center justify-between gap-1 bg-slate-900/70 px-1 py-0.5 text-xs text-white opacity-0 transition group-hover:opacity-100">
+                                            <button type="button" :disabled="imageIndex === 0" class="disabled:opacity-30" @click="moveGalleryImage(section, imageIndex, -1)">&larr;</button>
+                                            <button type="button" class="text-red-300" @click="removeGalleryImage(section, imageIndex)">Șterge</button>
+                                            <button type="button" :disabled="imageIndex === section.content.images.length - 1" class="disabled:opacity-30" @click="moveGalleryImage(section, imageIndex, 1)">&rarr;</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
                         <template v-else-if="section.section_key === 'html'"><textarea v-model="section.content.html" rows="8" placeholder="<div>HTML...</div>" class="rounded-md border-slate-300 font-mono text-sm sm:col-span-2" /></template>
                     </div>
                 </div>
             </div>
             <div class="flex justify-end"><button type="button" class="mr-3 rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700" @click="syncVisualContent">Sincronizeaza editorul</button><button :disabled="form.processing" class="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">Salveaza</button></div>
         </form></div></div>
+
+        <MediaPicker
+            :show="showMediaPicker"
+            :multiple="true"
+            @close="showMediaPicker = false"
+            @select="onMediaSelect"
+        />
     </AuthenticatedLayout>
 </template>

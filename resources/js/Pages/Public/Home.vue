@@ -87,7 +87,12 @@ const popularServices = [
 
 const serviceAreas = ['Bucuresti', 'Cernica', 'Pantelimon', 'Voluntari', 'Popesti-Leordeni', 'Bragadiru', 'Chiajna', 'Otopeni'];
 
-const workPhotos = ref([]);
+const galleryImages = computed(() => {
+    const gallery = sections.value.find((item) => (item.content?.type || item.section_key) === 'gallery');
+
+    return gallery ? (sectionContent(gallery).images || []) : [];
+});
+
 const founderPhotoOk = ref(true);
 </script>
 
@@ -296,10 +301,9 @@ const founderPhotoOk = ref(true);
             </div>
         </section>
 
-        <section v-for="section in sections.filter((item) => ['cta', 'text_image', 'gallery', 'html'].includes(item.content?.type || item.section_key))" :key="section.id" class="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+        <section v-for="section in sections.filter((item) => ['cta', 'text_image', 'html'].includes(item.content?.type || item.section_key))" :key="section.id" class="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
             <div v-if="(section.content?.type || section.section_key) === 'cta'" class="rounded-2xl bg-brand-navy p-10 text-center text-white"><h2 class="text-3xl font-bold">{{ sectionContent(section).title }}</h2><p class="mx-auto mt-3 max-w-2xl text-slate-300">{{ sectionContent(section).text }}</p><Link :href="sectionContent(section).button_link || route('public.quote')" class="mt-6 inline-block rounded-md bg-orange-500 px-5 py-3 font-semibold">{{ sectionContent(section).button_text || 'Contactati-ne' }}</Link></div>
             <div v-else-if="(section.content?.type || section.section_key) === 'text_image'" class="grid items-center gap-8 md:grid-cols-2"><div><h2 class="text-3xl font-bold text-slate-900">{{ sectionContent(section).title }}</h2><p class="mt-4 whitespace-pre-line text-slate-600">{{ sectionContent(section).text }}</p></div><img v-if="sectionContent(section).image" :src="sectionContent(section).image" :alt="sectionContent(section).image_alt || sectionContent(section).title" class="w-full rounded-xl object-cover" loading="lazy" decoding="async" /></div>
-            <div v-else-if="(section.content?.type || section.section_key) === 'gallery'" class="grid grid-cols-2 gap-4 md:grid-cols-4"><img v-for="image in sectionContent(section).images" :key="image" :src="image" alt="" class="h-40 w-full rounded-lg object-cover" loading="lazy" decoding="async" /></div>
             <div v-else class="prose max-w-none" v-html="sectionContent(section).html"></div>
         </section>
 
@@ -320,15 +324,15 @@ const founderPhotoOk = ref(true);
             </div>
         </section>
 
-        <section v-if="!hasSection('gallery')" class="bg-white py-16">
+        <section class="bg-white py-16">
             <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                 <div class="text-center">
                     <h2 class="font-display text-3xl font-bold text-slate-900">Lucrari realizate</h2>
                     <p class="mx-auto mt-3 max-w-2xl text-slate-500">Fotografii reale din lucrari: montaj de prize, corpuri de iluminat, mobilier si mici reparatii.</p>
                 </div>
                 <div class="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-3">
-                    <template v-if="workPhotos.length">
-                        <img v-for="photo in workPhotos" :key="photo" :src="photo" alt="Lucrare realizata" class="h-48 w-full rounded-xl object-cover" loading="lazy" decoding="async" />
+                    <template v-if="galleryImages.length">
+                        <img v-for="image in galleryImages" :key="image" :src="image" alt="Lucrare realizata" class="h-48 w-full rounded-xl object-cover" loading="lazy" decoding="async" />
                     </template>
                     <template v-else>
                         <div v-for="index in 6" :key="index" class="flex h-48 items-center justify-center rounded-xl border border-dashed border-slate-300 bg-slate-50 text-slate-400">
