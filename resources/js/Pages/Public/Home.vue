@@ -4,7 +4,7 @@ import PackageCard from '@/Components/PackageCard.vue';
 import SeoHead from '@/Components/SeoHead.vue';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
 import { Link } from '@inertiajs/vue3';
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 
 const props = defineProps({
     packages: Array,
@@ -12,8 +12,15 @@ const props = defineProps({
     stats: Array,
     page: Object,
 });
-const heroTitle = computed(() => props.page?.content?.hero_title || 'Reparam. Montam. Lasam totul ca atunci.');
-const heroIntro = computed(() => props.page?.content?.intro || 'Lucrari de electrician, instalator, zugrav si montaj pentru casa si apartament. Trimiteti cererea, venim la constatare si primiti devizul scris inainte de a incepe lucrarea.');
+const heroTitle = computed(() => props.page?.content?.hero_title || 'Reparam. Montam. Fara batai de cap.');
+const heroIntro = computed(() => props.page?.content?.intro || 'Lucrari de electrician, instalator, zugrav si montaj pentru casa si apartament. Ne spui ce ai de facut, venim la constatare si primesti devizul scris inainte sa incepem. Fara batai de cap, fara surprize.');
+
+const heroParts = computed(() => {
+    const title = heroTitle.value;
+    const split = title.lastIndexOf('. ');
+
+    return split === -1 ? [title, ''] : [title.slice(0, split + 1), title.slice(split + 2)];
+});
 const sections = computed(() => props.page?.sections || []);
 const hasSection = (type) => sections.value.some((section) => section.content?.type === type || section.section_key === type);
 const sectionContent = (section) => section.content || {};
@@ -30,11 +37,23 @@ const fallbackStats = [
 ];
 
 const steps = [
-    { icon: 'clipboard', title: 'Cerere si fotografii', text: 'Ne spuneti ce aveti nevoie si atasati cateva fotografii ale problemei.' },
-    { icon: 'truck', title: 'Constatare', text: 'Venim la locul lucrarii pentru a identifica problema si a stabili materialele necesare.' },
-    { icon: 'wrench', title: 'Deviz scris', text: 'Primiti devizul cu manopera si materialele prezentate separat.' },
-    { icon: 'lifebuoy', title: 'Executia lucrarii', text: 'Dupa acceptarea devizului, programam interventia si remediem problema.' },
+    { icon: 'clipboard', title: 'Trimiti solicitarea', text: 'Descrii problema sau serviciul dorit, direct din formular.' },
+    { icon: 'file-text', title: 'Primesti estimarea', text: 'Analizam cererea si iti comunicam costurile estimative.' },
+    { icon: 'calendar', title: 'Stabilim interventia', text: 'Confirmam programarea si detaliile lucrarii.' },
+    { icon: 'wrench', title: 'Executam lucrarea', text: 'Respectam solutia agreata si termenul stabilit.' },
+    { icon: 'shield-check', title: 'Confirmare finala', text: 'Verificam impreuna rezultatul lucrarii.' },
 ];
+
+const reasons = [
+    { icon: 'user', title: 'Un singur contact', text: 'Nu cauti separat electrician, instalator si montator. Te ocupi de o singura persoana pentru toate lucrarile.' },
+    { icon: 'file-text', title: 'Deviz scris inainte de lucrare', text: 'Stii costul materialelor si al manoperei inainte sa incepem.' },
+    { icon: 'shield-check', title: 'Fara costuri ascunse', text: 'Pretul final se stabileste la locul lucrarii, dupa constatare.' },
+    { icon: 'message-square', title: 'Comunicare clara', text: 'Confirmam ora si te anuntam la fiecare pas al lucrarii.' },
+    { icon: 'sparkles', title: 'Lucram curat', text: 'Predam locul de lucru curat la final.' },
+    { icon: 'wrench', title: 'Executie personala sau cu meseriasi de incredere', text: 'Lucrez personal sau cu oameni cu care am mai lucrat, nu cu necunoscuti.' },
+];
+
+const founderPhotoOk = ref(true);
 </script>
 
 <template>
@@ -56,11 +75,11 @@ const steps = [
                         <img src="/branding/logo-trim.webp" alt="Om Priceput" width="480" height="480" class="h-12 w-auto max-w-[260px] object-contain sm:h-14 lg:h-16" />
                     </div>
                     <h1 class="mt-6 font-display text-5xl font-extrabold tracking-[-0.05em] text-white sm:text-7xl">
-                        Reparam. Montam.
-                        <span class="block text-orange-500">Lasam totul ca atunci.</span>
+                        {{ heroParts[0] }}
+                        <span v-if="heroParts[1]" class="block text-orange-500">{{ heroParts[1] }}</span>
                     </h1>
                     <p class="mt-6 max-w-[620px] text-lg leading-8 text-slate-300">
-                        Lucrari de electrician, instalator, zugrav si montaj pentru casa si apartament. Trimiteti cererea, venim la constatare si primiti devizul scris inainte de a incepe lucrarea.
+                        {{ heroIntro }}
                     </p>
                     <div class="mt-8 flex flex-wrap gap-4">
                         <Link
@@ -90,6 +109,26 @@ const steps = [
                         <dd class="mt-4 text-3xl font-bold text-white">{{ stat.value }}</dd>
                         <dt class="mt-1 text-sm text-slate-300">{{ stat.label }}</dt>
                     </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+            <div class="text-center">
+                <h2 class="font-display text-3xl font-bold text-slate-900">De ce Om Priceput?</h2>
+                <p class="mx-auto mt-3 max-w-2xl text-slate-500">Un singur om de incredere pentru lucrarile din casa ta, cu deviz scris si programare clara.</p>
+            </div>
+            <div class="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                <div
+                    v-for="reason in reasons"
+                    :key="reason.title"
+                    class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
+                >
+                    <div class="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-orange-500 to-blue-600 text-white shadow-lg shadow-orange-500/20">
+                        <Icon :name="reason.icon" class="h-5 w-5" />
+                    </div>
+                    <h3 class="mt-4 font-display font-semibold text-slate-900">{{ reason.title }}</h3>
+                    <p class="mt-2 text-sm text-slate-500">{{ reason.text }}</p>
                 </div>
             </div>
         </section>
@@ -134,8 +173,8 @@ const steps = [
                     <h2 class="font-display text-3xl font-bold text-slate-900">Cum lucram</h2>
                 </div>
                 <div class="relative mt-12">
-                    <div class="absolute left-0 right-0 top-6 hidden h-0.5 bg-gradient-to-r from-orange-300 via-slate-300 to-blue-300 sm:block"></div>
-                    <div class="grid grid-cols-1 gap-10 sm:grid-cols-4">
+                    <div class="absolute left-0 right-0 top-6 hidden h-0.5 bg-gradient-to-r from-orange-300 via-slate-300 to-blue-300 lg:block"></div>
+                    <div class="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-5">
                         <div v-for="step in steps" :key="step.title" class="relative text-center">
                             <div class="relative mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-white text-blue-600 shadow-md ring-4 ring-slate-50">
                                 <Icon :name="step.icon" class="h-5 w-5" />
@@ -144,6 +183,46 @@ const steps = [
                             <p class="mt-2 text-sm text-slate-500">{{ step.text }}</p>
                         </div>
                     </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="bg-white py-16">
+            <div class="mx-auto grid max-w-6xl items-center gap-10 px-4 sm:px-6 lg:grid-cols-[0.8fr_1.2fr] lg:px-8">
+                <div class="justify-self-center">
+                    <img
+                        v-if="founderPhotoOk"
+                        src="/branding/founder.jpg"
+                        alt="Noldi Nyikora, fondator Om Priceput"
+                        class="h-64 w-64 rounded-3xl object-cover shadow-xl sm:h-80 sm:w-80"
+                        loading="lazy"
+                        decoding="async"
+                        @error="founderPhotoOk = false"
+                    />
+                    <div v-else class="flex h-64 w-64 items-center justify-center rounded-3xl bg-gradient-to-br from-brand-navy to-blue-900 text-6xl font-bold text-white shadow-xl sm:h-80 sm:w-80">
+                        NN
+                    </div>
+                </div>
+                <div>
+                    <span class="inline-flex items-center gap-2 rounded-full border border-orange-400/40 bg-orange-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-orange-600">
+                        <Icon name="user" class="h-3.5 w-3.5" />
+                        Cine sunt
+                    </span>
+                    <h2 class="mt-4 font-display text-3xl font-bold text-slate-900">Salut, sunt Noldi Nyikora.</h2>
+                    <p class="mt-4 text-slate-600">
+                        Am construit Om Priceput pentru ca prea multi oameni pierd timp cautand cate un meserias diferit
+                        pentru fiecare problema. Aici ai un singur punct de contact pentru lucrarile si intretinerea locuintei.
+                    </p>
+                    <p class="mt-4 text-slate-600">
+                        Te ascult, vin la constatare, iti dau devizul scris, iar apoi execut personal lucrarea sau lucrez cu
+                        un meserias de incredere. Fara intermediari si fara costuri ascunse.
+                    </p>
+                    <Link
+                        :href="route('public.quote')"
+                        class="mt-6 inline-flex rounded-md bg-orange-500 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-orange-500/25 transition hover:bg-orange-400"
+                    >
+                        Cere un deviz
+                    </Link>
                 </div>
             </div>
         </section>
