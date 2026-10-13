@@ -62,8 +62,9 @@ class SmsNotificationTest extends TestCase
             'privacy_consent' => '1',
         ]);
 
-        $this->assertDatabaseCount('sms_logs', 1);
         $this->assertDatabaseHas('sms_logs', ['phone' => '0733111222']);
+        $this->assertDatabaseHas('sms_logs', ['phone' => '0722999888']);
+        $this->assertDatabaseCount('sms_logs', 2);
     }
 
     public function test_marking_offer_as_sent_sends_sms_to_client_with_a_phone(): void

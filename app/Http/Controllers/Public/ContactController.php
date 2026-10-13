@@ -20,6 +20,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
@@ -175,14 +176,24 @@ class ContactController extends Controller
         }
 
         $when = $start ? $start->format('d.m.Y H:i') : null;
+        $boxes = $visit ? $visit->requiredToolboxes()->pluck('name')->join(', ') : '';
+        $link = $visit?->action_token ? route('booking.action', $visit->action_token) : null;
 
         foreach ($recipients->whereNotNull('phone') as $recipient) {
             $sms->send(
                 $recipient->phone,
                 $visit
-                    ? "Cerere de deviz: {$client->name} ({$client->phone})".($when ? ", {$when}." : '.')
-                        .' Cutii: '.$visit->requiredToolboxes()->pluck('name')->join(', ').'.'
+                    ? "Cerere: {$client->name} ({$client->phone})".($when ? ", {$when}." : '.')
+                        .($boxes !== '' ? " Cutii: {$boxes}." : '')
+                        .($link ? " Confirma: {$link}" : '')
                     : "Lead nou: {$client->name} ({$client->phone}).",
+            );
+        }
+
+        if ($clientPhone = $sms->normalizePhone($client->phone)) {
+            $sms->send(
+                $clientPhone,
+                'Om Priceput: am primit cererea ta. Revenim in cel mai scurt timp cu confirmarea.',
             );
         }
 
@@ -223,6 +234,7 @@ class ContactController extends Controller
                 'quantity' => 1,
             ])->values()->all(),
             'status' => 'scheduled',
+            'action_token' => Str::random(24),
             'checklist' => Installation::defaultChecklist('verificare'),
             'photos' => $photos ?: null,
             'customer_notes' => collect([

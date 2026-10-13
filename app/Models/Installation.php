@@ -90,6 +90,8 @@ class Installation extends Model
         'scheduled_at',
         'labor_hours',
         'status',
+        'action_token',
+        'confirmed_at',
         'notes',
         'checklist',
         'materials',
@@ -108,6 +110,7 @@ class Installation extends Model
 
     protected $casts = [
         'scheduled_at' => 'datetime',
+        'confirmed_at' => 'datetime',
         'labor_hours' => 'decimal:2',
         'latitude' => 'decimal:7',
         'longitude' => 'decimal:7',
@@ -120,6 +123,8 @@ class Installation extends Model
         'handover_at' => 'datetime',
         'stock_consumed_at' => 'datetime',
     ];
+
+    protected $hidden = ['action_token'];
 
     protected $appends = ['cost_report'];
 

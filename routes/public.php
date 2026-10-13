@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Public\BlogController;
+use App\Http\Controllers\Public\BookingActionController;
 use App\Http\Controllers\Public\ContactController;
 use App\Http\Controllers\Public\HomeController;
 use App\Http\Controllers\Public\LegalController;
@@ -38,3 +39,8 @@ Route::name('public.')->middleware('track.views')->group(function () {
         ->name('shop.checkout');
     Route::get('/magazin/{slug}', [ShopController::class, 'show'])->name('shop.show');
 });
+
+Route::get('/c/{token}', [BookingActionController::class, 'show'])
+    ->middleware('throttle:30,1')->name('booking.action');
+Route::post('/c/{token}', [BookingActionController::class, 'update'])
+    ->middleware('throttle:10,1')->name('booking.action.update');
