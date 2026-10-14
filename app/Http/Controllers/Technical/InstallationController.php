@@ -8,6 +8,7 @@ use App\Models\Equipment;
 use App\Models\Installation;
 use App\Models\Invoice;
 use App\Models\Offer;
+use App\Models\OfferItem;
 use App\Models\Review;
 use App\Models\Service;
 use App\Models\Setting;
@@ -536,11 +537,35 @@ class InstallationController extends Controller
                 ->filter(fn (float $quantity) => $quantity > 0);
         }
 
-        return collect($installation->material_items ?? [])
+        return $this->plannedMaterialItems($installation)
             ->filter(fn (array $item) => ! empty($item['equipment_id']))
             ->groupBy('equipment_id')
             ->map(fn ($items) => (float) $items->sum('quantity'))
             ->filter(fn (float $quantity) => $quantity > 0);
+    }
+
+    /**
+     * Materialele planificate ale lucrării. Pentru programările legate de un
+     * deviz se folosesc liniile actuale ale ofertei, nu copia veche din
+     * programare; altfel se folosește lista salvată pe programare.
+     *
+     * @return Collection<int, array<string, mixed>>
+     */
+    private function plannedMaterialItems(Installation $installation): Collection
+    {
+        $offer = $installation->offer;
+
+        if ($offer) {
+            return $offer->items
+                ->where('section', OfferItem::SECTION_MATERIALS)
+                ->map(fn (OfferItem $item): array => [
+                    'equipment_id' => $item->equipment_id,
+                    'quantity' => (int) $item->quantity,
+                ])
+                ->values();
+        }
+
+        return collect($installation->material_items ?? []);
     }
 
     private function ensureInstallationIsEditable(Installation $installation): void

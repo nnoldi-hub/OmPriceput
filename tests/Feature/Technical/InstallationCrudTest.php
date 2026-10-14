@@ -4,6 +4,7 @@ namespace Tests\Feature\Technical;
 
 use App\Models\Client;
 use App\Models\Equipment;
+use App\Models\Expense;
 use App\Models\Installation;
 use App\Models\Invoice;
 use App\Models\Offer;
@@ -363,6 +364,31 @@ class InstallationCrudTest extends TestCase
         $this->assertSame(1000.0, $installation->cost_report['estimated_profit']);
     }
 
+    public function test_final_profit_uses_actual_expenses_instead_of_estimate_when_present(): void
+    {
+        $equipment = Equipment::factory()->create(['cost_price' => 150]);
+        $offer = Offer::factory()->create(['total_amount' => 1425]);
+        $installation = Installation::factory()->create([
+            'offer_id' => $offer->id,
+            'status' => 'completed',
+            'material_items' => [['equipment_id' => $equipment->id, 'quantity' => 2]],
+        ]);
+
+        Expense::create([
+            'installation_id' => $installation->id,
+            'description' => 'Materiale cumparate',
+            'category' => 'material',
+            'amount' => 379.07,
+            'expense_date' => now()->toDateString(),
+        ]);
+
+        $report = $installation->fresh()->cost_report;
+
+        $this->assertSame(379.07, $report['actual_expenses']);
+        $this->assertSame(379.07, $report['actual_total_cost']);
+        $this->assertSame(1045.93, $report['final_profit']);
+    }
+
     public function test_installations_can_be_filtered_by_type(): void
     {
         Installation::factory()->create(['type' => 'instalare']);
@@ -443,5 +469,33 @@ class InstallationCrudTest extends TestCase
 
         $this->assertDatabaseHas('equipment', ['id' => $equipment->id, 'stock_quantity' => 2]);
         $this->assertDatabaseHas('installations', ['id' => $installation->id, 'status' => 'in_progress']);
+    }
+
+    public function test_completion_consumes_materials_from_the_linked_offer_not_the_stale_snapshot(): void
+    {
+        $staleEquipment = Equipment::factory()->create(['stock_quantity' => 10, 'name' => 'Wago vechi']);
+        $currentEquipment = Equipment::factory()->create(['stock_quantity' => 10, 'name' => 'Cablu nou']);
+
+        $offer = Offer::factory()->create(['total_amount' => 500]);
+        $offer->items()->create([
+            'equipment_id' => $currentEquipment->id,
+            'section' => 'materials',
+            'description' => 'Cablu nou',
+            'quantity' => 4,
+            'unit' => 'buc',
+        ]);
+
+        $installation = Installation::factory()->create([
+            'offer_id' => $offer->id,
+            'status' => 'in_progress',
+            'material_items' => [['equipment_id' => $staleEquipment->id, 'name' => 'Wago vechi', 'unit' => 'buc', 'quantity' => 3]],
+        ]);
+
+        $this->actingAs($this->techUser)
+            ->patch(route('technical.installations.status', $installation), ['status' => 'completed'])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('equipment', ['id' => $currentEquipment->id, 'stock_quantity' => 6]);
+        $this->assertDatabaseHas('equipment', ['id' => $staleEquipment->id, 'stock_quantity' => 10]);
     }
 }

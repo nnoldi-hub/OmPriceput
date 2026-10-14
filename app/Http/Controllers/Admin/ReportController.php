@@ -107,6 +107,7 @@ class ReportController extends Controller
                     'material_cost' => $report['material_cost'],
                     'labor_cost' => $report['labor_cost'],
                     'actual_expenses' => $report['actual_expenses'],
+                    'actual_total_cost' => $report['actual_total_cost'],
                     'profit' => $report['final_profit'] ?? 0,
                 ];
             });
@@ -116,7 +117,7 @@ class ReportController extends Controller
                 'client' => $clientName,
                 'installations' => $rows->count(),
                 'revenue' => round($rows->sum('offer_value'), 2),
-                'cost' => round($rows->sum('material_cost') + $rows->sum('labor_cost') + $rows->sum('actual_expenses'), 2),
+                'cost' => round($rows->sum('actual_total_cost'), 2),
                 'profit' => round($rows->sum('profit'), 2),
             ];
         })->sortByDesc('profit')->values();
@@ -126,7 +127,7 @@ class ReportController extends Controller
                 'technician' => $technicianName,
                 'installations' => $rows->count(),
                 'revenue' => round($rows->sum('offer_value'), 2),
-                'cost' => round($rows->sum('material_cost') + $rows->sum('labor_cost') + $rows->sum('actual_expenses'), 2),
+                'cost' => round($rows->sum('actual_total_cost'), 2),
                 'profit' => round($rows->sum('profit'), 2),
             ];
         })->sortByDesc('profit')->values();
@@ -139,7 +140,7 @@ class ReportController extends Controller
             'summary' => [
                 'installations' => $installations->count(),
                 'revenue' => round($installations->sum('offer_value'), 2),
-                'cost' => round($installations->sum('material_cost') + $installations->sum('labor_cost') + $installations->sum('actual_expenses'), 2),
+                'cost' => round($installations->sum('actual_total_cost'), 2),
                 'profit' => round($installations->sum('profit'), 2),
             ],
             'byClient' => $byClient,

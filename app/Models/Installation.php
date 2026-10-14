@@ -217,9 +217,11 @@ class Installation extends Model
             'labor_cost' => round($laborCost, 2),
             'total_cost' => round($totalCost, 2),
             'actual_expenses' => round($actualExpenses, 2),
-            'actual_total_cost' => round($totalCost + $actualExpenses, 2),
+            'actual_total_cost' => round($actualExpenses > 0 ? $actualExpenses : $totalCost, 2),
             'estimated_profit' => round($offerValue - $totalCost, 2),
-            'final_profit' => $this->status === 'completed' ? round($offerValue - $totalCost - $actualExpenses, 2) : null,
+            'final_profit' => $this->status === 'completed'
+                ? round($offerValue - ($actualExpenses > 0 ? $actualExpenses : $totalCost), 2)
+                : null,
         ];
     }
 
