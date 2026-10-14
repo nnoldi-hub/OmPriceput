@@ -125,6 +125,102 @@ class MaterialRequirementTest extends TestCase
         $this->assertSame(3.0, $result['rows'][0]['needed']);
     }
 
+    public function test_editing_an_accepted_offer_updates_the_installation_requirement(): void
+    {
+        $oldEquipment = Equipment::factory()->create(['stock_quantity' => 0, 'name' => 'Conector Wago 2 pini']);
+        $newEquipment = Equipment::factory()->create(['stock_quantity' => 0, 'name' => 'Cablu CYY-F']);
+
+        $offer = Offer::factory()->create(['status' => 'accepted']);
+        $offer->items()->create([
+            'equipment_id' => $oldEquipment->id,
+            'section' => OfferItem::SECTION_MATERIALS,
+            'description' => $oldEquipment->name,
+            'quantity' => 5,
+            'unit' => 'buc',
+            'unit_price' => 2,
+        ]);
+
+        Installation::factory()->create([
+            'offer_id' => $offer->id,
+            'status' => 'scheduled',
+            'scheduled_at' => now()->addDay(),
+            'material_items' => [['equipment_id' => $oldEquipment->id, 'name' => $oldEquipment->name, 'unit' => 'buc', 'quantity' => 5]],
+        ]);
+
+        $offer->items()->delete();
+        $offer->items()->create([
+            'equipment_id' => $newEquipment->id,
+            'section' => OfferItem::SECTION_MATERIALS,
+            'description' => $newEquipment->name,
+            'quantity' => 10,
+            'unit' => 'm',
+            'unit_price' => 4,
+        ]);
+        $offer->items()->create([
+            'section' => OfferItem::SECTION_MATERIALS,
+            'description' => 'Copex 20',
+            'quantity' => 7,
+            'unit' => 'm',
+            'unit_price' => 1.5,
+        ]);
+
+        $result = $this->build();
+        $names = collect($result['rows'])->pluck('name')->all();
+
+        $this->assertContains('Cablu CYY-F', $names);
+        $this->assertContains('Copex 20', $names);
+        $this->assertNotContains('Conector Wago 2 pini', $names);
+    }
+
+    public function test_free_text_offer_line_can_be_added_to_catalog_from_requirements(): void
+    {
+        $offer = Offer::factory()->create(['status' => 'accepted']);
+        $item = $offer->items()->create([
+            'section' => OfferItem::SECTION_MATERIALS,
+            'description' => 'Ipsos de tencuit',
+            'quantity' => 3,
+            'unit' => 'kg',
+            'unit_price' => 25,
+        ]);
+        Installation::factory()->create([
+            'offer_id' => $offer->id,
+            'status' => 'scheduled',
+            'scheduled_at' => now()->addDay(),
+        ]);
+
+        $this->actingAs($this->technician())
+            ->post(route('technical.requirements.items.catalog', $item))
+            ->assertRedirect();
+
+        $equipment = Equipment::firstWhere('name', 'Ipsos de tencuit');
+        $this->assertNotNull($equipment);
+        $this->assertSame($equipment->id, $item->fresh()->equipment_id);
+
+        $result = $this->build();
+        $row = collect($result['rows'])->firstWhere('name', 'Ipsos de tencuit');
+        $this->assertNotNull($row);
+        $this->assertTrue($row['in_catalog']);
+    }
+
+    public function test_adding_catalog_item_from_requirements_requires_equipment_manage_permission(): void
+    {
+        $offer = Offer::factory()->create(['status' => 'accepted']);
+        $item = $offer->items()->create([
+            'section' => OfferItem::SECTION_MATERIALS,
+            'description' => 'Priza aparenta',
+            'quantity' => 2,
+            'unit' => 'buc',
+            'unit_price' => 15,
+        ]);
+
+        $support = User::factory()->create();
+        $support->assignRole('suport');
+
+        $this->actingAs($support)
+            ->post(route('technical.requirements.items.catalog', $item))
+            ->assertForbidden();
+    }
+
     public function test_finalized_and_cancelled_installations_are_ignored(): void
     {
         $equipment = Equipment::factory()->create(['stock_quantity' => 0]);

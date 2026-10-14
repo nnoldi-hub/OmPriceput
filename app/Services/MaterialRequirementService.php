@@ -60,7 +60,10 @@ class MaterialRequirementService
         $lines = collect();
 
         $installations = Installation::query()
-            ->with('client:id,name')
+            ->with([
+                'client:id,name',
+                'offer.items.equipment:id,name,unit,unit_price,cost_price,supplier_id',
+            ])
             ->whereIn('status', ['scheduled', 'in_progress'])
             ->when($installationId, fn ($query) => $query->whereKey($installationId))
             ->when(! $installationId && $from && $to, function ($query) use ($from, $to, $includeUnscheduled) {
@@ -74,14 +77,42 @@ class MaterialRequirementService
             ->get();
 
         foreach ($installations as $installation) {
+            $label = $installation->client?->name ?? 'Programare #'.$installation->id;
+
+            if ($installation->offer_id && $installation->offer) {
+                foreach ($installation->offer->items as $item) {
+                    if ($item->section !== OfferItem::SECTION_MATERIALS) {
+                        continue;
+                    }
+
+                    $lines->push([
+                        'equipment_id' => $item->equipment_id ? (int) $item->equipment_id : null,
+                        'offer_item_id' => $item->id,
+                        'name' => $item->equipment?->name ?? $item->description,
+                        'unit' => $item->unit ?: ($item->equipment?->unit ?? 'buc'),
+                        'quantity' => (float) $item->quantity,
+                        'unit_price' => (float) $item->unit_price,
+                        'source' => 'installation',
+                        'label' => $label,
+                        'date' => $installation->scheduled_at,
+                        'installation_id' => $installation->id,
+                        'offer_id' => $installation->offer_id,
+                    ]);
+                }
+
+                continue;
+            }
+
             foreach ($installation->material_items ?? [] as $item) {
                 $lines->push([
                     'equipment_id' => ! empty($item['equipment_id']) ? (int) $item['equipment_id'] : null,
+                    'offer_item_id' => null,
                     'name' => (string) ($item['name'] ?? ''),
                     'unit' => (string) ($item['unit'] ?? 'buc'),
                     'quantity' => (float) ($item['quantity'] ?? 0),
+                    'unit_price' => null,
                     'source' => 'installation',
-                    'label' => $installation->client?->name ?? 'Programare #'.$installation->id,
+                    'label' => $label,
                     'date' => $installation->scheduled_at,
                     'installation_id' => $installation->id,
                     'offer_id' => $installation->offer_id,
@@ -103,9 +134,11 @@ class MaterialRequirementService
                     }
                     $lines->push([
                         'equipment_id' => $item->equipment_id ? (int) $item->equipment_id : null,
+                        'offer_item_id' => $item->id,
                         'name' => $item->equipment?->name ?? $item->description,
                         'unit' => $item->unit ?: ($item->equipment?->unit ?? 'buc'),
                         'quantity' => (float) $item->quantity,
+                        'unit_price' => (float) $item->unit_price,
                         'source' => 'offer',
                         'label' => ($offer->client?->name ?? 'Oferta').' (oferta #'.$offer->id.')',
                         'date' => $offer->created_at,
@@ -142,6 +175,9 @@ class MaterialRequirementService
                 $inStock = $record ? (float) $record->stock_quantity : 0.0;
                 $toBuy = max(0, round($needed - $inStock, 2));
                 $unitCost = $record ? (float) ($record->cost_price ?? 0) : 0.0;
+                $unitPrice = $record
+                    ? (float) $record->unit_price
+                    : (float) $group->pluck('unit_price')->filter()->first();
 
                 return [
                     'key' => $key,
@@ -152,6 +188,7 @@ class MaterialRequirementService
                     'in_stock' => round($inStock, 2),
                     'to_buy' => $toBuy,
                     'unit_cost' => $unitCost,
+                    'unit_price' => round($unitPrice, 2),
                     'estimated_cost' => round($toBuy * $unitCost, 2),
                     'supplier_id' => $record?->supplier_id,
                     'supplier_name' => $record?->supplier?->name,
@@ -162,6 +199,7 @@ class MaterialRequirementService
                         'date' => $line['date']?->toDateString(),
                         'installation_id' => $line['installation_id'],
                         'offer_id' => $line['offer_id'],
+                        'offer_item_id' => $line['offer_item_id'] ?? null,
                     ])->values()->all(),
                 ];
             })

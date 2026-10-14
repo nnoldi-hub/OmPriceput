@@ -1,0 +1,1 @@
+import{L as e,O as t,_ as n,h as r,i,t as a}from"./app-DHHeqKhi.js";var o={__name:`SeoHead`,setup(o){let s=i(),c=r(()=>s.props.seo?.title||document.title);return(r,i)=>(t(),n(e(a),{title:c.value},null,8,[`title`]))}};export{o as t};

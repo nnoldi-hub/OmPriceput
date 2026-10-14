@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Sales;
 
 use App\Exports\OffersExport;
 use App\Http\Controllers\Controller;
-use App\Models\AuditLog;
 use App\Models\Client;
 use App\Models\Equipment;
 use App\Models\Installation;
@@ -14,6 +13,7 @@ use App\Models\Service;
 use App\Models\User;
 use App\Notifications\OfferAvailable;
 use App\Notifications\OfferSent;
+use App\Services\EquipmentCatalogService;
 use App\Services\SmsService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
@@ -255,7 +255,7 @@ class OfferController extends Controller
      * Adaugă în catalogul de materiale o linie scrisă liber pe ofertă, apoi o
      * leagă de articolul nou creat. Astfel devizul alimentează singur catalogul.
      */
-    public function storeItemInCatalog(Request $request, Offer $offer, OfferItem $item): RedirectResponse
+    public function storeItemInCatalog(Request $request, Offer $offer, OfferItem $item, EquipmentCatalogService $catalog): RedirectResponse
     {
         abort_unless($item->offer_id === $offer->id, 404);
 
@@ -263,56 +263,9 @@ class OfferController extends Controller
             return back()->with('success', 'Linia este deja legată de un articol din catalog.');
         }
 
-        $equipment = DB::transaction(function () use ($offer, $item) {
-            $equipment = Equipment::create([
-                'name' => $item->description,
-                'category' => 'consumabil',
-                'unit' => $this->normalizeUnit($item->unit),
-                'unit_price' => $item->unit_price ?? 0,
-                'cost_price' => 0,
-                'markup_percent' => 0,
-                'stock_quantity' => 0,
-                'is_active' => true,
-            ]);
-
-            $description = mb_strtolower(trim((string) $item->description));
-
-            $offer->items()
-                ->whereNull('equipment_id')
-                ->where('section', OfferItem::SECTION_MATERIALS)
-                ->get()
-                ->filter(fn (OfferItem $line) => mb_strtolower(trim((string) $line->description)) === $description)
-                ->each(fn (OfferItem $line) => $line->update(['equipment_id' => $equipment->id]));
-
-            return $equipment;
-        });
-
-        AuditLog::record($request->user(), 'equipment.created_from_offer', "Articolul \"{$equipment->name}\" a fost adăugat în catalog din oferta #{$offer->id}.", $equipment, ['offer_id' => $offer->id]);
+        $equipment = $catalog->addFromOfferItem($item, $request->user());
 
         return back()->with('success', "\"{$equipment->name}\" a fost adăugat în catalog.");
-    }
-
-    private function normalizeUnit(?string $unit): string
-    {
-        $unit = mb_strtolower(trim((string) $unit));
-
-        $aliases = [
-            'mp' => 'm2',
-            'm²' => 'm2',
-            'metri' => 'metru',
-            'ml' => 'metru',
-            'm' => 'metru',
-            'bucata' => 'buc',
-            'bucati' => 'buc',
-            'bucăți' => 'buc',
-            'l' => 'litru',
-            'litri' => 'litru',
-            'ore' => 'ora',
-        ];
-
-        $unit = $aliases[$unit] ?? $unit;
-
-        return in_array($unit, Equipment::UNITS, true) ? $unit : 'buc';
     }
 
     public function pdf(Offer $offer): HttpResponse

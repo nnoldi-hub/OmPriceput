@@ -6,9 +6,11 @@ use App\Exports\ShoppingListExport;
 use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
 use App\Models\Installation;
+use App\Models\OfferItem;
 use App\Models\PurchaseOrder;
 use App\Models\Setting;
 use App\Models\Supplier;
+use App\Services\EquipmentCatalogService;
 use App\Services\MaterialRequirementService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
@@ -136,6 +138,25 @@ class RequirementController extends Controller
         }
 
         return redirect()->route('technical.purchase-orders.index')->with('success', $message);
+    }
+
+    /**
+     * Adaugă în catalog un material scris liber pe deviz, direct din lista de
+     * necesar / cumpărat, apoi leagă liniile identice din ofertă.
+     */
+    public function storeItemInCatalog(Request $request, OfferItem $item, EquipmentCatalogService $catalog): RedirectResponse
+    {
+        if ($item->section !== OfferItem::SECTION_MATERIALS) {
+            return back()->with('error', 'Doar materialele din deviz pot fi adăugate în catalog.');
+        }
+
+        if ($item->equipment_id) {
+            return back()->with('success', 'Linia este deja legată de un articol din catalog.');
+        }
+
+        $equipment = $catalog->addFromOfferItem($item, $request->user());
+
+        return back()->with('success', "\"{$equipment->name}\" a fost adăugat în catalog.");
     }
 
     /**

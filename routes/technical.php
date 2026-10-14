@@ -62,6 +62,7 @@ Route::middleware(['auth', 'verified'])->prefix('tehnic')->name('technical.')->g
         Route::patch('/comenzi-furnizori/{purchaseOrder}/anuleaza', [PurchaseOrderController::class, 'cancel'])->name('purchase-orders.cancel');
 
         Route::post('/lista-cumparaturi/comanda', [RequirementController::class, 'createPurchaseOrders'])->name('requirements.purchase-orders');
+        Route::post('/necesar/articole/{item}/catalog', [RequirementController::class, 'storeItemInCatalog'])->name('requirements.items.catalog');
     });
 
     Route::middleware('permission:equipment.view')->group(function () {

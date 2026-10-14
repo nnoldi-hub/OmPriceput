@@ -1,7 +1,10 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import { usePermissions } from '@/Composables/usePermissions';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { computed, reactive } from 'vue';
+
+const { canManage } = usePermissions();
 
 const props = defineProps({
     rows: Array,
@@ -75,6 +78,15 @@ function money(value) {
 
 function qty(value) {
     return Number(value ?? 0).toLocaleString('ro-RO', { maximumFractionDigits: 2 });
+}
+
+function catalogSources(row) {
+    return (row.sources ?? []).filter((source) => source.offer_item_id);
+}
+
+function addToCatalog(source) {
+    if (!source?.offer_item_id) return;
+    router.post(route('technical.requirements.items.catalog', source.offer_item_id), {}, { preserveScroll: true });
 }
 </script>
 
@@ -180,8 +192,20 @@ function qty(value) {
                                     <div class="font-medium text-slate-800">{{ row.name }}</div>
                                     <div class="text-xs text-slate-400">
                                         {{ row.unit }}
-                                        <span v-if="!row.in_catalog" class="ml-1 rounded bg-slate-100 px-1.5 py-0.5 text-slate-500">fără catalog</span>
+                                        <span v-if="!row.in_catalog" class="ml-1 rounded bg-amber-100 px-1.5 py-0.5 text-amber-700">necatalogat</span>
                                         <span v-else-if="row.sources.length > 1" class="ml-1">{{ row.sources.length }} lucrări</span>
+                                    </div>
+                                    <div v-if="!row.in_catalog && canManage('equipment') && catalogSources(row).length" class="mt-1 flex flex-wrap gap-1">
+                                        <button
+                                            v-for="source in catalogSources(row)"
+                                            :key="source.offer_item_id"
+                                            type="button"
+                                            class="rounded border border-blue-200 bg-blue-50 px-1.5 py-0.5 text-[11px] font-medium text-blue-700 hover:bg-blue-100"
+                                            :title="source.label"
+                                            @click="addToCatalog(source)"
+                                        >
+                                            Adaugă în catalog
+                                        </button>
                                     </div>
                                 </td>
                                 <td class="px-4 py-3 text-right text-slate-700">{{ qty(row.needed) }}</td>

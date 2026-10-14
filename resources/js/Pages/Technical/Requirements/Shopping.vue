@@ -78,6 +78,15 @@ function qty(value) {
     return Number(value ?? 0).toLocaleString('ro-RO', { maximumFractionDigits: 2 });
 }
 
+function catalogSources(item) {
+    return (item.sources ?? []).filter((source) => source.offer_item_id);
+}
+
+function addToCatalog(source) {
+    if (!source?.offer_item_id) return;
+    router.post(route('technical.requirements.items.catalog', source.offer_item_id), {}, { preserveScroll: true });
+}
+
 function copyText() {
     const anyChecked = allItems.value.some((item) => isChecked(item));
     const lines = [`LISTĂ DE CUMPĂRAT - ${props.meta.period_label}`, ''];
@@ -203,8 +212,23 @@ function generateOrders() {
                                 @change="checked[item.key] = !checked[item.key]"
                             />
                             <div class="flex-1">
-                                <div class="font-medium text-slate-800" :class="isChecked(item) ? 'line-through text-slate-400' : ''">{{ item.name }}</div>
+                                <div class="font-medium text-slate-800" :class="isChecked(item) ? 'line-through text-slate-400' : ''">
+                                    {{ item.name }}
+                                    <span v-if="!item.in_catalog" class="ml-1 rounded bg-amber-100 px-1.5 py-0.5 text-[11px] font-normal text-amber-700">necatalogat</span>
+                                </div>
                                 <div class="text-xs text-slate-400">necesar {{ qty(item.needed) }} · în stoc {{ qty(item.in_stock) }}</div>
+                                <div v-if="!item.in_catalog && canManage('equipment') && catalogSources(item).length" class="mt-1 flex flex-wrap gap-1 print:hidden">
+                                    <button
+                                        v-for="source in catalogSources(item)"
+                                        :key="source.offer_item_id"
+                                        type="button"
+                                        class="rounded border border-blue-200 bg-blue-50 px-1.5 py-0.5 text-[11px] font-medium text-blue-700 hover:bg-blue-100"
+                                        :title="source.label"
+                                        @click="addToCatalog(source)"
+                                    >
+                                        Adaugă în catalog
+                                    </button>
+                                </div>
                             </div>
                             <div class="text-right">
                                 <div class="font-semibold text-slate-800">{{ qty(item.to_buy) }} {{ item.unit }}</div>
