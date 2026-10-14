@@ -36,11 +36,11 @@ class ProjectPageTest extends TestCase
 
     public function test_projects_index_lists_projects_with_open_counts(): void
     {
-        $project = Project::factory()->create(['name' => 'Lansare anunturi']);
+        $project = Project::factory()->create(['name' => 'Lansare anunturi', 'status' => 'activ']);
         AgendaItem::factory()->create(['project_id' => $project->id, 'status' => 'de_facut']);
         AgendaItem::factory()->create(['project_id' => $project->id, 'status' => 'gata']);
         AgendaItem::factory()->create(['project_id' => $project->id, 'status' => 'arhivat']);
-        Project::factory()->create(['name' => 'Fara taskuri']);
+        Project::factory()->create(['name' => 'Fara taskuri', 'status' => 'activ']);
 
         $this->actingAs($this->admin)
             ->get(route('agenda.projects.index'))

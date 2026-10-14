@@ -1,1 +1,0 @@
-import{h as e,i as t}from"./app-BDDHo7nt.js";function n(){let n=e(()=>t().props.auth??{}),r=e(()=>n.value.roles??[]),i=e(()=>n.value.permissions??[]),a=(...e)=>e.some(e=>r.value.includes(e)),o=(...e)=>e.some(e=>i.value.includes(e));return{roles:r,permissions:i,hasRole:a,can:o,canManage:e=>o(`${e}.manage`)}}export{n as t};

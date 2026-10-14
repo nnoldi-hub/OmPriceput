@@ -51,6 +51,7 @@ Route::middleware(['auth', 'verified'])->prefix('vanzari')->name('sales.')->grou
     Route::middleware('permission:offers.manage')->group(function () {
         Route::resource('oferte', OfferController::class)->only(['create', 'store', 'edit', 'update', 'destroy'])->parameters(['oferte' => 'offer'])->names('offers');
         Route::patch('/oferte/{offer}/status', [OfferController::class, 'updateStatus'])->name('offers.status');
+        Route::post('/oferte/{offer}/articole/{item}/catalog', [OfferController::class, 'storeItemInCatalog'])->name('offers.items.catalog');
     });
 
     Route::middleware('permission:offers.view')->group(function () {

@@ -16,6 +16,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response as HttpResponse;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
@@ -194,6 +195,13 @@ class InstallationController extends Controller
     {
         $data = $request->validate([
             'status' => ['required', 'in:scheduled,in_progress,completed,cancelled'],
+            'consumption' => ['nullable', 'array'],
+            'consumption.*.equipment_id' => ['nullable', 'integer', 'exists:equipment,id'],
+            'consumption.*.name' => ['nullable', 'string', 'max:255'],
+            'consumption.*.unit' => ['nullable', 'string', 'max:20'],
+            'consumption.*.planned' => ['nullable', 'numeric', 'min:0'],
+            'consumption.*.consumed' => ['required_with:consumption', 'numeric', 'min:0'],
+            'consumption.*.left_with_client' => ['nullable', 'numeric', 'min:0'],
         ]);
 
         if ($this->installationIsFinalized($installation) && $data['status'] !== 'completed') {
@@ -203,7 +211,12 @@ class InstallationController extends Controller
         }
 
         DB::transaction(function () use ($data, $installation) {
-            $installation->update($data);
+            if ($data['status'] === 'completed' && array_key_exists('consumption', $data) && $data['consumption'] !== null) {
+                $installation->update(['consumption' => $this->normalizeConsumption($data['consumption'])]);
+            }
+
+            $installation->update(['status' => $data['status']]);
+
             if ($data['status'] === 'completed') {
                 $this->markCompleted($installation);
                 $this->consumeMaterialsFromStock($installation);
@@ -212,6 +225,32 @@ class InstallationController extends Controller
         });
 
         return back()->with('success', 'Status actualizat.');
+    }
+
+    /**
+     * Normalizează consumul raportat pe șantier: fiecare linie reține cât s-a
+     * montat efectiv, cât a rămas la client și cât se întoarce în stoc.
+     *
+     * @param  array<int, array<string, mixed>>  $lines
+     * @return array<int, array<string, mixed>>
+     */
+    private function normalizeConsumption(array $lines): array
+    {
+        return collect($lines)->map(function (array $line): array {
+            $planned = (float) ($line['planned'] ?? 0);
+            $consumed = (float) ($line['consumed'] ?? 0);
+            $leftWithClient = (float) ($line['left_with_client'] ?? 0);
+
+            return [
+                'equipment_id' => ! empty($line['equipment_id']) ? (int) $line['equipment_id'] : null,
+                'name' => (string) ($line['name'] ?? ''),
+                'unit' => (string) ($line['unit'] ?? 'buc'),
+                'planned' => round($planned, 2),
+                'consumed' => round($consumed, 2),
+                'left_with_client' => round($leftWithClient, 2),
+                'returned' => round(max(0, $planned - $consumed - $leftWithClient), 2),
+            ];
+        })->values()->all();
     }
 
     private function createInvoiceFromCompletedInstallation(Installation $installation): void
@@ -410,13 +449,15 @@ class InstallationController extends Controller
 
     private function consumeMaterialsFromStock(Installation $installation): void
     {
-        if ($installation->stock_consumed_at || empty($installation->material_items)) {
+        if ($installation->stock_consumed_at) {
             return;
         }
 
-        $quantities = collect($installation->material_items)
-            ->groupBy('equipment_id')
-            ->map(fn ($items) => $items->sum('quantity'));
+        $quantities = $this->consumptionQuantities($installation);
+
+        if ($quantities->isEmpty()) {
+            return;
+        }
 
         foreach ($quantities as $equipmentId => $quantity) {
             $equipment = Equipment::query()->lockForUpdate()->findOrFail($equipmentId);
@@ -432,6 +473,32 @@ class InstallationController extends Controller
         }
 
         $installation->update(['stock_consumed_at' => now()]);
+    }
+
+    /**
+     * Cantitățile care se scad din stoc la finalizare.
+     *
+     * Dacă șantierul a raportat consumul real, se scade doar ce s-a montat plus
+     * ce a rămas la client (marfa a ieșit din stoc); restul rămâne în stoc. Fără
+     * raport se păstrează comportamentul vechi: se scade tot necesarul planificat.
+     *
+     * @return Collection<int, float>
+     */
+    private function consumptionQuantities(Installation $installation): Collection
+    {
+        if (! empty($installation->consumption)) {
+            return collect($installation->consumption)
+                ->filter(fn (array $line) => ! empty($line['equipment_id']))
+                ->groupBy('equipment_id')
+                ->map(fn ($lines) => $lines->sum(fn (array $line) => (float) ($line['consumed'] ?? 0) + (float) ($line['left_with_client'] ?? 0)))
+                ->filter(fn (float $quantity) => $quantity > 0);
+        }
+
+        return collect($installation->material_items ?? [])
+            ->filter(fn (array $item) => ! empty($item['equipment_id']))
+            ->groupBy('equipment_id')
+            ->map(fn ($items) => (float) $items->sum('quantity'))
+            ->filter(fn (float $quantity) => $quantity > 0);
     }
 
     private function ensureInstallationIsEditable(Installation $installation): void

@@ -1,5 +1,6 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import Modal from '@/Components/Modal.vue';
 import { usePermissions } from '@/Composables/usePermissions';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { computed, reactive, ref } from 'vue';
@@ -60,7 +61,52 @@ const mapLink = computed(() => mapQuery.value
 
 function setStatus(status) {
     if (isFinalized.value && status !== 'completed') return;
+    if (status === 'completed' && !isFinalized.value && hasMaterials.value) {
+        openCompletion();
+        return;
+    }
     router.patch(route('technical.installations.status', props.installation.id), { status }, { preserveScroll: true });
+}
+
+// ---- Finalizare cu consum real de materiale ----
+const hasMaterials = computed(() => (props.installation.material_items ?? []).length > 0);
+const showCompletion = ref(false);
+const completionRows = reactive([]);
+const completionError = computed(() =>
+    completionRows.some((row) => (Number(row.consumed) || 0) + (Number(row.left_with_client) || 0) > (Number(row.planned) || 0)),
+);
+
+function openCompletion() {
+    completionRows.splice(
+        0,
+        completionRows.length,
+        ...(props.installation.material_items ?? []).map((item) => ({
+            equipment_id: item.equipment_id ?? null,
+            name: item.name,
+            unit: item.unit ?? 'buc',
+            planned: Number(item.quantity) || 0,
+            consumed: Number(item.quantity) || 0,
+            left_with_client: 0,
+        })),
+    );
+    showCompletion.value = true;
+}
+
+function returned(row) {
+    return Math.max(0, (Number(row.planned) || 0) - (Number(row.consumed) || 0) - (Number(row.left_with_client) || 0));
+}
+
+function submitCompletion() {
+    if (completionError.value) return;
+    router.patch(route('technical.installations.status', props.installation.id), {
+        status: 'completed',
+        consumption: completionRows.map((row) => ({ ...row })),
+    }, {
+        preserveScroll: true,
+        onSuccess: () => {
+            showCompletion.value = false;
+        },
+    });
 }
 
 function toggleItem(index) {
@@ -274,6 +320,16 @@ function money(value) {
                                     </ul>
                                 </dd>
                             </div>
+                            <div v-if="installation.consumption?.length" class="sm:col-span-2">
+                                <dt class="text-slate-400">Consum și retur materiale</dt>
+                                <dd class="text-slate-900">
+                                    <ul class="mt-1 list-disc pl-5">
+                                        <li v-for="(line, index) in installation.consumption" :key="`${line.equipment_id}-${index}`">
+                                            {{ line.name }} — consumat {{ line.consumed }} {{ line.unit }}<span v-if="line.left_with_client">, rămas la client {{ line.left_with_client }}</span><span v-if="line.returned">, returnat în stoc {{ line.returned }}</span>
+                                        </li>
+                                    </ul>
+                                </dd>
+                            </div>
                             <div v-if="installation.service_items?.length" class="sm:col-span-2">
                                 <dt class="text-slate-400">Servicii / manoperă planificată</dt>
                                 <dd class="text-slate-900">
@@ -326,5 +382,57 @@ function money(value) {
                 </div>
             </div>
         </div>
+
+        <Modal :show="showCompletion" max-width="2xl" @close="showCompletion = false">
+            <div class="p-6">
+                <h3 class="text-lg font-semibold text-slate-800">Finalizează lucrarea</h3>
+                <p class="mt-1 text-sm text-slate-500">
+                    Completează cât s-a consumat efectiv și cât a rămas la client. Restul se întoarce în stoc.
+                </p>
+
+                <div class="mt-4 overflow-x-auto">
+                    <table class="min-w-full divide-y divide-slate-200 text-sm">
+                        <thead>
+                            <tr class="text-left text-xs font-medium uppercase text-slate-500">
+                                <th class="py-2 pr-2">Material</th>
+                                <th class="py-2 px-2 text-right">Planificat</th>
+                                <th class="py-2 px-2 text-right">Consumat</th>
+                                <th class="py-2 px-2 text-right">Rămas la client</th>
+                                <th class="py-2 pl-2 text-right">Returnat</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            <tr v-for="(row, index) in completionRows" :key="index">
+                                <td class="py-2 pr-2">
+                                    <div class="font-medium text-slate-800">{{ row.name }}</div>
+                                    <div class="text-xs text-slate-400">{{ row.unit }}</div>
+                                </td>
+                                <td class="py-2 px-2 text-right text-slate-500">{{ row.planned }}</td>
+                                <td class="py-2 px-2 text-right">
+                                    <input v-model.number="row.consumed" type="number" min="0" step="1" class="w-20 rounded-md border-slate-300 text-right text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500" />
+                                </td>
+                                <td class="py-2 px-2 text-right">
+                                    <input v-model.number="row.left_with_client" type="number" min="0" step="1" class="w-20 rounded-md border-slate-300 text-right text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500" />
+                                </td>
+                                <td class="py-2 pl-2 text-right font-medium text-slate-700">{{ returned(row) }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <p v-if="completionError" class="mt-3 text-sm font-medium text-red-600">
+                    Consumul plus ce rămâne la client nu poate depăși cantitatea planificată.
+                </p>
+
+                <div class="mt-5 flex justify-end gap-3">
+                    <button type="button" class="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50" @click="showCompletion = false">
+                        Anulează
+                    </button>
+                    <button type="button" :disabled="completionError" class="rounded-md bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-500 disabled:cursor-not-allowed disabled:opacity-50" @click="submitCompletion">
+                        Finalizează
+                    </button>
+                </div>
+            </div>
+        </Modal>
     </AuthenticatedLayout>
 </template>

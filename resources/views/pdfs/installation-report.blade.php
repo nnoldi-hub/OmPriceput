@@ -108,6 +108,35 @@
         </div>
     @endif
 
+    @if (!empty($installation->consumption))
+        <div class="section">
+            <strong>Consum și retur materiale</strong>
+            <table>
+                <thead>
+                    <tr style="text-align: left;">
+                        <th style="padding: 4px 6px 4px 0;">Material</th>
+                        <th style="padding: 4px 6px; text-align: right;">Planificat</th>
+                        <th style="padding: 4px 6px; text-align: right;">Consumat</th>
+                        <th style="padding: 4px 6px; text-align: right;">Rămas la client</th>
+                        <th style="padding: 4px 6px; text-align: right;">Returnat în stoc</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach ($installation->consumption as $line)
+                        <tr>
+                            <td style="padding: 3px 6px 3px 0;">{{ $line['name'] ?? 'Material' }} ({{ $line['unit'] ?? 'buc' }})</td>
+                            <td style="padding: 3px 6px; text-align: right;">{{ $line['planned'] ?? 0 }}</td>
+                            <td style="padding: 3px 6px; text-align: right;">{{ $line['consumed'] ?? 0 }}</td>
+                            <td style="padding: 3px 6px; text-align: right;">{{ $line['left_with_client'] ?? 0 }}</td>
+                            <td style="padding: 3px 6px; text-align: right;">{{ $line['returned'] ?? 0 }}</td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+            <p class="muted" style="margin-top: 6px;">Din stoc se scad doar materialele consumate și cele rămase la client; cantitățile returnate rămân în stoc.</p>
+        </div>
+    @endif
+
     @if (!empty($installation->service_items))
         <div class="section">
             <strong>Servicii / manopera planificata</strong>

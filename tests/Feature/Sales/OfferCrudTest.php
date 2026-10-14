@@ -346,4 +346,57 @@ class OfferCrudTest extends TestCase
             ->where('pipeline.accepted.total', 1)
         );
     }
+
+    public function test_free_text_material_can_be_added_to_the_catalog(): void
+    {
+        $client = Client::factory()->create();
+        $offer = Offer::factory()->create(['client_id' => $client->id, 'user_id' => $this->salesUser->id]);
+        $item = $offer->items()->create([
+            'section' => 'materials',
+            'description' => 'Diblu special 12',
+            'quantity' => 4,
+            'unit' => 'buc',
+            'unit_price' => 3,
+        ]);
+
+        $this->actingAs($this->salesUser)
+            ->post(route('sales.offers.items.catalog', [$offer, $item]))
+            ->assertRedirect();
+
+        $equipment = Equipment::firstWhere('name', 'Diblu special 12');
+        $this->assertNotNull($equipment);
+        $this->assertSame('buc', $equipment->unit);
+        $this->assertEquals(3, $equipment->unit_price);
+        $this->assertTrue($equipment->is_active);
+        $this->assertSame($equipment->id, $item->fresh()->equipment_id);
+    }
+
+    public function test_adding_a_material_to_catalog_links_identical_lines_in_the_offer(): void
+    {
+        $client = Client::factory()->create();
+        $offer = Offer::factory()->create(['client_id' => $client->id, 'user_id' => $this->salesUser->id]);
+        $first = $offer->items()->create(['section' => 'materials', 'description' => 'Priza dubla', 'quantity' => 2, 'unit' => 'buc', 'unit_price' => 15]);
+        $second = $offer->items()->create(['section' => 'materials', 'description' => 'Priza dubla', 'quantity' => 3, 'unit' => 'buc', 'unit_price' => 15]);
+
+        $this->actingAs($this->salesUser)
+            ->post(route('sales.offers.items.catalog', [$offer, $first]))
+            ->assertRedirect();
+
+        $this->assertSame(1, Equipment::where('name', 'Priza dubla')->count());
+        $equipment = Equipment::firstWhere('name', 'Priza dubla');
+        $this->assertSame($equipment->id, $first->fresh()->equipment_id);
+        $this->assertSame($equipment->id, $second->fresh()->equipment_id);
+    }
+
+    public function test_already_linked_material_is_not_added_to_catalog_again(): void
+    {
+        $client = Client::factory()->create();
+        $offer = Offer::factory()->create(['client_id' => $client->id, 'user_id' => $this->salesUser->id]);
+        $item = $offer->items()->create(['section' => 'materials', 'description' => 'Cablu 3x2.5', 'quantity' => 5, 'unit' => 'm', 'unit_price' => 10]);
+
+        $this->actingAs($this->salesUser)->post(route('sales.offers.items.catalog', [$offer, $item]));
+        $this->actingAs($this->salesUser)->post(route('sales.offers.items.catalog', [$offer, $item]))->assertRedirect();
+
+        $this->assertSame(1, Equipment::where('name', 'Cablu 3x2.5')->count());
+    }
 }

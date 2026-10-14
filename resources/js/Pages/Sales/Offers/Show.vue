@@ -1,7 +1,10 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import { usePermissions } from '@/Composables/usePermissions';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { computed } from 'vue';
+
+const { canManage } = usePermissions();
 
 const props = defineProps({
     offer: Object,
@@ -71,6 +74,10 @@ function destroy() {
     if (confirm('Stergi aceasta oferta?')) {
         router.delete(route('sales.offers.destroy', props.offer.id));
     }
+}
+
+function addToCatalog(item) {
+    router.post(route('sales.offers.items.catalog', [props.offer.id, item.id]), {}, { preserveScroll: true });
 }
 </script>
 
@@ -162,7 +169,20 @@ function destroy() {
                             </thead>
                             <tbody class="divide-y divide-slate-100">
                                 <tr v-for="item in groups[section.key]" :key="item.id">
-                                    <td class="py-2">{{ item.description }}</td>
+                                    <td class="py-2">
+                                        <div class="flex items-center gap-2">
+                                            <span>{{ item.description }}</span>
+                                            <button
+                                                v-if="section.key === 'materials' && !item.equipment_id && canManage('offers')"
+                                                type="button"
+                                                class="rounded border border-blue-300 px-1.5 py-0.5 text-xs font-medium text-blue-600 hover:bg-blue-50"
+                                                title="Adaugă în catalogul de materiale"
+                                                @click="addToCatalog(item)"
+                                            >
+                                                + catalog
+                                            </button>
+                                        </div>
+                                    </td>
                                     <td class="py-2 text-right">{{ item.quantity }}</td>
                                     <td class="py-2 text-right">{{ item.unit }}</td>
                                     <td v-if="section.priced" class="py-2 text-right">{{ money(item.unit_price) }} lei</td>

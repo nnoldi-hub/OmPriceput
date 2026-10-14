@@ -376,4 +376,72 @@ class InstallationCrudTest extends TestCase
             ->has('installations.data', 1)
         );
     }
+
+    public function test_completion_uses_reported_consumption_and_returns_the_rest_to_stock(): void
+    {
+        $equipment = Equipment::factory()->create(['stock_quantity' => 10, 'name' => 'Cablu CYYF']);
+        $installation = Installation::factory()->create([
+            'status' => 'in_progress',
+            'material_items' => [['equipment_id' => $equipment->id, 'name' => 'Cablu CYYF', 'unit' => 'm', 'quantity' => 10]],
+        ]);
+
+        $this->actingAs($this->techUser)
+            ->patch(route('technical.installations.status', $installation), [
+                'status' => 'completed',
+                'consumption' => [
+                    ['equipment_id' => $equipment->id, 'name' => 'Cablu CYYF', 'unit' => 'm', 'planned' => 10, 'consumed' => 6, 'left_with_client' => 2],
+                ],
+            ])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('equipment', ['id' => $equipment->id, 'stock_quantity' => 2]);
+
+        $installation->refresh();
+        $this->assertEquals(6.0, $installation->consumption[0]['consumed']);
+        $this->assertEquals(2.0, $installation->consumption[0]['left_with_client']);
+        $this->assertEquals(2.0, $installation->consumption[0]['returned']);
+    }
+
+    public function test_completion_with_full_consumption_empties_the_planned_quantity(): void
+    {
+        $equipment = Equipment::factory()->create(['stock_quantity' => 5, 'name' => 'Priza']);
+        $installation = Installation::factory()->create([
+            'status' => 'in_progress',
+            'material_items' => [['equipment_id' => $equipment->id, 'name' => 'Priza', 'unit' => 'buc', 'quantity' => 5]],
+        ]);
+
+        $this->actingAs($this->techUser)
+            ->patch(route('technical.installations.status', $installation), [
+                'status' => 'completed',
+                'consumption' => [
+                    ['equipment_id' => $equipment->id, 'name' => 'Priza', 'unit' => 'buc', 'planned' => 5, 'consumed' => 5, 'left_with_client' => 0],
+                ],
+            ])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('equipment', ['id' => $equipment->id, 'stock_quantity' => 0]);
+        $installation->refresh();
+        $this->assertEquals(0.0, $installation->consumption[0]['returned']);
+    }
+
+    public function test_consumption_cannot_exceed_available_stock(): void
+    {
+        $equipment = Equipment::factory()->create(['stock_quantity' => 2, 'name' => 'Senzor']);
+        $installation = Installation::factory()->create([
+            'status' => 'in_progress',
+            'material_items' => [['equipment_id' => $equipment->id, 'name' => 'Senzor', 'unit' => 'buc', 'quantity' => 3]],
+        ]);
+
+        $this->actingAs($this->techUser)
+            ->patch(route('technical.installations.status', $installation), [
+                'status' => 'completed',
+                'consumption' => [
+                    ['equipment_id' => $equipment->id, 'name' => 'Senzor', 'unit' => 'buc', 'planned' => 3, 'consumed' => 3, 'left_with_client' => 0],
+                ],
+            ])
+            ->assertSessionHasErrors('material_items');
+
+        $this->assertDatabaseHas('equipment', ['id' => $equipment->id, 'stock_quantity' => 2]);
+        $this->assertDatabaseHas('installations', ['id' => $installation->id, 'status' => 'in_progress']);
+    }
 }

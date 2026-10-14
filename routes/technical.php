@@ -4,6 +4,7 @@ use App\Http\Controllers\Technical\DashboardController;
 use App\Http\Controllers\Technical\EquipmentController;
 use App\Http\Controllers\Technical\InstallationController;
 use App\Http\Controllers\Technical\PurchaseOrderController;
+use App\Http\Controllers\Technical\RequirementController;
 use App\Http\Controllers\Technical\ServiceController;
 use App\Http\Controllers\Technical\SupplierController;
 use App\Http\Controllers\Technical\TicketController;
@@ -39,6 +40,11 @@ Route::middleware(['auth', 'verified'])->prefix('tehnic')->name('technical.')->g
         Route::resource('servicii', ServiceController::class)->only(['index'])->parameters(['servicii' => 'service'])->names('services');
         Route::get('/furnizori', [SupplierController::class, 'index'])->name('suppliers.index');
         Route::resource('comenzi-furnizori', PurchaseOrderController::class)->only(['index'])->parameters(['comenzi-furnizori' => 'purchaseOrder'])->names('purchase-orders');
+
+        Route::get('/necesar', [RequirementController::class, 'index'])->name('requirements.index');
+        Route::get('/lista-cumparaturi', [RequirementController::class, 'shopping'])->name('requirements.shopping');
+        Route::get('/necesar/pdf', [RequirementController::class, 'pdf'])->name('requirements.pdf');
+        Route::get('/necesar/excel', [RequirementController::class, 'excel'])->name('requirements.excel');
     });
 
     Route::middleware('permission:equipment.manage')->group(function () {
@@ -54,6 +60,8 @@ Route::middleware(['auth', 'verified'])->prefix('tehnic')->name('technical.')->g
         Route::patch('/comenzi-furnizori/{purchaseOrder}/receptioneaza', [PurchaseOrderController::class, 'receive'])->name('purchase-orders.receive');
         Route::post('/comenzi-furnizori/reaprovizionare', [PurchaseOrderController::class, 'replenish'])->name('purchase-orders.replenish');
         Route::patch('/comenzi-furnizori/{purchaseOrder}/anuleaza', [PurchaseOrderController::class, 'cancel'])->name('purchase-orders.cancel');
+
+        Route::post('/lista-cumparaturi/comanda', [RequirementController::class, 'createPurchaseOrders'])->name('requirements.purchase-orders');
     });
 
     Route::middleware('permission:equipment.view')->group(function () {

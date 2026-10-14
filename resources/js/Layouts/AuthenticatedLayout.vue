@@ -61,6 +61,8 @@ const sections = [
         permissions: ['equipment.view', 'equipment.manage', 'installations.view', 'installations.manage', 'tickets.view', 'tickets.manage'],
         items: [
             { name: 'Echipamente', route: 'technical.equipment.index', permissions: ['equipment.view'] },
+            { name: 'Necesar materiale', route: 'technical.requirements.index', permissions: ['equipment.view'] },
+            { name: 'Lista de cumparat', route: 'technical.requirements.shopping', permissions: ['equipment.view'] },
             { name: 'Furnizori / Import materiale', route: 'technical.suppliers.index', permissions: ['equipment.view'] },
             { name: 'Comenzi furnizori', route: 'technical.purchase-orders.index', permissions: ['equipment.view'] },
             { name: 'Servicii', route: 'technical.services.index', permissions: ['equipment.view'] },
