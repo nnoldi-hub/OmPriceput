@@ -19,6 +19,7 @@ const form = reactive({
     from: props.filters.from ?? '',
     to: props.filters.to ?? '',
     include_unscheduled: props.filters.include_unscheduled ?? true,
+    include_covered: props.filters.include_covered ?? false,
     all: props.filters.all ?? false,
 });
 
@@ -31,6 +32,7 @@ function query(overrides = {}) {
     if (state.installation_id) params.installation_id = state.installation_id;
     if (state.from) params.from = state.from;
     if (state.to) params.to = state.to;
+    if (state.include_covered) params.include_covered = 1;
     if (state.all) {
         params.all = 1;
     } else if (!state.include_unscheduled) {
@@ -96,7 +98,8 @@ function copyText() {
         if (!items.length) return;
         lines.push(group.supplier_name.toUpperCase());
         items.forEach((item) => {
-            lines.push(`[${isChecked(item) ? 'x' : ' '}] ${qty(item.to_buy)} ${item.unit} - ${item.name}`);
+            const amount = Number(item.to_buy) > 0 ? `${qty(item.to_buy)} ${item.unit}` : 'acoperit';
+            lines.push(`[${isChecked(item) ? 'x' : ' '}] ${amount} - ${item.name}`);
         });
         lines.push('');
     });
@@ -193,6 +196,10 @@ function generateOrders() {
                     <div class="mt-3 flex flex-wrap items-center gap-3">
                         <button type="button" class="rounded-md border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50" @click="checkAll(true)">Bifează tot</button>
                         <button type="button" class="rounded-md border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50" @click="checkAll(false)">Debifează tot</button>
+                        <label class="flex items-center gap-2 text-sm text-slate-600">
+                            <input v-model="form.include_covered" type="checkbox" class="rounded border-slate-300 text-blue-600 focus:ring-blue-500" @change="apply()" />
+                            Include și acoperite de stoc
+                        </label>
                         <span class="text-xs text-slate-400">Copiază trimite articolele bifate; dacă nu bifezi nimic, le trimite pe toate.</span>
                     </div>
                 </div>
@@ -231,7 +238,9 @@ function generateOrders() {
                                 </div>
                             </div>
                             <div class="text-right">
-                                <div class="font-semibold text-slate-800">{{ qty(item.to_buy) }} {{ item.unit }}</div>
+                                <div class="font-semibold" :class="Number(item.to_buy) > 0 ? 'text-slate-800' : 'text-emerald-600'">
+                                    {{ Number(item.to_buy) > 0 ? `${qty(item.to_buy)} ${item.unit}` : 'acoperit' }}
+                                </div>
                                 <div class="text-xs text-slate-400">{{ money(item.estimated_cost) }} lei</div>
                             </div>
                         </li>

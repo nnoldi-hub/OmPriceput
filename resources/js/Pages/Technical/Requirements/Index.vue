@@ -21,6 +21,7 @@ const form = reactive({
     to: props.filters.to ?? '',
     only_missing: props.filters.only_missing ?? false,
     include_unscheduled: props.filters.include_unscheduled ?? true,
+    include_covered: props.filters.include_covered ?? false,
     supplier_id: props.filters.supplier_id ?? '',
     all: props.filters.all ?? false,
 });
@@ -32,6 +33,7 @@ function query(overrides = {}) {
     if (state.from) params.from = state.from;
     if (state.to) params.to = state.to;
     if (state.only_missing) params.only_missing = 1;
+    if (state.include_covered) params.include_covered = 1;
     if (state.supplier_id) params.supplier_id = state.supplier_id;
     if (state.all) {
         params.all = 1;
@@ -151,6 +153,10 @@ function addToCatalog(source) {
                         <label class="flex items-center gap-2 text-sm text-slate-600">
                             <input v-model="form.include_unscheduled" type="checkbox" class="rounded border-slate-300 text-blue-600 focus:ring-blue-500" :disabled="form.all" @change="apply()" />
                             Include neprogramate
+                        </label>
+                        <label class="flex items-center gap-2 text-sm text-slate-600">
+                            <input v-model="form.include_covered" type="checkbox" class="rounded border-slate-300 text-blue-600 focus:ring-blue-500" @change="apply()" />
+                            Include și acoperite (la export)
                         </label>
                     </div>
                 </div>

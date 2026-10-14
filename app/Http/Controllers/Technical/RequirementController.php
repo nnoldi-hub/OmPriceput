@@ -16,6 +16,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -45,10 +46,10 @@ class RequirementController extends Controller
         $filters = $this->resolveFilters($request);
         $result = $this->requirements->build($filters);
 
-        $toBuy = collect($result['rows'])->where('to_buy', '>', 0)->values();
+        $toBuy = $this->toBuyRows($result['rows'], $filters)->all();
 
         return Inertia::render('Technical/Requirements/Shopping', [
-            'groups' => $this->groupBySupplier($toBuy->all()),
+            'groups' => $this->groupBySupplier($toBuy),
             'totals' => $result['totals'],
             'meta' => $result['meta'],
             'filters' => $this->filterPayload($request, $filters),
@@ -60,7 +61,7 @@ class RequirementController extends Controller
     {
         $filters = $this->resolveFilters($request);
         $result = $this->requirements->build($filters);
-        $rows = collect($result['rows'])->where('to_buy', '>', 0)->values()->all();
+        $rows = $this->toBuyRows($result['rows'], $filters)->all();
 
         return Pdf::loadView('pdfs.shopping-list', [
             'groups' => $this->groupBySupplier($rows),
@@ -74,7 +75,7 @@ class RequirementController extends Controller
     {
         $filters = $this->resolveFilters($request);
         $result = $this->requirements->build($filters);
-        $rows = collect($result['rows'])->where('to_buy', '>', 0)->values()->all();
+        $rows = $this->toBuyRows($result['rows'], $filters)->all();
 
         return Excel::download(
             new ShoppingListExport($rows, $result['meta']),
@@ -180,8 +181,24 @@ class RequirementController extends Controller
             'to' => $to,
             'only_missing' => $request->boolean('only_missing'),
             'include_unscheduled' => $request->boolean('include_unscheduled', true),
+            'include_covered' => $request->boolean('include_covered'),
             'supplier_id' => $request->integer('supplier_id') ?: null,
         ];
+    }
+
+    /**
+     * Rândurile care intră în lista de cumpărat: doar ce lipsește, sau tot
+     * necesarul când utilizatorul cere explicit să includă și ce e acoperit de stoc.
+     *
+     * @param  array<int, array<string, mixed>>  $rows
+     * @param  array<string, mixed>  $filters
+     * @return Collection<int, array<string, mixed>>
+     */
+    private function toBuyRows(array $rows, array $filters): Collection
+    {
+        return collect($rows)
+            ->when(empty($filters['include_covered']), fn ($collection) => $collection->where('to_buy', '>', 0))
+            ->values();
     }
 
     /**
@@ -196,6 +213,7 @@ class RequirementController extends Controller
             'to' => $filters['to']?->toDateString(),
             'only_missing' => $filters['only_missing'],
             'include_unscheduled' => $filters['include_unscheduled'],
+            'include_covered' => $filters['include_covered'],
             'supplier_id' => $filters['supplier_id'],
             'all' => $request->boolean('all'),
         ];

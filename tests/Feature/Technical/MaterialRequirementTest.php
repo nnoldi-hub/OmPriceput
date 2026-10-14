@@ -327,6 +327,29 @@ class MaterialRequirementTest extends TestCase
             );
     }
 
+    public function test_shopping_list_can_include_covered_items_when_requested(): void
+    {
+        $covered = Equipment::factory()->create(['stock_quantity' => 100]);
+        Installation::factory()->create([
+            'status' => 'scheduled',
+            'scheduled_at' => now()->addDay(),
+            'material_items' => [['equipment_id' => $covered->id, 'name' => $covered->name, 'unit' => 'buc', 'quantity' => 3]],
+        ]);
+
+        $this->actingAs($this->technician())
+            ->get(route('technical.requirements.shopping', ['all' => 1]))
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page->has('groups', 0));
+
+        $this->actingAs($this->technician())
+            ->get(route('technical.requirements.shopping', ['all' => 1, 'include_covered' => 1]))
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->has('groups', 1)
+                ->has('groups.0.items', 1)
+            );
+    }
+
     public function test_necesar_page_is_available_to_technical_role(): void
     {
         $this->actingAs($this->technician())
