@@ -11,6 +11,8 @@ const props = defineProps({
     latestPosts: Array,
     stats: Array,
     page: Object,
+    reviews: { type: Array, default: () => [] },
+    reviewStats: { type: Object, default: () => ({ count: 0, average: 0 }) },
 });
 
 const page = usePage();
@@ -44,6 +46,11 @@ const sectionContent = (section) => section.content || {};
 
 function formatDate(value) {
     return new Date(value).toLocaleDateString('ro-RO', { day: 'numeric', month: 'long', year: 'numeric' });
+}
+
+function stars(rating) {
+    const value = Number(rating) || 0;
+    return '★'.repeat(value) + '☆'.repeat(Math.max(0, 5 - value));
 }
 
 const fallbackStats = [
@@ -342,6 +349,39 @@ const founderPhotoOk = ref(true);
                             </div>
                         </div>
                     </template>
+                </div>
+            </div>
+        </section>
+
+        <section v-if="reviews.length" class="bg-slate-50 py-16">
+            <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                <div class="text-center">
+                    <h2 class="font-display text-3xl font-bold text-slate-900">Ce spun clientii</h2>
+                    <p v-if="reviewStats.count" class="mx-auto mt-3 text-slate-500">
+                        <span class="text-amber-500">{{ stars(Math.round(reviewStats.average)) }}</span>
+                        {{ reviewStats.average }} din 5 · {{ reviewStats.count }} recenzii
+                    </p>
+                </div>
+                <div class="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                    <figure
+                        v-for="(review, index) in reviews"
+                        :key="index"
+                        class="flex h-full flex-col rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
+                    >
+                        <div class="text-lg text-amber-500">{{ stars(review.rating) }}</div>
+                        <blockquote class="mt-3 flex-1 text-sm text-slate-600">{{ review.comment }}</blockquote>
+                        <figcaption class="mt-4 text-sm font-semibold text-slate-900">
+                            {{ review.name }}
+                            <span v-if="review.service || review.city" class="font-normal text-slate-400">
+                                · {{ [review.service, review.city].filter(Boolean).join(', ') }}
+                            </span>
+                        </figcaption>
+                    </figure>
+                </div>
+                <div class="mt-10 text-center">
+                    <Link :href="route('public.reviews.index')" class="text-sm font-semibold text-blue-600 hover:text-blue-500">
+                        Vezi toate recenziile &rarr;
+                    </Link>
                 </div>
             </div>
         </section>

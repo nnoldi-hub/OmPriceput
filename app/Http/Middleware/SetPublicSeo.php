@@ -27,6 +27,10 @@ class SetPublicSeo
             'title' => 'Servicii - electrician, instalator, zugrăveli, montaj',
             'description' => 'Lucrări de electrician, instalator, zugrăveli și montaj pentru casă și apartament. Constatare gratuită și deviz scris înainte de începerea lucrării.',
         ],
+        'public.reviews.index' => [
+            'title' => 'Recenzii clienți',
+            'description' => 'Ce spun clienții Om Priceput despre lucrările de reparații, montaje și întreținere: recenzii reale, cu notă și experiență.',
+        ],
         'public.quote' => [
             'title' => 'Cere deviz',
             'description' => 'Trimiteți cererea de deviz: alegeți lucrările, ora și atașați câteva fotografii. Primiți devizul scris după constatarea la fața locului.',

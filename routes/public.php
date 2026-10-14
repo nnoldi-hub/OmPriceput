@@ -6,6 +6,8 @@ use App\Http\Controllers\Public\ContactController;
 use App\Http\Controllers\Public\HomeController;
 use App\Http\Controllers\Public\LegalController;
 use App\Http\Controllers\Public\PageController;
+use App\Http\Controllers\Public\ReviewController;
+use App\Http\Controllers\Public\ReviewFeedbackController;
 use App\Http\Controllers\Public\ShopController;
 use Illuminate\Support\Facades\Route;
 
@@ -21,6 +23,7 @@ Route::name('public.')->middleware('track.views')->group(function () {
         ->middleware('throttle:60,1')
         ->name('quote.slots');
     Route::get('/contact', [ContactController::class, 'index'])->name('contact');
+    Route::get('/recenzii', [ReviewController::class, 'index'])->name('reviews.index');
     Route::get('/termeni', [LegalController::class, 'terms'])->name('terms');
     Route::get('/confidentialitate', [LegalController::class, 'privacy'])->name('privacy');
     Route::post('/cerere-deviz', [ContactController::class, 'store'])
@@ -44,3 +47,8 @@ Route::get('/c/{token}', [BookingActionController::class, 'show'])
     ->middleware('throttle:30,1')->name('booking.action');
 Route::post('/c/{token}', [BookingActionController::class, 'update'])
     ->middleware('throttle:10,1')->name('booking.action.update');
+
+Route::get('/recenzie/{token}', [ReviewFeedbackController::class, 'show'])
+    ->middleware('throttle:30,1')->name('review.feedback');
+Route::post('/recenzie/{token}', [ReviewFeedbackController::class, 'store'])
+    ->middleware('throttle:10,1')->name('review.feedback.store');

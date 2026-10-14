@@ -78,6 +78,7 @@ Route::middleware(['auth', 'verified'])->prefix('tehnic')->name('technical.')->g
         Route::resource('instalari', InstallationController::class)->only(['create', 'store', 'edit', 'update', 'destroy'])->parameters(['instalari' => 'installation'])->names('installations');
         Route::patch('/instalari/{installation}/status', [InstallationController::class, 'updateStatus'])->name('installations.status');
         Route::patch('/instalari/{installation}/checklist', [InstallationController::class, 'updateChecklist'])->name('installations.checklist');
+        Route::post('/instalari/{installation}/recenzie', [InstallationController::class, 'requestReview'])->name('installations.review');
     });
 
     Route::middleware('permission:installations.view')->group(function () {

@@ -94,6 +94,7 @@ const sections = [
             { name: 'Trafic & Analitica', route: 'admin.traffic.index' },
             { name: 'Pachete site', route: 'admin.site-packages.index' },
             { name: 'Pagini publice', route: 'admin.pages.index' },
+            { name: 'Recenzii clienti', route: 'admin.reviews.index' },
             { name: 'Blog', route: 'admin.blog.index' },
             { name: 'Biblioteca media', route: 'admin.media.index' },
             { name: 'Categorii blog', route: 'admin.blog.categories.index' },

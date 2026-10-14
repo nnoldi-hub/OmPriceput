@@ -22,6 +22,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'installations.view', 'installations.manage',
             'tickets.view', 'tickets.manage',
             'invoices.view', 'invoices.manage',
+            'reviews.view', 'reviews.manage',
             'users.manage',
             'settings.manage',
         ];

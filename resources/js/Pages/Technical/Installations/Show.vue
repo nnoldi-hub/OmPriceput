@@ -10,6 +10,7 @@ const { canManage } = usePermissions();
 const props = defineProps({
     installation: Object,
     types: Object,
+    review: { type: Object, default: null },
     toolboxes: { type: Array, default: () => [] },
 });
 
@@ -66,6 +67,33 @@ function setStatus(status) {
         return;
     }
     router.patch(route('technical.installations.status', props.installation.id), { status }, { preserveScroll: true });
+}
+
+// ---- Cerere de recenzie ----
+const reviewStatusLabels = {
+    pending: 'Cerere trimisă',
+    submitted: 'Răspuns primit (de moderat)',
+    approved: 'Publicată pe site',
+    rejected: 'Respinsă',
+};
+
+const reviewStatus = computed(() => {
+    if (!props.review) return null;
+    return reviewStatusLabels[props.review.status] ?? props.review.status;
+});
+
+function requestReview() {
+    const message = props.review?.status === 'pending'
+        ? 'Retrimiți linkul de recenzie prin SMS clientului?'
+        : 'Trimite clientului linkul pentru a lăsa o recenzie?';
+    if (confirm(message)) {
+        router.post(route('technical.installations.review', props.installation.id), {}, { preserveScroll: true });
+    }
+}
+
+function stars(rating) {
+    const value = Number(rating) || 0;
+    return '★'.repeat(value) + '☆'.repeat(Math.max(0, 5 - value));
 }
 
 // ---- Finalizare cu consum real de materiale ----
@@ -154,6 +182,9 @@ function money(value) {
                     {{ typeLabel }} #{{ installation.id }} - {{ installation.client.name }}
                 </h2>
                 <div class="flex gap-2">
+                    <button v-if="canManage('installations')" type="button" class="rounded-md border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50" @click="requestReview">
+                        Cere părere
+                    </button>
                     <a :href="route('technical.installations.pdf', installation.id)" target="_blank" class="rounded-md border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
                         Raport PDF
                     </a>
@@ -218,6 +249,13 @@ function money(value) {
                             >
                                 {{ option.label }}
                             </button>
+                        </div>
+
+                        <div v-if="review" class="mt-5 border-t border-slate-100 pt-4">
+                            <h3 class="text-sm font-semibold text-slate-500">Recenzie client</h3>
+                            <p class="mt-2 text-sm text-slate-700">{{ reviewStatus }}</p>
+                            <p v-if="review.rating" class="mt-1 text-lg text-amber-500">{{ stars(review.rating) }}</p>
+                            <p v-if="review.comment" class="mt-1 whitespace-pre-line text-sm text-slate-600">{{ review.comment }}</p>
                         </div>
                     </div>
 

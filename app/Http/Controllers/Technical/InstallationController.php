@@ -8,9 +8,11 @@ use App\Models\Equipment;
 use App\Models\Installation;
 use App\Models\Invoice;
 use App\Models\Offer;
+use App\Models\Review;
 use App\Models\Service;
 use App\Models\Setting;
 use App\Models\User;
+use App\Services\SmsService;
 use App\Support\ImageOptimizer;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
@@ -149,6 +151,7 @@ class InstallationController extends Controller
 
         return Inertia::render('Technical/Installations/Show', [
             'installation' => $installation,
+            'review' => Review::query()->where('installation_id', $installation->id)->latest('id')->first(),
             'types' => Installation::TYPE_LABELS,
             'statuses' => Installation::STATUSES,
             'toolboxes' => $installation->requiredToolboxes()->map(fn ($box) => [
@@ -298,6 +301,45 @@ class InstallationController extends Controller
         $installation->delete();
 
         return redirect()->route('technical.installations.index')->with('success', 'Programare stearsa.');
+    }
+
+    public function requestReview(Installation $installation, SmsService $sms): RedirectResponse
+    {
+        $installation->loadMissing('client');
+
+        $review = Review::query()->where('installation_id', $installation->id)->first();
+
+        if ($review && in_array($review->status, [Review::STATUS_SUBMITTED, Review::STATUS_APPROVED], true)) {
+            return back()->with('error', 'Clientul a trimis deja o recenzie pentru această lucrare.');
+        }
+
+        if (! $review) {
+            $review = new Review(['installation_id' => $installation->id]);
+        }
+
+        $review->fill([
+            'client_id' => $installation->client_id,
+            'offer_id' => $installation->offer_id,
+            'token' => $review->token ?: Review::generateToken(),
+            'status' => Review::STATUS_PENDING,
+            'city' => $installation->client?->city,
+            'service_label' => $installation->typeLabel(),
+            'requested_at' => now(),
+        ])->save();
+
+        $link = route('review.feedback', $review->token);
+        $to = $sms->normalizePhone($installation->client?->phone);
+
+        if ($to) {
+            $sms->send(
+                $to,
+                'Om Priceput: cum a fost lucrarea? Lasa o recenzie in 30 de secunde: '.$link,
+            );
+
+            return back()->with('success', 'Cererea de recenzie a fost trimisă prin SMS clientului.');
+        }
+
+        return back()->with('success', 'Link de recenzie generat (clientul nu are telefon valid). Link: '.$link);
     }
 
     public function pdf(Installation $installation): HttpResponse

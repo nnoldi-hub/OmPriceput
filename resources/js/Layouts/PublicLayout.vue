@@ -13,6 +13,7 @@ const nav = computed(() => {
         { name: 'Acasa', href: () => route('public.home') },
         { name: 'Despre noi', href: () => route('public.about') },
         { name: 'Servicii & mentenanta', href: () => route('public.services') },
+        { name: 'Recenzii', href: () => route('public.reviews.index') },
         { name: 'Cerere de deviz', href: () => route('public.quote') },
     ];
 

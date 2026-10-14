@@ -12,6 +12,7 @@ use App\Http\Controllers\Admin\MediaController;
 use App\Http\Controllers\Admin\PageController;
 use App\Http\Controllers\Admin\PriceItemController;
 use App\Http\Controllers\Admin\ReportController;
+use App\Http\Controllers\Admin\ReviewController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\ShopOrderController;
 use App\Http\Controllers\Admin\SitePackageController;
@@ -46,6 +47,12 @@ Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->name('ad
 
     Route::resource('utilizatori', UserController::class)->except(['show'])->parameters(['utilizatori' => 'user'])->names('users');
     Route::resource('pachete-site', SitePackageController::class)->parameters(['pachete-site' => 'sitePackage'])->names('site-packages');
+    Route::get('/recenzii', [ReviewController::class, 'index'])->name('reviews.index');
+    Route::put('/recenzii/{review}', [ReviewController::class, 'update'])->name('reviews.update');
+    Route::patch('/recenzii/{review}/publica', [ReviewController::class, 'approve'])->name('reviews.approve');
+    Route::patch('/recenzii/{review}/respinge', [ReviewController::class, 'reject'])->name('reviews.reject');
+    Route::delete('/recenzii/{review}', [ReviewController::class, 'destroy'])->name('reviews.destroy');
+
     Route::get('/pagini', [PageController::class, 'index'])->name('pages.index');
     Route::get('/pagini/{page}/edit', [PageController::class, 'edit'])->name('pages.edit');
     Route::get('/pagini/{page}/preview', [PageController::class, 'preview'])->name('pages.preview');
