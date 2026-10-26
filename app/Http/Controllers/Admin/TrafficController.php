@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Client;
 use App\Models\Equipment;
 use App\Models\PageView;
 use App\Models\Post;
@@ -26,11 +27,35 @@ class TrafficController extends Controller
 
         $prevViews = PageView::human()->period($prevStart, $prevEnd)->count();
         $prevVisitors = PageView::human()->period($prevStart, $prevEnd)->distinct('visitor_id')->count('visitor_id');
+        $prevSessions = PageView::human()->period($prevStart, $prevEnd)->distinct('session_id')->count('session_id');
 
         $viewsGrowth = $prevViews > 0 ? round((($currentViews - $prevViews) / $prevViews) * 100, 1) : 0;
         $visitorsGrowth = $prevVisitors > 0 ? round((($currentVisitors - $prevVisitors) / $prevVisitors) * 100, 1) : 0;
+        $sessionsGrowth = $prevSessions > 0 ? round((($currentSessions - $prevSessions) / $prevSessions) * 100, 1) : 0;
 
         $pagesPerSession = $currentSessions > 0 ? round($currentViews / $currentSessions, 1) : 0;
+
+        // --- Conversion funnel (approximate, visitor and lead are not linked) ---
+        $quoteViews = PageView::human()
+            ->period($start, $end)
+            ->where('path', '/cerere-deviz')
+            ->count();
+
+        $quoteVisitors = PageView::human()
+            ->period($start, $end)
+            ->where('path', '/cerere-deviz')
+            ->distinct('visitor_id')
+            ->count('visitor_id');
+
+        $quoteLeads = Client::query()
+            ->where('source', 'web')
+            ->whereBetween('created_at', [$start, $end])
+            ->whereDoesntHave('shopOrders')
+            ->count();
+
+        $percentage = fn (int $value, int $total): float => $total > 0
+            ? round(($value / $total) * 100, 1)
+            : 0;
 
         // --- Daily trend ---
         $dailyTrend = PageView::human()
@@ -107,7 +132,17 @@ class TrafficController extends Controller
                 'uniqueVisitors' => $currentVisitors,
                 'visitorsGrowth' => $visitorsGrowth,
                 'totalSessions' => $currentSessions,
+                'sessionsGrowth' => $sessionsGrowth,
                 'pagesPerSession' => $pagesPerSession,
+            ],
+            'funnel' => [
+                'visitors' => $currentVisitors,
+                'quoteVisitors' => $quoteVisitors,
+                'quoteViews' => $quoteViews,
+                'leads' => $quoteLeads,
+                'visitorsToQuote' => $percentage($quoteVisitors, $currentVisitors),
+                'quoteToLead' => $percentage($quoteLeads, $quoteVisitors),
+                'visitorsToLead' => $percentage($quoteLeads, $currentVisitors),
             ],
             'dailyTrend' => $dailyTrend,
             'topPages' => $topPages,

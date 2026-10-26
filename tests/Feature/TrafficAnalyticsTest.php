@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Client;
 use App\Models\PageView;
 use App\Models\Setting;
 use App\Models\User;
@@ -89,9 +90,90 @@ class TrafficAnalyticsTest extends TestCase
         $response->assertInertia(fn ($page) => $page
             ->component('Admin/Traffic/Index')
             ->has('kpis')
+            ->has('funnel')
             ->has('dailyTrend')
             ->has('topPages')
             ->has('recentSessions')
+        );
+    }
+
+    public function test_traffic_dashboard_counts_only_human_traffic_and_matches_quote_funnel(): void
+    {
+        PageView::create([
+            'session_id' => 'sess_human',
+            'visitor_id' => 'vid_human',
+            'url' => 'http://localhost/servicii',
+            'path' => '/servicii',
+            'method' => 'GET',
+            'is_bot' => false,
+        ]);
+
+        PageView::create([
+            'session_id' => 'sess_quote',
+            'visitor_id' => 'vid_quote',
+            'url' => 'http://localhost/cerere-deviz',
+            'path' => '/cerere-deviz',
+            'method' => 'GET',
+            'is_bot' => false,
+        ]);
+
+        PageView::create([
+            'session_id' => 'sess_bot',
+            'visitor_id' => 'vid_bot',
+            'url' => 'http://localhost/servicii',
+            'path' => '/servicii',
+            'method' => 'GET',
+            'is_bot' => true,
+        ]);
+
+        PageView::create([
+            'session_id' => 'sess_admin',
+            'visitor_id' => 'vid_admin',
+            'user_id' => $this->adminUser->id,
+            'url' => 'http://localhost/servicii',
+            'path' => '/servicii',
+            'method' => 'GET',
+            'is_bot' => false,
+        ]);
+
+        PageView::create([
+            'session_id' => 'sess_calendar',
+            'visitor_id' => 'vid_calendar',
+            'url' => 'http://localhost/cerere-deviz/zile',
+            'path' => '/cerere-deviz/zile',
+            'method' => 'GET',
+            'is_bot' => false,
+        ]);
+
+        PageView::create([
+            'session_id' => 'sess_post',
+            'visitor_id' => 'vid_post',
+            'url' => 'http://localhost/cerere-deviz',
+            'path' => '/cerere-deviz',
+            'method' => 'POST',
+            'is_bot' => false,
+        ]);
+
+        Client::create([
+            'name' => 'Client Test',
+            'phone' => '0700000000',
+            'source' => 'web',
+            'status' => 'lead',
+        ]);
+
+        $response = $this->actingAs($this->adminUser)->get(route('admin.traffic.index'));
+
+        $response->assertOk();
+        $response->assertInertia(fn ($page) => $page
+            ->where('kpis.totalViews', 2)
+            ->where('kpis.uniqueVisitors', 2)
+            ->where('kpis.totalSessions', 2)
+            ->where('funnel.quoteViews', 1)
+            ->where('funnel.quoteVisitors', 1)
+            ->where('funnel.leads', 1)
+            ->where('funnel.visitorsToQuote', 50)
+            ->where('funnel.quoteToLead', 100)
+            ->where('funnel.visitorsToLead', 50)
         );
     }
 

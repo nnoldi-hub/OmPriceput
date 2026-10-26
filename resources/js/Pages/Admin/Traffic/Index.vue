@@ -7,6 +7,18 @@ import { ref } from 'vue';
 const props = defineProps({
     period: { type: String, default: '7days' },
     kpis: { type: Object, required: true },
+    funnel: {
+        type: Object,
+        default: () => ({
+            visitors: 0,
+            quoteVisitors: 0,
+            quoteViews: 0,
+            leads: 0,
+            visitorsToQuote: 0,
+            quoteToLead: 0,
+            visitorsToLead: 0,
+        }),
+    },
     dailyTrend: { type: Array, default: () => [] },
     topPages: { type: Array, default: () => [] },
     topSources: { type: Array, default: () => [] },
@@ -47,7 +59,7 @@ function maxTrendViews() {
             <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                     <h2 class="text-xl font-semibold leading-tight text-slate-800">Trafic & Analitică Vizitatori</h2>
-                    <p class="mt-1 text-sm text-slate-500">Monitorizează activitatea vizitatorilor pe site, sursele de promovare și traseele de navigare.</p>
+                    <p class="mt-1 text-sm text-slate-500">Monitorizează activitatea vizitatorilor pe site, sursele de promovare și traseele de navigare. Sunt incluse doar vizitele umane.</p>
                 </div>
 
                 <div class="flex flex-wrap gap-1 rounded-lg bg-slate-200 p-1 text-xs font-medium">
@@ -138,10 +150,17 @@ function maxTrendViews() {
                                 <Icon name="clock" class="h-4 w-4" />
                             </span>
                         </div>
-                        <div class="mt-3">
+                        <div class="mt-3 flex items-baseline gap-2">
                             <span class="text-2xl font-bold text-slate-900">{{ kpis.totalSessions.toLocaleString('ro-RO') }}</span>
+                            <span
+                                v-if="kpis.sessionsGrowth !== 0"
+                                class="text-xs font-medium"
+                                :class="kpis.sessionsGrowth > 0 ? 'text-emerald-600' : 'text-rose-600'"
+                            >
+                                {{ kpis.sessionsGrowth > 0 ? '+' : '' }}{{ kpis.sessionsGrowth }}%
+                            </span>
                         </div>
-                        <span class="text-xs text-slate-400 mt-1 block">Sesiuni de navigare inițiate</span>
+                        <span class="text-xs text-slate-400 mt-1 block">Sesiuni de navigare distincte</span>
                     </div>
 
                     <div class="rounded-xl bg-white p-5 shadow-sm border border-slate-100">
@@ -156,6 +175,65 @@ function maxTrendViews() {
                         </div>
                         <span class="text-xs text-slate-400 mt-1 block">Media de pagini explorate</span>
                     </div>
+                </div>
+
+                <div class="flex items-start gap-3 rounded-xl border border-blue-100 bg-blue-50 p-4 text-sm text-blue-900">
+                    <Icon name="info" class="mt-0.5 h-4 w-4 shrink-0" />
+                    <p>
+                        Cifrele includ doar trafic uman. Boții, cererile de prefetch, utilizatorii autentificați și rutele interne
+                        (admin, client, API, calendar) sunt excluse din toate metricile.
+                    </p>
+                </div>
+
+                <!-- Conversion Funnel -->
+                <div class="rounded-xl bg-white p-6 shadow-sm border border-slate-100">
+                    <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                        <div>
+                            <h3 class="text-base font-bold text-slate-900">Pâlnie de conversie</h3>
+                            <p class="text-xs text-slate-500 mt-0.5">De la vizită la cerere de deviz trimisă</p>
+                        </div>
+                        <span class="rounded-full bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-700">Estimare orientativă</span>
+                    </div>
+
+                    <div class="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
+                        <div class="rounded-lg border border-slate-200 p-4">
+                            <div class="flex items-center gap-2">
+                                <span class="flex h-6 w-6 items-center justify-center rounded-full bg-blue-100 text-xs font-bold text-blue-700">1</span>
+                                <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Vizitatori unici</span>
+                            </div>
+                            <div class="mt-3 text-2xl font-bold text-slate-900">{{ funnel.visitors.toLocaleString('ro-RO') }}</div>
+                            <div class="text-xs text-slate-400 mt-1">trafic uman în perioadă</div>
+                        </div>
+
+                        <div class="rounded-lg border border-slate-200 p-4">
+                            <div class="flex items-center gap-2">
+                                <span class="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-100 text-xs font-bold text-emerald-700">2</span>
+                                <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Au deschis cererea</span>
+                            </div>
+                            <div class="mt-3 flex items-baseline gap-2">
+                                <span class="text-2xl font-bold text-slate-900">{{ funnel.quoteVisitors.toLocaleString('ro-RO') }}</span>
+                                <span class="text-xs font-medium text-emerald-600">{{ funnel.visitorsToQuote }}% din vizitatori</span>
+                            </div>
+                            <div class="text-xs text-slate-400 mt-1">{{ funnel.quoteViews.toLocaleString('ro-RO') }} vizualizări ale paginii /cerere-deviz</div>
+                        </div>
+
+                        <div class="rounded-lg border border-slate-200 p-4">
+                            <div class="flex items-center gap-2">
+                                <span class="flex h-6 w-6 items-center justify-center rounded-full bg-purple-100 text-xs font-bold text-purple-700">3</span>
+                                <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Cereri deviz</span>
+                            </div>
+                            <div class="mt-3 flex items-baseline gap-2">
+                                <span class="text-2xl font-bold text-slate-900">{{ funnel.leads.toLocaleString('ro-RO') }}</span>
+                                <span class="text-xs font-medium text-purple-600">{{ funnel.visitorsToLead }}% din vizitatori</span>
+                            </div>
+                            <div class="text-xs text-slate-400 mt-1">{{ funnel.quoteToLead }}% din vizitatorii paginii de cerere</div>
+                        </div>
+                    </div>
+
+                    <p class="mt-3 text-[11px] text-slate-400">
+                        Cererile sunt lead-uri web create în perioadă, fără comenzile din magazin. Vizitatorii și lead-urile nu sunt legate direct,
+                        deci procentele sunt orientative.
+                    </p>
                 </div>
 
                 <!-- Daily Trend Chart & Devices -->
