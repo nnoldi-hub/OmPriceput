@@ -3,9 +3,12 @@
 namespace App\Http\Middleware;
 
 use App\Models\PageView;
+use App\Support\PageViewRules;
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Cookie;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -15,13 +18,13 @@ class TrackPageViews
     {
         $response = $next($request);
 
-        if (! $request->isMethod('GET')) {
+        if (! $request->isMethod('GET') || $request->user() || PageViewRules::isPrefetch($request)) {
             return $response;
         }
 
-        $path = $request->path();
+        $path = PageViewRules::normalizePath($request->path());
 
-        if ($this->shouldIgnorePath($path)) {
+        if (PageViewRules::isIgnoredPath($path)) {
             return $response;
         }
 
@@ -32,27 +35,26 @@ class TrackPageViews
                 Cookie::queue('op_vid', $visitorId, 60 * 24 * 365);
             }
 
-            $userAgent = $request->header('User-Agent', '');
+            if (! Cache::add("pv:{$visitorId}:{$path}", 1, 10)) {
+                return $response;
+            }
+
+            $userAgent = (string) $request->header('User-Agent', '');
             $referer = $request->header('referer');
             $refererDomain = $this->extractRefererDomain($referer, $request->getHost());
-
-            $isBot = $this->detectBot($userAgent);
-            $deviceType = $this->detectDevice($userAgent);
-            $browser = $this->detectBrowser($userAgent);
-            $platform = $this->detectPlatform($userAgent);
 
             PageView::create([
                 'session_id' => $request->hasSession() ? $request->session()->getId() : null,
                 'visitor_id' => $visitorId,
                 'user_id' => $request->user()?->id,
                 'url' => Str::limit($request->fullUrl(), 2048, ''),
-                'path' => Str::limit('/'.ltrim($path, '/'), 255, ''),
+                'path' => Str::limit($path, 255, ''),
                 'page_title' => $this->guessPageTitle($path),
                 'method' => 'GET',
-                'ip_address' => $request->ip(),
-                'device_type' => $deviceType,
-                'browser' => $browser,
-                'platform' => $platform,
+                'ip_address' => PageViewRules::anonymizeIp($request->ip()),
+                'device_type' => PageViewRules::deviceType($userAgent),
+                'browser' => PageViewRules::browser($userAgent),
+                'platform' => PageViewRules::platform($userAgent),
                 'user_agent' => Str::limit($userAgent, 1000, ''),
                 'referer' => $referer ? Str::limit($referer, 1000, '') : null,
                 'referer_domain' => $refererDomain,
@@ -60,31 +62,17 @@ class TrackPageViews
                 'utm_medium' => $request->query('utm_medium'),
                 'utm_campaign' => $request->query('utm_campaign'),
                 'utm_content' => $request->query('utm_content'),
-                'is_bot' => $isBot,
+                'is_bot' => PageViewRules::isBot($userAgent),
                 'created_at' => now(),
             ]);
         } catch (\Throwable $e) {
-            // Silently ignore logging failures to never break user requests
+            Log::warning('Page view tracking failed.', [
+                'path' => $path,
+                'error' => $e->getMessage(),
+            ]);
         }
 
         return $response;
-    }
-
-    private function shouldIgnorePath(string $path): bool
-    {
-        $ignoredPrefixes = ['admin', 'client', 'api', 'build', 'storage', 'vendor', '_debugbar', 'up', 'horizon', 'telescope'];
-
-        foreach ($ignoredPrefixes as $prefix) {
-            if ($path === $prefix || Str::startsWith($path, $prefix.'/')) {
-                return true;
-            }
-        }
-
-        if (Str::endsWith($path, ['.js', '.css', '.ico', '.png', '.jpg', '.jpeg', '.svg', '.woff', '.woff2', '.map', '.json'])) {
-            return true;
-        }
-
-        return false;
     }
 
     private function extractRefererDomain(?string $referer, string $appHost): ?string
@@ -99,75 +87,6 @@ class TrackPageViews
         }
 
         return strtolower($host);
-    }
-
-    private function detectBot(string $userAgent): bool
-    {
-        if (empty($userAgent)) {
-            return true;
-        }
-
-        $botPattern = '/(bot|crawler|spider|slurp|mediapartners|lighthouse|ptst|pingdom|googlebot|bingbot|yandexbot|facebookexternalhit|whatsapp|twitterbot|curl|wget|python|php|headful)/i';
-
-        return (bool) preg_match($botPattern, $userAgent);
-    }
-
-    private function detectDevice(string $userAgent): string
-    {
-        if (preg_match('/(ipad|tablet|playbook|kindle|nexus 7|nexus 10)/i', $userAgent)) {
-            return 'tablet';
-        }
-
-        if (preg_match('/(mobile|android|iphone|ipod|blackberry|opera mini|windows phone)/i', $userAgent)) {
-            return 'mobile';
-        }
-
-        return 'desktop';
-    }
-
-    private function detectBrowser(string $userAgent): string
-    {
-        if (preg_match('/Edg/i', $userAgent)) {
-            return 'Edge';
-        }
-        if (preg_match('/OPR|Opera/i', $userAgent)) {
-            return 'Opera';
-        }
-        if (preg_match('/Chrome/i', $userAgent)) {
-            return 'Chrome';
-        }
-        if (preg_match('/Safari/i', $userAgent)) {
-            return 'Safari';
-        }
-        if (preg_match('/Firefox/i', $userAgent)) {
-            return 'Firefox';
-        }
-        if (preg_match('/MSIE|Trident/i', $userAgent)) {
-            return 'IE';
-        }
-
-        return 'Other';
-    }
-
-    private function detectPlatform(string $userAgent): string
-    {
-        if (preg_match('/Windows/i', $userAgent)) {
-            return 'Windows';
-        }
-        if (preg_match('/Android/i', $userAgent)) {
-            return 'Android';
-        }
-        if (preg_match('/iPhone|iPad|iPod/i', $userAgent)) {
-            return 'iOS';
-        }
-        if (preg_match('/Macintosh|Mac OS/i', $userAgent)) {
-            return 'macOS';
-        }
-        if (preg_match('/Linux/i', $userAgent)) {
-            return 'Linux';
-        }
-
-        return 'Other';
     }
 
     private function guessPageTitle(string $path): string

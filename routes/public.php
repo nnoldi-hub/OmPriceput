@@ -11,17 +11,18 @@ use App\Http\Controllers\Public\ReviewFeedbackController;
 use App\Http\Controllers\Public\ShopController;
 use Illuminate\Support\Facades\Route;
 
+Route::get('/cerere-deviz/zile', [ContactController::class, 'dates'])
+    ->middleware('throttle:60,1')
+    ->name('public.quote.dates');
+Route::get('/cerere-deviz/sloturi', [ContactController::class, 'slots'])
+    ->middleware('throttle:60,1')
+    ->name('public.quote.slots');
+
 Route::name('public.')->middleware('track.views')->group(function () {
     Route::get('/', HomeController::class)->name('home');
     Route::get('/despre', [PageController::class, 'about'])->name('about');
     Route::get('/servicii', [PageController::class, 'services'])->name('services');
     Route::get('/cerere-deviz', [ContactController::class, 'quote'])->name('quote');
-    Route::get('/cerere-deviz/zile', [ContactController::class, 'dates'])
-        ->middleware('throttle:60,1')
-        ->name('quote.dates');
-    Route::get('/cerere-deviz/sloturi', [ContactController::class, 'slots'])
-        ->middleware('throttle:60,1')
-        ->name('quote.slots');
     Route::get('/contact', [ContactController::class, 'index'])->name('contact');
     Route::get('/recenzii', [ReviewController::class, 'index'])->name('reviews.index');
     Route::get('/termeni', [LegalController::class, 'terms'])->name('terms');

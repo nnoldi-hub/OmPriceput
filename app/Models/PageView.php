@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\PageViewRules;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -47,7 +48,23 @@ class PageView extends Model
 
     public function scopeHuman($query)
     {
-        return $query->where('is_bot', false);
+        $query->where('is_bot', false)
+            ->whereNull('user_id')
+            ->where('method', 'GET')
+            ->whereNotIn('path', PageViewRules::EXACT_IGNORED_PATHS);
+
+        foreach (PageViewRules::IGNORED_PREFIXES as $prefix) {
+            $query->where(function ($query) use ($prefix) {
+                $query->where('path', '!=', $prefix)
+                    ->where('path', 'not like', $prefix.'/%');
+            });
+        }
+
+        foreach (PageViewRules::IGNORED_EXTENSIONS as $extension) {
+            $query->where('path', 'not like', '%'.$extension);
+        }
+
+        return $query;
     }
 
     public function scopePeriod($query, $start, $end)
