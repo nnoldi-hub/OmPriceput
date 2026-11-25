@@ -18,30 +18,41 @@
         .section-title { color: #061426; font-size: 9.5px; font-weight: bold; text-transform: uppercase; letter-spacing: .8px; }
         .client-card { margin-top: 6px; padding: 8px 11px; background: #f4f7fb; border-left: 3px solid #2563eb; }
         .offer-title { margin-top: 14px; padding-bottom: 6px; color: #061426; font-size: 13px; font-weight: bold; border-bottom: 2px solid #f59e0b; }
-        table.items { width: 100%; border-collapse: collapse; margin-top: 7px; }
-        .items th { padding: 5px; background: #061426; color: #fff; font-size: 8.5px; text-align: left; }
-        .items td { padding: 4px 5px; border-bottom: 1px solid #e2e8f0; }
-        .items .subtotal-row td { border-bottom: none; border-top: 1px solid #cbd5e1; background: #f8fafc; font-weight: bold; }
+        table.items, table.summary { width: 100%; border-collapse: collapse; margin-top: 7px; }
+        .items th, .summary th { padding: 5px; background: #061426; color: #fff; font-size: 8.5px; text-align: left; }
+        .items td, .summary td { padding: 4px 5px; border-bottom: 1px solid #e2e8f0; }
+        .items .subtotal-row td, .summary .total-row td { border-bottom: none; border-top: 1px solid #cbd5e1; background: #f8fafc; font-weight: bold; }
+        .summary .grand-row td { background: #061426; color: #fff; font-size: 10px; font-weight: bold; }
         .text-right { text-align: right; }
         .section-heading { margin-top: 13px; color: #061426; font-size: 10px; font-weight: bold; }
         .section-hint { color: #64748b; font-size: 8px; }
+        .chapter-total { margin-top: 6px; padding: 6px 9px; background: #f1f5f9; text-align: right; font-weight: bold; }
         .total-box { margin-top: 14px; padding: 9px 12px; background: #061426; color: #fff; }
         .total-box .line { font-size: 9px; color: #cbd5e1; }
         .total-box .grand { font-size: 14px; font-weight: bold; }
         .notes { padding: 8px 11px; background: #fffaf0; border-left: 3px solid #f59e0b; line-height: 1.4; }
+        .page-break { page-break-after: always; height: 0; }
         .footer { margin-top: 18px; padding-top: 8px; border-top: 1px solid #dbe3ed; font-size: 8px; line-height: 1.4; }
     </style>
 </head>
 <body>
     @php
         $createdAt = $offer->created_at;
-        $validUntil = $offer->valid_until ?? $createdAt->copy()->addDays(\App\Models\Offer::DEFAULT_VALIDITY_DAYS);
-        if ($validUntil->lt($createdAt->copy()->startOfDay())) {
-            $validUntil = $createdAt->copy()->addDays(\App\Models\Offer::DEFAULT_VALIDITY_DAYS);
-        }
-        $materials = $offer->itemsForSection(\App\Models\OfferItem::SECTION_MATERIALS);
-        $labor = $offer->itemsForSection(\App\Models\OfferItem::SECTION_LABOR);
+        $validUntil = $offer->validUntilDate();
+        $summary = $offer->summaryByChapter();
         $clientMaterials = $offer->itemsForSection(\App\Models\OfferItem::SECTION_CLIENT_MATERIALS);
+
+        $itemsFor = function (?int $chapterId, string $section) use ($offer): \Illuminate\Support\Collection {
+            return $offer->items->filter(function ($item) use ($chapterId, $section): bool {
+                $sameChapter = $chapterId === null
+                    ? $item->chapter_id === null
+                    : (int) $item->chapter_id === $chapterId;
+
+                return $sameChapter && $item->section === $section;
+            })->values();
+        };
+
+        $money = fn ($value): string => number_format((float) $value, 2, ',', '.');
     @endphp
 
     <div class="topbar"></div>
@@ -74,69 +85,143 @@
 
     <div class="offer-title">{{ $offer->title }}</div>
 
-    @if ($materials->isNotEmpty())
-        <div class="section-heading">A. Materiale necesare</div>
-        <div class="section-hint">Materialele furnizate de noi.</div>
-        <table class="items" cellspacing="0" cellpadding="0">
-            <thead>
+    <div class="section-title">Situație de lucrări</div>
+    <table class="summary" cellspacing="0" cellpadding="0">
+        <thead>
+            <tr>
+                <th>Capitol</th>
+                <th class="text-right">Materiale</th>
+                <th class="text-right">Manoperă</th>
+                <th class="text-right">Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach ($summary['chapters'] as $chapter)
                 <tr>
-                    <th>Descriere</th>
-                    <th class="text-right">Cant.</th>
-                    <th class="text-right">U.M.</th>
-                    <th class="text-right">Preț unitar</th>
-                    <th class="text-right">Subtotal</th>
+                    <td>{{ $chapter['name'] }}</td>
+                    <td class="text-right">{{ $money($chapter['materials']) }} lei</td>
+                    <td class="text-right">{{ $money($chapter['labor']) }} lei</td>
+                    <td class="text-right">{{ $money($chapter['total']) }} lei</td>
                 </tr>
-            </thead>
-            <tbody>
-                @foreach ($materials as $item)
-                    <tr>
-                        <td>{{ $item->description }}</td>
-                        <td class="text-right">{{ $item->quantity }}</td>
-                        <td class="text-right">{{ $item->unit }}</td>
-                        <td class="text-right">{{ number_format($item->unit_price, 2, ',', '.') }} lei</td>
-                        <td class="text-right">{{ number_format($item->subtotal, 2, ',', '.') }} lei</td>
-                    </tr>
-                @endforeach
-                <tr class="subtotal-row">
-                    <td colspan="4" class="text-right">Subtotal materiale (A)</td>
-                    <td class="text-right">{{ number_format($offer->materialsSubtotal(), 2, ',', '.') }} lei</td>
+            @endforeach
+        </tbody>
+        <tfoot>
+            <tr class="total-row">
+                <td colspan="3" class="text-right">Total fără TVA</td>
+                <td class="text-right">{{ $money($summary['subtotal']) }} lei</td>
+            </tr>
+            @if ($summary['is_vat_payer'])
+                <tr>
+                    <td colspan="3" class="text-right">TVA ({{ $summary['vat_percentage'] }}%)</td>
+                    <td class="text-right">{{ $money($summary['vat_amount']) }} lei</td>
                 </tr>
-            </tbody>
-        </table>
+            @endif
+            <tr class="grand-row">
+                <td colspan="3" class="text-right">Total cu TVA</td>
+                <td class="text-right">{{ $money($summary['is_vat_payer'] ? $summary['total_with_vat'] : $summary['subtotal']) }} lei</td>
+            </tr>
+        </tfoot>
+    </table>
+
+    <table cellspacing="0" cellpadding="0" style="width: 100%; margin-top: 12px;">
+        <tr>
+            <td style="width: 58%;"></td>
+            <td style="width: 42%;">
+                <table class="total-box" cellspacing="0" cellpadding="0" style="width: 100%;">
+                    <tr><td class="line">Materiale: {{ $money($summary['materials']) }} lei</td></tr>
+                    <tr><td class="line">Manoperă: {{ $money($summary['labor']) }} lei</td></tr>
+                    <tr><td class="grand" style="padding-top: 6px;">TOTAL: {{ $money($summary['subtotal']) }} lei</td></tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+
+    @if ($offer->notes)
+        <div class="section">
+            <div class="section-title">Observații</div>
+            <div class="notes">{{ $offer->notes }}</div>
+        </div>
     @endif
 
-    @if ($labor->isNotEmpty())
-        <div class="section-heading">B. Manoperă</div>
-        <div class="section-hint">Serviciile prestate de echipa noastră.</div>
-        <table class="items" cellspacing="0" cellpadding="0">
-            <thead>
-                <tr>
-                    <th>Descriere</th>
-                    <th class="text-right">Cant.</th>
-                    <th class="text-right">U.M.</th>
-                    <th class="text-right">Preț unitar</th>
-                    <th class="text-right">Subtotal</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach ($labor as $item)
+    <div class="page-break"></div>
+
+    @foreach ($summary['chapters'] as $chapter)
+        <div class="section-heading">Capitol: {{ $chapter['name'] }}</div>
+
+        @php
+            $materials = $itemsFor($chapter['id'], \App\Models\OfferItem::SECTION_MATERIALS);
+            $labor = $itemsFor($chapter['id'], \App\Models\OfferItem::SECTION_LABOR);
+        @endphp
+
+        @if ($materials->isNotEmpty())
+            <div class="section-hint">A. Materiale necesare — materialele furnizate de noi.</div>
+            <table class="items" cellspacing="0" cellpadding="0">
+                <thead>
                     <tr>
-                        <td>{{ $item->description }}</td>
-                        <td class="text-right">{{ $item->quantity }}</td>
-                        <td class="text-right">{{ $item->unit }}</td>
-                        <td class="text-right">{{ number_format($item->unit_price, 2, ',', '.') }} lei</td>
-                        <td class="text-right">{{ number_format($item->subtotal, 2, ',', '.') }} lei</td>
+                        <th>Descriere</th>
+                        <th class="text-right">Cant.</th>
+                        <th class="text-right">U.M.</th>
+                        <th class="text-right">Preț unitar</th>
+                        <th class="text-right">Subtotal</th>
                     </tr>
-                @endforeach
-                <tr class="subtotal-row">
-                    <td colspan="4" class="text-right">Subtotal manoperă (B)</td>
-                    <td class="text-right">{{ number_format($offer->laborSubtotal(), 2, ',', '.') }} lei</td>
-                </tr>
-            </tbody>
-        </table>
-    @endif
+                </thead>
+                <tbody>
+                    @foreach ($materials as $item)
+                        <tr>
+                            <td>{{ $item->description }}</td>
+                            <td class="text-right">{{ $item->quantity }}</td>
+                            <td class="text-right">{{ $item->unit }}</td>
+                            <td class="text-right">{{ $money($item->unit_price) }} lei</td>
+                            <td class="text-right">{{ $money($item->subtotal) }} lei</td>
+                        </tr>
+                    @endforeach
+                    <tr class="subtotal-row">
+                        <td colspan="4" class="text-right">Subtotal materiale</td>
+                        <td class="text-right">{{ $money($chapter['materials']) }} lei</td>
+                    </tr>
+                </tbody>
+            </table>
+        @endif
+
+        @if ($labor->isNotEmpty())
+            <div class="section-hint">B. Manoperă — serviciile prestate de echipa noastră.</div>
+            <table class="items" cellspacing="0" cellpadding="0">
+                <thead>
+                    <tr>
+                        <th>Descriere</th>
+                        <th class="text-right">Cant.</th>
+                        <th class="text-right">U.M.</th>
+                        <th class="text-right">Preț unitar</th>
+                        <th class="text-right">Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach ($labor as $item)
+                        <tr>
+                            <td>{{ $item->description }}</td>
+                            <td class="text-right">{{ $item->quantity }}</td>
+                            <td class="text-right">{{ $item->unit }}</td>
+                            <td class="text-right">{{ $money($item->unit_price) }} lei</td>
+                            <td class="text-right">{{ $money($item->subtotal) }} lei</td>
+                        </tr>
+                    @endforeach
+                    <tr class="subtotal-row">
+                        <td colspan="4" class="text-right">Subtotal manoperă</td>
+                        <td class="text-right">{{ $money($chapter['labor']) }} lei</td>
+                    </tr>
+                </tbody>
+            </table>
+        @endif
+
+        <div class="chapter-total">Subtotal capitol: {{ $money($chapter['total']) }} lei</div>
+
+        @if (! $loop->last)
+            <div class="page-break"></div>
+        @endif
+    @endforeach
 
     @if ($clientMaterials->isNotEmpty())
+        <div class="page-break"></div>
         <div class="section-heading">C. Materiale achiziționate de client</div>
         <div class="section-hint">Listă informativă. Aceste materiale nu intră în totalul devizului.</div>
         <table class="items" cellspacing="0" cellpadding="0">
@@ -157,26 +242,6 @@
                 @endforeach
             </tbody>
         </table>
-    @endif
-
-    <table cellspacing="0" cellpadding="0" style="width: 100%; margin-top: 12px;">
-        <tr>
-            <td style="width: 58%;"></td>
-            <td style="width: 42%;">
-                <table class="total-box" cellspacing="0" cellpadding="0" style="width: 100%;">
-                    <tr><td class="line">Materiale (A): {{ number_format($offer->materialsSubtotal(), 2, ',', '.') }} lei</td></tr>
-                    <tr><td class="line">Manoperă (B): {{ number_format($offer->laborSubtotal(), 2, ',', '.') }} lei</td></tr>
-                    <tr><td class="grand" style="padding-top: 6px;">TOTAL (A + B): {{ number_format($offer->pricedSubtotal(), 2, ',', '.') }} lei</td></tr>
-                </table>
-            </td>
-        </tr>
-    </table>
-
-    @if ($offer->notes)
-        <div class="section">
-            <div class="section-title">Observații</div>
-            <div class="notes">{{ $offer->notes }}</div>
-        </div>
     @endif
 
     <div class="footer muted">

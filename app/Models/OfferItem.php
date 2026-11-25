@@ -32,15 +32,18 @@ class OfferItem extends Model
         'offer_id',
         'equipment_id',
         'service_id',
+        'chapter_id',
         'section',
         'description',
         'quantity',
         'unit',
         'unit_price',
+        'unit_cost',
     ];
 
     protected $casts = [
         'unit_price' => 'decimal:2',
+        'unit_cost' => 'decimal:2',
     ];
 
     protected static function booted(): void
@@ -74,6 +77,11 @@ class OfferItem extends Model
         return $this->belongsTo(Offer::class);
     }
 
+    public function chapter(): BelongsTo
+    {
+        return $this->belongsTo(OfferChapter::class);
+    }
+
     public function equipment(): BelongsTo
     {
         return $this->belongsTo(Equipment::class);
@@ -84,12 +92,55 @@ class OfferItem extends Model
         return $this->belongsTo(Service::class);
     }
 
+    public function isUncatalogued(): bool
+    {
+        return $this->isPriced() && ! $this->equipment_id && ! $this->service_id;
+    }
+
+    /** Costul unitar completat pe linie are prioritate față de cel din catalog. */
+    public function unitCost(): ?float
+    {
+        if ($this->unit_cost !== null) {
+            return round((float) $this->unit_cost, 2);
+        }
+
+        if ($this->equipment_id && $this->equipment?->cost_price !== null) {
+            return round((float) $this->equipment->cost_price, 2);
+        }
+
+        if ($this->service_id && $this->service?->cost_price !== null) {
+            return round((float) $this->service->cost_price, 2);
+        }
+
+        return null;
+    }
+
+    public function lineCost(): ?float
+    {
+        $unitCost = $this->unitCost();
+
+        return $unitCost === null ? null : round((float) $this->quantity * $unitCost, 2);
+    }
+
+    /** Marja se calculează doar când există un cost completat. */
+    public function marginPercent(): ?float
+    {
+        $value = $this->subtotal;
+        $cost = $this->lineCost();
+
+        if ($value <= 0 || $cost === null) {
+            return null;
+        }
+
+        return round((($value - $cost) / $value) * 100, 2);
+    }
+
     public function getSubtotalAttribute(): float
     {
         if ($this->isClientSupplied()) {
             return 0.0;
         }
 
-        return (float) $this->quantity * (float) $this->unit_price;
+        return round((float) $this->quantity * (float) $this->unit_price, 2);
     }
 }

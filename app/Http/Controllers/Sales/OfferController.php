@@ -8,8 +8,10 @@ use App\Models\Client;
 use App\Models\Equipment;
 use App\Models\Installation;
 use App\Models\Offer;
+use App\Models\OfferChapter;
 use App\Models\OfferItem;
 use App\Models\Service;
+use App\Models\Setting;
 use App\Models\User;
 use App\Notifications\OfferAvailable;
 use App\Notifications\OfferSent;
@@ -19,9 +21,11 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response as HttpResponse;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 use Maatwebsite\Excel\Facades\Excel;
@@ -70,8 +74,8 @@ class OfferController extends Controller
 
         return Inertia::render('Sales/Offers/Create', [
             'clients' => Client::orderBy('name')->get(['id', 'name', 'company_name']),
-            'equipment' => Equipment::orderBy('name')->get(['id', 'name', 'unit_price', 'unit']),
-            'services' => Service::where('is_active', true)->orderBy('name')->get(['id', 'name', 'sale_price', 'unit']),
+            'equipment' => Equipment::orderBy('name')->get(['id', 'name', 'unit_price', 'cost_price', 'unit']),
+            'services' => Service::where('is_active', true)->orderBy('name')->get(['id', 'name', 'sale_price', 'cost_price', 'unit']),
             'types' => Installation::TYPE_LABELS,
             'preselectedClientId' => $visit?->client_id ?: ($request->integer('client_id') ?: null),
             'preselectedVisit' => $visit ? [
@@ -79,16 +83,22 @@ class OfferController extends Controller
                 'label' => 'Constatare #'.$visit->id.' - '.($visit->client?->name ?? ''),
             ] : null,
             'preselectedJobType' => $visit?->requested_type ?: ($request->string('job_type')->toString() ?: 'instalare'),
-            'defaultValidUntil' => now()->addDays(Offer::DEFAULT_VALIDITY_DAYS)->toDateString(),
+            'defaultValidUntil' => Offer::defaultValidUntil(),
+            'chapterSuggestions' => $this->chapterSuggestions(),
+            'equipmentUnits' => Equipment::UNITS,
+            'serviceUnits' => Service::UNITS,
+            'minimumMargin' => (float) (Setting::get('minimum_profit_margin', '20') ?? 20),
+            'vatPercentage' => (float) (Setting::get('vat_percentage') ?? 0),
         ]);
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request, EquipmentCatalogService $catalog): RedirectResponse
     {
         $data = $this->validateData($request);
         $items = $this->prepareItems($data['items']);
+        $intents = $this->catalogIntents($data['items']);
 
-        $offer = DB::transaction(function () use ($data, $items, $request) {
+        $offer = DB::transaction(function () use ($data, $items, $intents, $request, $catalog) {
             $offer = Offer::create([
                 'client_id' => $data['client_id'],
                 'user_id' => $request->user()->id,
@@ -96,12 +106,15 @@ class OfferController extends Controller
                 'title' => $data['title'],
                 'job_type' => $data['job_type'],
                 'status' => 'draft',
-                'valid_until' => $data['valid_until'] ?? now()->addDays(Offer::DEFAULT_VALIDITY_DAYS)->toDateString(),
+                'valid_until' => $data['valid_until'] ?? Offer::defaultValidUntil(),
                 'notes' => $data['notes'] ?? null,
                 'total_amount' => $this->totalFromItems($items),
             ]);
 
-            $offer->items()->createMany($items);
+            $refMap = $this->syncChapters($offer, $data['chapters'] ?? []);
+            $created = $offer->items()->createMany($this->withChapterIds($items, $refMap));
+
+            $this->persistCatalogItems($created, $intents, $request->user(), $offer, $catalog);
 
             return $offer;
         });
@@ -115,23 +128,25 @@ class OfferController extends Controller
 
     public function show(Offer $offer): Response
     {
-        $offer->load(['client', 'user:id,name', 'items.equipment:id,name,cost_price', 'items.service:id,name,cost_price']);
+        $offer->load(['client', 'user:id,name', 'chapters', 'items.equipment:id,name,cost_price', 'items.service:id,name,cost_price']);
 
         return Inertia::render('Sales/Offers/Show', [
             'offer' => $offer,
             'profitability' => $offer->profitability_report,
+            'summary' => $offer->summaryByChapter(),
+            'lineMargins' => $offer->lineMargins(),
         ]);
     }
 
     public function edit(Offer $offer): Response
     {
-        $offer->load('items');
+        $offer->load(['items', 'chapters']);
 
         return Inertia::render('Sales/Offers/Edit', [
             'offer' => $offer,
             'clients' => Client::orderBy('name')->get(['id', 'name', 'company_name']),
-            'equipment' => Equipment::orderBy('name')->get(['id', 'name', 'unit_price', 'unit']),
-            'services' => Service::where('is_active', true)->orderBy('name')->get(['id', 'name', 'sale_price', 'unit']),
+            'equipment' => Equipment::orderBy('name')->get(['id', 'name', 'unit_price', 'cost_price', 'unit']),
+            'services' => Service::where('is_active', true)->orderBy('name')->get(['id', 'name', 'sale_price', 'cost_price', 'unit']),
             'types' => Installation::TYPE_LABELS,
             'visits' => $offer->client_id
                 ? Installation::where('client_id', $offer->client_id)
@@ -140,28 +155,38 @@ class OfferController extends Controller
                     ->limit(50)
                     ->get(['id', 'scheduled_at'])
                 : collect(),
+            'chapterSuggestions' => $this->chapterSuggestions($offer),
+            'equipmentUnits' => Equipment::UNITS,
+            'serviceUnits' => Service::UNITS,
+            'minimumMargin' => (float) (Setting::get('minimum_profit_margin', '20') ?? 20),
+            'vatPercentage' => (float) (Setting::get('vat_percentage') ?? 0),
         ]);
     }
 
-    public function update(Request $request, Offer $offer): RedirectResponse
+    public function update(Request $request, Offer $offer, EquipmentCatalogService $catalog): RedirectResponse
     {
         $data = $this->validateData($request);
         $items = $this->prepareItems($data['items']);
+        $intents = $this->catalogIntents($data['items']);
 
-        DB::transaction(function () use ($data, $items, $offer) {
+        DB::transaction(function () use ($data, $items, $intents, $offer, $catalog, $request) {
             $offer->update([
                 'client_id' => $data['client_id'],
                 'visit_id' => $data['visit_id'] ?? null,
                 'title' => $data['title'],
                 'job_type' => $data['job_type'],
                 'status' => in_array($offer->status, ['sent', 'accepted', 'rejected'], true) ? 'draft' : $data['status'],
-                'valid_until' => $data['valid_until'] ?? now()->addDays(Offer::DEFAULT_VALIDITY_DAYS)->toDateString(),
+                'valid_until' => $data['valid_until'] ?? Offer::defaultValidUntil(),
                 'notes' => $data['notes'] ?? null,
                 'total_amount' => $this->totalFromItems($items),
             ]);
 
+            $refMap = $this->syncChapters($offer, $data['chapters'] ?? []);
             $offer->items()->delete();
-            $offer->items()->createMany($items);
+            $created = $offer->items()->createMany($this->withChapterIds($items, $refMap));
+
+            $this->persistCatalogItems($created, $intents, $request->user(), $offer, $catalog);
+            $this->syncInstallationFromOffer($offer);
         });
 
         return redirect()->route('sales.offers.show', $offer)->with('success', 'Deviz actualizat cu succes.');
@@ -177,8 +202,8 @@ class OfferController extends Controller
 
         if ($data['status'] === 'accepted') {
             $offer->client->update(['status' => 'client']);
-            $offer->load(['items.equipment', 'items.service']);
             $this->createInstallationFromAcceptedOffer($offer);
+            $this->syncInstallationFromOffer($offer);
         }
 
         if ($data['status'] === 'sent') {
@@ -228,20 +253,31 @@ class OfferController extends Controller
             'address' => trim(($offer->client->address ?? '').' '.($offer->client->city ?? '')),
             'status' => 'scheduled',
             'checklist' => Installation::defaultChecklist($type),
-            'material_items' => $offer->items->where('section', OfferItem::SECTION_MATERIALS)->map(fn ($item) => [
-                'equipment_id' => $item->equipment_id,
-                'name' => $item->equipment?->name ?? $item->description,
-                'unit' => $item->unit ?: ($item->equipment?->unit ?? 'buc'),
-                'quantity' => (int) $item->quantity,
-            ])->values()->all(),
-            'service_items' => $offer->items->where('section', OfferItem::SECTION_LABOR)->map(fn ($item) => [
-                'service_id' => $item->service_id,
-                'name' => $item->service?->name ?? $item->description,
-                'unit' => $item->unit ?: ($item->service?->unit ?? 'ora'),
-                'quantity' => (int) $item->quantity,
-            ])->values()->all(),
+            'material_items' => $offer->installationMaterialItems(),
+            'service_items' => $offer->installationServiceItems(),
             'notes' => 'Lucrare generata automat la acceptarea devizului #'.$offer->id.'.',
         ]);
+    }
+
+    /**
+     * „Necesar materiale” trebuie să citească devizul acceptat, nu copia veche
+     * din programare (care rămâne goală după editarea ofertei).
+     */
+    private function syncInstallationFromOffer(Offer $offer): void
+    {
+        if ($offer->installations()->doesntExist()) {
+            return;
+        }
+
+        $materials = $offer->installationMaterialItems();
+        $services = $offer->installationServiceItems();
+
+        foreach ($offer->installations as $installation) {
+            $installation->update([
+                'material_items' => $materials,
+                'service_items' => $services,
+            ]);
+        }
     }
 
     public function destroy(Offer $offer): RedirectResponse
@@ -270,7 +306,7 @@ class OfferController extends Controller
 
     public function pdf(Offer $offer): HttpResponse
     {
-        $offer->load(['client', 'items.equipment:id,name', 'items.service:id,name']);
+        $offer->load(['client', 'chapters', 'items.equipment:id,name', 'items.service:id,name']);
 
         return Pdf::loadView('pdfs.offer', ['offer' => $offer])->stream("oferta-{$offer->id}.pdf");
     }
@@ -285,14 +321,23 @@ class OfferController extends Controller
             'status' => ['required', 'in:draft,sent,accepted,rejected,expired'],
             'valid_until' => ['nullable', 'date'],
             'notes' => ['nullable', 'string', 'max:2000'],
+            'chapters' => ['nullable', 'array', 'max:50'],
+            'chapters.*.ref' => ['required_with:chapters', 'string', 'max:40'],
+            'chapters.*.id' => ['nullable', 'integer', 'min:1'],
+            'chapters.*.name' => ['required', 'string', 'max:100'],
+            'chapters.*.position' => ['nullable', 'integer', 'min:0', 'max:1000'],
+            'chapters.*.removed' => ['nullable', 'boolean'],
             'items' => ['required', 'array', 'min:1'],
             'items.*.section' => ['nullable', Rule::in(OfferItem::SECTIONS)],
             'items.*.equipment_id' => ['nullable', 'exists:equipment,id'],
             'items.*.service_id' => ['nullable', 'exists:services,id'],
+            'items.*.chapter_ref' => ['nullable', 'string', 'max:40'],
             'items.*.description' => ['required', 'string', 'max:255'],
             'items.*.quantity' => ['required', 'integer', 'min:1'],
             'items.*.unit' => ['nullable', 'string', 'max:20'],
             'items.*.unit_price' => ['nullable', 'numeric', 'min:0'],
+            'items.*.unit_cost' => ['nullable', 'numeric', 'min:0', 'max:99999999'],
+            'items.*.save_to_catalog' => ['nullable', 'boolean'],
         ]);
     }
 
@@ -312,13 +357,150 @@ class OfferController extends Controller
             return [
                 'equipment_id' => $isClientSupplied ? null : ($item['equipment_id'] ?? null),
                 'service_id' => $isClientSupplied ? null : ($item['service_id'] ?? null),
+                'chapter_ref' => $item['chapter_ref'] ?? null,
                 'section' => $section,
                 'description' => $item['description'],
                 'quantity' => $item['quantity'],
                 'unit' => $item['unit'] ?? null,
                 'unit_price' => $isClientSupplied ? 0 : ($item['unit_price'] ?? 0),
+                'unit_cost' => $isClientSupplied ? null : ($item['unit_cost'] ?? null),
             ];
         })->all();
+    }
+
+    /** Indicii liniilor care trebuie salvate în catalog la salvarea devizului. */
+    private function catalogIntents(array $items): array
+    {
+        return collect($items)
+            ->filter(fn (array $item): bool => ! empty($item['save_to_catalog']))
+            ->keys()
+            ->all();
+    }
+
+    /**
+     * Sincronizează capitolele în aceeași tranzacție cu oferta și returnează
+     * corespondența dintre cheile temporare din formular și ID-urile reale.
+     *
+     * @param  array<int, array<string, mixed>>  $chapters
+     * @return array<string, int|null>
+     */
+    private function syncChapters(Offer $offer, array $chapters): array
+    {
+        $existingIds = $offer->chapters()->pluck('id')->all();
+        $refMap = [];
+
+        foreach ($existingIds as $id) {
+            $refMap[(string) $id] = (int) $id;
+        }
+
+        $removeIds = [];
+
+        foreach ($chapters as $chapter) {
+            $ref = (string) ($chapter['ref'] ?? '');
+            $id = ! empty($chapter['id']) ? (int) $chapter['id'] : null;
+
+            if (! empty($chapter['removed'])) {
+                $refMap[$ref] = null;
+                if ($id && in_array($id, $existingIds, true)) {
+                    $removeIds[] = $id;
+                }
+
+                continue;
+            }
+
+            $attributes = [
+                'name' => $chapter['name'],
+                'position' => (int) ($chapter['position'] ?? 0),
+            ];
+
+            if ($id) {
+                if (! in_array($id, $existingIds, true)) {
+                    throw ValidationException::withMessages([
+                        'chapters' => 'Un capitol selectat nu aparține acestui deviz.',
+                    ]);
+                }
+
+                $offer->chapters()->whereKey($id)->update($attributes);
+                $refMap[$ref] = $id;
+                $refMap[(string) $id] = $id;
+
+                continue;
+            }
+
+            $created = $offer->chapters()->create($attributes);
+            $refMap[$ref] = (int) $created->id;
+        }
+
+        if ($removeIds !== []) {
+            // Liniile mutate în „General” înainte de ștergerea capitolului.
+            $offer->items()->whereIn('chapter_id', $removeIds)->update(['chapter_id' => null]);
+            $offer->chapters()->whereIn('id', $removeIds)->delete();
+        }
+
+        return $refMap;
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $items
+     * @param  array<string, int|null>  $refMap
+     * @return array<int, array<string, mixed>>
+     */
+    private function withChapterIds(array $items, array $refMap): array
+    {
+        return collect($items)->map(function (array $item) use ($refMap): array {
+            $ref = $item['chapter_ref'] ?? null;
+            unset($item['chapter_ref']);
+            $item['chapter_id'] = $ref ? ($refMap[(string) $ref] ?? null) : null;
+
+            return $item;
+        })->all();
+    }
+
+    /**
+     * Articolele marcate „Salvează în catalog” se creează doar aici, în
+     * tranzacția de salvare a devizului. O ofertă abandonată nu scrie nimic.
+     *
+     * @param  array<int, int>  $indexes
+     */
+    private function persistCatalogItems(Collection $createdItems, array $indexes, ?User $actor, Offer $offer, EquipmentCatalogService $catalog): void
+    {
+        foreach ($indexes as $index) {
+            $item = $createdItems->get($index);
+
+            if (! $item || $item->isClientSupplied() || $item->equipment_id || $item->service_id) {
+                continue;
+            }
+
+            $data = [
+                'name' => $item->description,
+                'unit' => $item->unit,
+                'unit_price' => $item->unit_price,
+                'cost_price' => $item->unit_cost,
+            ];
+            $metadata = ['offer_id' => $offer->id];
+
+            if ($item->section === OfferItem::SECTION_MATERIALS) {
+                $catalogItem = $catalog->findOrCreateMaterial($data, $actor, $metadata);
+                $item->update(['equipment_id' => $catalogItem->id]);
+
+                continue;
+            }
+
+            $catalogItem = $catalog->findOrCreateService($data, $actor, $metadata);
+            $item->update(['service_id' => $catalogItem->id]);
+        }
+    }
+
+    /** @return array<int, string> */
+    private function chapterSuggestions(?Offer $offer = null): array
+    {
+        return OfferChapter::query()
+            ->when($offer, fn ($query) => $query->where('offer_id', '!=', $offer->id))
+            ->distinct()
+            ->orderBy('name')
+            ->limit(50)
+            ->pluck('name')
+            ->all();
     }
 
     private function totalFromItems(array $items): float

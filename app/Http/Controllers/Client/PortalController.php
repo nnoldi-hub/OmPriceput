@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\Equipment;
 use App\Models\Installation;
 use App\Models\Offer;
-use App\Models\OfferItem;
 use App\Models\Setting;
 use App\Models\Ticket;
 use App\Models\User;
@@ -65,13 +64,30 @@ class PortalController extends Controller
 
     public function offers(Request $request): Response
     {
-        return Inertia::render('Client/Offers/Index', [
-            'offers' => $request->user()->clientProfile->offers()
-                ->with('items')
-                ->whereIn('status', ['sent', 'accepted', 'rejected'])
-                ->latest()
-                ->get(),
-        ]);
+        // Vederea clientului conține doar datele comerciale: costurile și
+        // marjele rămân exclusive paginilor interne din aplicație.
+        $offers = $request->user()->clientProfile->offers()
+            ->with('items')
+            ->whereIn('status', ['sent', 'accepted', 'rejected'])
+            ->latest()
+            ->get()
+            ->map(fn (Offer $offer) => [
+                'id' => $offer->id,
+                'title' => $offer->title,
+                'status' => $offer->status,
+                'created_at' => $offer->created_at,
+                'valid_until' => $offer->valid_until,
+                'items' => $offer->items->map(fn ($item) => [
+                    'id' => $item->id,
+                    'section' => $item->section,
+                    'description' => $item->description,
+                    'quantity' => $item->quantity,
+                    'unit' => $item->unit,
+                    'unit_price' => $item->unit_price,
+                ])->values()->all(),
+            ])->values()->all();
+
+        return Inertia::render('Client/Offers/Index', ['offers' => $offers]);
     }
 
     public function updateOfferStatus(Request $request, int $offer): RedirectResponse
@@ -246,11 +262,20 @@ class PortalController extends Controller
 
     private function createInstallationFromAcceptedOffer(Offer $offer): void
     {
-        if (Installation::where('offer_id', $offer->id)->exists()) {
+        $materials = $offer->installationMaterialItems();
+        $services = $offer->installationServiceItems();
+
+        $installation = Installation::where('offer_id', $offer->id)->first();
+
+        if ($installation) {
+            // Oferta acceptată este sursa de adevăr și după acceptare.
+            $installation->update([
+                'material_items' => $materials,
+                'service_items' => $services,
+            ]);
+
             return;
         }
-
-        $offer->load(['items.equipment', 'items.service']);
 
         $type = in_array($offer->job_type, Installation::TYPES, true) ? $offer->job_type : 'instalare';
 
@@ -262,18 +287,8 @@ class PortalController extends Controller
             'address' => trim(($offer->client->address ?? '').' '.($offer->client->city ?? '')),
             'status' => 'scheduled',
             'checklist' => Installation::defaultChecklist($type),
-            'material_items' => $offer->items->where('section', OfferItem::SECTION_MATERIALS)->map(fn ($item) => [
-                'equipment_id' => $item->equipment_id,
-                'name' => $item->equipment?->name ?? $item->description,
-                'unit' => $item->unit ?: ($item->equipment?->unit ?? 'buc'),
-                'quantity' => (int) $item->quantity,
-            ])->values()->all(),
-            'service_items' => $offer->items->where('section', OfferItem::SECTION_LABOR)->map(fn ($item) => [
-                'service_id' => $item->service_id,
-                'name' => $item->service?->name ?? $item->description,
-                'unit' => $item->unit ?: ($item->service?->unit ?? 'ora'),
-                'quantity' => (int) $item->quantity,
-            ])->values()->all(),
+            'material_items' => $materials,
+            'service_items' => $services,
             'notes' => 'Lucrare generata automat la acceptarea devizului #'.$offer->id.'.',
         ]);
     }

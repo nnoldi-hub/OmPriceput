@@ -79,28 +79,31 @@ class MaterialRequirementService
         foreach ($installations as $installation) {
             $label = $installation->client?->name ?? 'Programare #'.$installation->id;
 
+            // Devizul acceptat este sursa de adevăr; material_items din
+            // programare poate fi o copie învechită după editarea ofertei.
             if ($installation->offer_id && $installation->offer) {
-                foreach ($installation->offer->items as $item) {
-                    if ($item->section !== OfferItem::SECTION_MATERIALS) {
-                        continue;
+                $offerMaterials = $installation->offer->items
+                    ->filter(fn (OfferItem $item) => $item->section === OfferItem::SECTION_MATERIALS);
+
+                if ($offerMaterials->isNotEmpty()) {
+                    foreach ($offerMaterials as $item) {
+                        $lines->push([
+                            'equipment_id' => $item->equipment_id ? (int) $item->equipment_id : null,
+                            'offer_item_id' => $item->id,
+                            'name' => $item->equipment?->name ?? $item->description,
+                            'unit' => $item->unit ?: ($item->equipment?->unit ?? 'buc'),
+                            'quantity' => (float) $item->quantity,
+                            'unit_price' => (float) $item->unit_price,
+                            'source' => 'installation',
+                            'label' => $label,
+                            'date' => $installation->scheduled_at,
+                            'installation_id' => $installation->id,
+                            'offer_id' => $installation->offer_id,
+                        ]);
                     }
 
-                    $lines->push([
-                        'equipment_id' => $item->equipment_id ? (int) $item->equipment_id : null,
-                        'offer_item_id' => $item->id,
-                        'name' => $item->equipment?->name ?? $item->description,
-                        'unit' => $item->unit ?: ($item->equipment?->unit ?? 'buc'),
-                        'quantity' => (float) $item->quantity,
-                        'unit_price' => (float) $item->unit_price,
-                        'source' => 'installation',
-                        'label' => $label,
-                        'date' => $installation->scheduled_at,
-                        'installation_id' => $installation->id,
-                        'offer_id' => $installation->offer_id,
-                    ]);
+                    continue;
                 }
-
-                continue;
             }
 
             foreach ($installation->material_items ?? [] as $item) {

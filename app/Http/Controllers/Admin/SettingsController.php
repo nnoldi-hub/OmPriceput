@@ -31,6 +31,7 @@ class SettingsController extends Controller
             'social_linkedin' => ['nullable', 'url', 'max:255'],
             'invoice_series' => ['required', 'string', 'max:20'],
             'vat_percentage' => ['required', 'numeric', 'min:0', 'max:100'],
+            'offer_validity_days' => ['nullable', 'integer', 'min:1', 'max:365'],
             'minimum_profit_margin' => ['nullable', 'numeric', 'min:0', 'max:100'],
             'operational_reminders_email_enabled' => ['nullable', 'boolean'],
             'shop_enabled' => ['nullable', 'boolean'],
@@ -46,6 +47,7 @@ class SettingsController extends Controller
         $data['operational_reminders_email_enabled'] = $request->boolean('operational_reminders_email_enabled') ? '1' : '0';
         $data['shop_enabled'] = $request->boolean('shop_enabled') ? '1' : '0';
         $data['company_hours'] = $data['company_hours'] ?? Setting::get('company_hours');
+        $data['offer_validity_days'] = $data['offer_validity_days'] ?? Setting::get('offer_validity_days');
         $data['minimum_profit_margin'] = $data['minimum_profit_margin'] ?? Setting::get('minimum_profit_margin');
         $data['shop_free_shipping_threshold'] = $data['shop_free_shipping_threshold'] ?? Setting::get('shop_free_shipping_threshold');
         $data['shop_shipping_cost'] = $data['shop_shipping_cost'] ?? Setting::get('shop_shipping_cost');

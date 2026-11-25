@@ -19,6 +19,7 @@ const form = useForm({
     social_linkedin: props.settings.social_linkedin,
     invoice_series: props.settings.invoice_series,
     vat_percentage: Number(props.settings.vat_percentage),
+    offer_validity_days: Number(props.settings.offer_validity_days),
     minimum_profit_margin: Number(props.settings.minimum_profit_margin),
     operational_reminders_email_enabled: props.settings.operational_reminders_email_enabled === '1',
     shop_enabled: props.settings.shop_enabled === '1',
@@ -95,6 +96,11 @@ function submit() {
                         <div>
                             <label class="block text-sm font-medium text-slate-700">TVA (%) *</label>
                             <input v-model.number="form.vat_percentage" type="number" min="0" max="100" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" />
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700">Valabilitate deviz (zile)</label>
+                            <input v-model.number="form.offer_validity_days" type="number" min="1" max="365" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm" />
+                            <p class="mt-1 text-xs text-slate-500">Data de valabilitate se calculează de la data emiterii.</p>
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-slate-700">Marja minima profit (%)</label>

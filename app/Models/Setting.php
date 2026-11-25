@@ -20,6 +20,7 @@ class Setting extends Model
         'social_linkedin' => '',
         'invoice_series' => 'OP',
         'vat_percentage' => '19',
+        'offer_validity_days' => '30',
         'minimum_profit_margin' => '20',
         'operational_reminders_email_enabled' => '0',
         'shop_enabled' => '0',
