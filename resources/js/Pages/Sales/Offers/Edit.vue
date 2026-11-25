@@ -24,6 +24,7 @@ const form = useForm({
     title: props.offer.title,
     status: props.offer.status,
     valid_until: props.offer.valid_until ? props.offer.valid_until.substring(0, 10) : '',
+    vat_applied: props.offer.vat_applied ?? true,
     notes: props.offer.notes,
     chapters: (props.offer.chapters ?? []).map((chapter) => ({
         ref: String(chapter.id),

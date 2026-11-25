@@ -316,7 +316,8 @@ const subtotals = computed(() => {
 });
 
 const total = computed(() => round2(subtotals.value.materials + subtotals.value.labor));
-const vatAmount = computed(() => props.vatPercentage > 0 ? round2(total.value * props.vatPercentage / 100) : 0);
+const vatIncluded = computed(() => props.form.vat_applied !== false && props.vatPercentage > 0);
+const vatAmount = computed(() => vatIncluded.value ? round2(total.value * props.vatPercentage / 100) : 0);
 const totalWithVat = computed(() => round2(total.value + vatAmount.value));
 
 function sectionSubtotal(chapterRef, sectionKey) {
@@ -669,14 +670,22 @@ function money(value) {
         </div>
 
         <div class="space-y-2 border-t border-slate-200 pt-4">
+            <label v-if="vatPercentage > 0" class="flex flex-wrap items-center gap-2 text-sm text-slate-700">
+                <input v-model="form.vat_applied" type="checkbox" class="rounded border-slate-300 text-blue-600 focus:ring-blue-500" />
+                Aplică TVA ({{ vatPercentage }}%)
+                <span v-if="!form.vat_applied" class="rounded bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">Ofertă fără TVA</span>
+            </label>
             <div class="flex flex-wrap justify-end gap-6 text-sm text-slate-500">
                 <span>Materiale: <strong class="text-slate-800">{{ money(subtotals.materials) }} lei</strong></span>
                 <span>Manoperă: <strong class="text-slate-800">{{ money(subtotals.labor) }} lei</strong></span>
-                <span>Total fără TVA: <strong class="text-lg font-bold text-slate-900">{{ money(total) }} lei</strong></span>
+                <span>{{ vatIncluded ? 'Total fără TVA' : 'Total' }}: <strong class="text-lg font-bold text-slate-900">{{ money(total) }} lei</strong></span>
             </div>
-            <div v-if="vatPercentage > 0" class="flex justify-end gap-6 text-sm text-slate-500">
+            <div v-if="vatIncluded" class="flex justify-end gap-6 text-sm text-slate-500">
                 <span>TVA ({{ vatPercentage }}%): <strong class="text-slate-800">{{ money(vatAmount) }} lei</strong></span>
                 <span>Total cu TVA: <strong class="text-slate-900">{{ money(totalWithVat) }} lei</strong></span>
+            </div>
+            <div v-else-if="vatPercentage > 0" class="flex justify-end text-sm text-amber-700">
+                Fără TVA — operațiune scutită / regim special.
             </div>
             <div v-if="marginTotals" class="rounded-md px-3 py-2 text-sm" :class="marginTotals.percent < minimumMargin ? 'bg-red-50 text-red-700' : 'bg-emerald-50 text-emerald-700'">
                 Marjă totală: <strong>{{ money(marginTotals.percent) }}%</strong> ({{ money(marginTotals.amount) }} lei)

@@ -117,11 +117,15 @@
                 </tr>
             @endif
             <tr class="grand-row">
-                <td colspan="3" class="text-right">Total cu TVA</td>
+                <td colspan="3" class="text-right">{{ $summary['is_vat_payer'] ? 'Total cu TVA' : 'Total (fără TVA)' }}</td>
                 <td class="text-right">{{ $money($summary['is_vat_payer'] ? $summary['total_with_vat'] : $summary['subtotal']) }} lei</td>
             </tr>
         </tfoot>
     </table>
+
+    @if (! $summary['vat_applied'])
+        <p class="muted" style="margin-top: 8px;">Regim TVA: fără TVA (operațiune scutită / regim special).</p>
+    @endif
 
     <table cellspacing="0" cellpadding="0" style="width: 100%; margin-top: 12px;">
         <tr>

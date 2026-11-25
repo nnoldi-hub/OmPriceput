@@ -36,12 +36,18 @@ class Offer extends Model
         'status',
         'total_amount',
         'valid_until',
+        'vat_applied',
         'notes',
+    ];
+
+    protected $attributes = [
+        'vat_applied' => true,
     ];
 
     protected $casts = [
         'total_amount' => 'decimal:2',
         'valid_until' => 'date',
+        'vat_applied' => 'boolean',
     ];
 
     protected $appends = ['profitability_report'];
@@ -155,7 +161,7 @@ class Offer extends Model
      * Centralizatorul pe capitole. Capitolul „General” este virtual: toate
      * liniile vechi, fără chapter_id, rămân acolo și nu se pierd.
      *
-     * @return array{chapters: array<int, array<string, mixed>>, materials: float, labor: float, subtotal: float, vat_percentage: float, is_vat_payer: bool, vat_amount: float, total_with_vat: float}
+     * @return array{chapters: array<int, array<string, mixed>>, materials: float, labor: float, subtotal: float, vat_percentage: float, vat_applied: bool, is_vat_payer: bool, vat_amount: float, total_with_vat: float}
      */
     public function summaryByChapter(): array
     {
@@ -176,7 +182,9 @@ class Offer extends Model
         }
 
         $subtotal = round((float) $rows->sum('total'), 2);
-        $vatPercentage = round((float) (Setting::get('vat_percentage') ?? 0), 2);
+        $companyVatPercentage = round((float) (Setting::get('vat_percentage') ?? 0), 2);
+        // O ofertă poate fi emisă fără TVA chiar dacă firma este plătitoare.
+        $vatPercentage = $this->vat_applied ? $companyVatPercentage : 0.0;
         $vatAmount = $vatPercentage > 0 ? round($subtotal * $vatPercentage / 100, 2) : 0.0;
 
         return [
@@ -185,6 +193,7 @@ class Offer extends Model
             'labor' => round((float) $rows->sum('labor'), 2),
             'subtotal' => $subtotal,
             'vat_percentage' => $vatPercentage,
+            'vat_applied' => (bool) $this->vat_applied,
             'is_vat_payer' => $vatPercentage > 0,
             'vat_amount' => $vatAmount,
             'total_with_vat' => round($subtotal + $vatAmount, 2),

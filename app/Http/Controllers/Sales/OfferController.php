@@ -107,6 +107,7 @@ class OfferController extends Controller
                 'job_type' => $data['job_type'],
                 'status' => 'draft',
                 'valid_until' => $data['valid_until'] ?? Offer::defaultValidUntil(),
+                'vat_applied' => $data['vat_applied'] ?? true,
                 'notes' => $data['notes'] ?? null,
                 'total_amount' => $this->totalFromItems($items),
             ]);
@@ -177,6 +178,7 @@ class OfferController extends Controller
                 'job_type' => $data['job_type'],
                 'status' => in_array($offer->status, ['sent', 'accepted', 'rejected'], true) ? 'draft' : $data['status'],
                 'valid_until' => $data['valid_until'] ?? Offer::defaultValidUntil(),
+                'vat_applied' => $data['vat_applied'] ?? true,
                 'notes' => $data['notes'] ?? null,
                 'total_amount' => $this->totalFromItems($items),
             ]);
@@ -320,6 +322,7 @@ class OfferController extends Controller
             'job_type' => ['required', Rule::in(Installation::TYPES)],
             'status' => ['required', 'in:draft,sent,accepted,rejected,expired'],
             'valid_until' => ['nullable', 'date'],
+            'vat_applied' => ['nullable', 'boolean'],
             'notes' => ['nullable', 'string', 'max:2000'],
             'chapters' => ['nullable', 'array', 'max:50'],
             'chapters.*.ref' => ['required_with:chapters', 'string', 'max:40'],

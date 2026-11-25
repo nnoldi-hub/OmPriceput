@@ -186,14 +186,17 @@ function addToCatalog(item) {
                                     <td class="py-2 text-right font-semibold text-slate-900">{{ money(summary.vat_amount) }} lei</td>
                                 </tr>
                                 <tr>
-                                    <td colspan="3" class="py-2 text-right font-medium text-slate-700">Total cu TVA</td>
+                                    <td colspan="3" class="py-2 text-right font-medium text-slate-700">
+                                        {{ summary.is_vat_payer ? 'Total cu TVA' : 'Total (fără TVA)' }}
+                                    </td>
                                     <td class="py-2 text-right text-lg font-bold text-slate-900">
                                         {{ money(summary.is_vat_payer ? summary.total_with_vat : summary.subtotal) }} lei
                                     </td>
                                 </tr>
                             </tfoot>
                         </table>
-                        <p v-if="!summary.is_vat_payer" class="mt-2 text-xs text-slate-500">Firma nu este plătitoare de TVA (cotă 0%).</p>
+                        <p v-if="summary.vat_applied === false" class="mt-2 text-xs font-medium text-amber-700">Ofertă emisă fără TVA (operațiune scutită / regim special).</p>
+                        <p v-else-if="!summary.is_vat_payer" class="mt-2 text-xs text-slate-500">Firma nu este plătitoare de TVA (cotă 0%).</p>
                     </div>
 
                     <div class="rounded-lg p-5 shadow-sm" :class="profitability.margin_percent < profitability.minimum_margin_percent ? 'border border-red-200 bg-red-50' : 'border border-emerald-200 bg-emerald-50'">

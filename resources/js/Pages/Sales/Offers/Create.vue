@@ -26,6 +26,7 @@ const form = useForm({
     title: 'Deviz lucrare',
     status: 'draft',
     valid_until: props.defaultValidUntil ?? '',
+    vat_applied: true,
     notes: props.preselectedVisit?.label ? `Constatare: ${props.preselectedVisit.label}` : '',
     chapters: [],
     items: [{

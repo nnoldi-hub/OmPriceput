@@ -501,6 +501,83 @@ class OfferCrudTest extends TestCase
         $this->assertSame(150.0, $summary['total_with_vat']);
     }
 
+    public function test_offer_can_be_created_without_vat_and_pdf_specifies_the_regime(): void
+    {
+        Setting::set('vat_percentage', '20');
+        $client = Client::factory()->create();
+
+        $this->actingAs($this->salesUser)->post(route('sales.offers.store'), [
+            'client_id' => $client->id,
+            'title' => 'Oferta fara TVA',
+            'status' => 'draft',
+            'job_type' => 'reparatie',
+            'vat_applied' => false,
+            'items' => [
+                ['description' => 'Manopera', 'quantity' => 2, 'unit_price' => 100],
+            ],
+        ])->assertRedirect();
+
+        $offer = Offer::firstWhere('title', 'Oferta fara TVA');
+        $this->assertFalse($offer->vat_applied);
+
+        $summary = $offer->summaryByChapter();
+        $this->assertFalse($summary['vat_applied']);
+        $this->assertSame(0.0, $summary['vat_percentage']);
+        $this->assertFalse($summary['is_vat_payer']);
+        $this->assertSame(0.0, $summary['vat_amount']);
+        $this->assertSame(200.0, $summary['total_with_vat']);
+
+        $html = view('pdfs.offer', ['offer' => $offer->load('client', 'chapters', 'items')])->render();
+        $this->assertStringContainsString('fără TVA', $html);
+        $this->assertStringContainsString('Total (fără TVA)', $html);
+        $this->assertStringNotContainsString('TVA (20%)', $html);
+    }
+
+    public function test_offer_defaults_to_vat_applied_and_show_exposes_the_regime(): void
+    {
+        Setting::set('vat_percentage', '20');
+        $offer = Offer::factory()->create(['user_id' => $this->salesUser->id]);
+        $offer->items()->create(['section' => 'labor', 'description' => 'Manopera', 'quantity' => 1, 'unit_price' => 100]);
+
+        $this->assertTrue($offer->vat_applied);
+        $summary = $offer->summaryByChapter();
+        $this->assertTrue($summary['vat_applied']);
+        $this->assertTrue($summary['is_vat_payer']);
+        $this->assertSame(20.0, $summary['vat_percentage']);
+        $this->assertSame(120.0, $summary['total_with_vat']);
+
+        $this->actingAs($this->salesUser)
+            ->get(route('sales.offers.show', $offer))
+            ->assertInertia(fn ($page) => $page
+                ->component('Sales/Offers/Show')
+                ->where('summary.vat_applied', true)
+                ->where('summary.is_vat_payer', true)
+            );
+    }
+
+    public function test_editing_an_offer_can_switch_to_no_vat(): void
+    {
+        Setting::set('vat_percentage', '20');
+        $client = Client::factory()->create();
+        $offer = Offer::factory()->create(['client_id' => $client->id, 'user_id' => $this->salesUser->id]);
+        $offer->items()->create(['section' => 'labor', 'description' => 'Manopera', 'quantity' => 1, 'unit_price' => 100]);
+
+        $this->actingAs($this->salesUser)->put(route('sales.offers.update', $offer), [
+            'client_id' => $client->id,
+            'title' => $offer->title,
+            'status' => 'draft',
+            'job_type' => $offer->job_type ?? 'instalare',
+            'vat_applied' => false,
+            'items' => [
+                ['section' => 'labor', 'description' => 'Manopera', 'quantity' => 1, 'unit_price' => 100],
+            ],
+        ])->assertRedirect();
+
+        $offer->refresh();
+        $this->assertFalse($offer->vat_applied);
+        $this->assertSame(0.0, $offer->summaryByChapter()['vat_amount']);
+    }
+
     public function test_legacy_offer_without_chapters_uses_general_chapter(): void
     {
         $offer = Offer::factory()->create(['user_id' => $this->salesUser->id]);
