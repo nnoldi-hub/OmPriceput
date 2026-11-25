@@ -5,7 +5,6 @@ namespace Tests\Feature;
 use App\Models\Equipment;
 use App\Models\Post;
 use App\Models\Setting;
-use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -119,20 +118,18 @@ class SeoTest extends TestCase
         $this->assertGreaterThanOrEqual(300, $words, "Fallback has only {$words} words, expected at least 300");
     }
 
-    public function test_guest_html_ships_only_public_routes_and_users_get_all_routes(): void
+    public function test_guest_html_ships_all_routes_for_inertia_navigation(): void
     {
+        // După login, Inertia nu reîncarcă HTML-ul: Ziggy trebuie să aibă deja
+        // toate rutele, altfel layoutul autentificat aruncă eroare (pagina albă).
         $guestHtml = $this->get(route('public.home'))->getContent();
 
         $this->assertStringContainsString('"public.home"', $guestHtml);
         $this->assertStringContainsString('"login"', $guestHtml);
-        $this->assertStringNotContainsString('"admin.blog.index"', $guestHtml);
-        $this->assertStringNotContainsString('"sales.offers.index"', $guestHtml);
-        $this->assertStringNotContainsString('"technical.tickets.index"', $guestHtml);
-
-        $userHtml = $this->actingAs(User::factory()->create())->get(route('public.home'))->getContent();
-
-        $this->assertStringContainsString('"public.home"', $userHtml);
-        $this->assertStringContainsString('"admin.blog.index"', $userHtml);
+        $this->assertStringContainsString('"admin.blog.index"', $guestHtml);
+        $this->assertStringContainsString('"sales.offers.index"', $guestHtml);
+        $this->assertStringContainsString('"technical.tickets.index"', $guestHtml);
+        $this->assertStringContainsString('"profile.edit"', $guestHtml);
     }
 
     public function test_shop_product_page_has_product_schema_and_cart_is_noindex(): void

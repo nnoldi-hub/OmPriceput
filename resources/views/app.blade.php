@@ -102,11 +102,10 @@
         @endif
 
         <!-- Scripts -->
-        @if(auth()->check())
-            @routes
-        @else
-            @routes('public')
-        @endif
+        {{-- Toate rutele trebuie prezente încă de la prima încărcare: loginul este o
+             visită Inertia (XHR), deci Ziggy nu primește un HTML nou după autentificare.
+             Dacă rutele auth lipsesc, layoutul aruncă eroare și apare pagina albă. --}}
+        @routes
         @vite(['resources/js/app.js', "resources/js/Pages/{$page['component']}.vue"])
         @inertiaHead
     </head>

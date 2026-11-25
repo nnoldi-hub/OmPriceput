@@ -17,6 +17,17 @@ class AuthenticationTest extends TestCase
         $response->assertStatus(200);
     }
 
+    public function test_login_screen_contains_all_routes_for_inertia_navigation(): void
+    {
+        // Loginul este o vizită Inertia: după autentificare JS-ul nu mai primește
+        // un HTML nou, deci Ziggy trebuie să aibă deja rutele autentificate.
+        $html = $this->get('/login')->getContent();
+
+        $this->assertStringContainsString('profile.edit', $html);
+        $this->assertStringContainsString('sales.dashboard', $html);
+        $this->assertStringContainsString('notifications.read-all', $html);
+    }
+
     public function test_users_can_authenticate_using_the_login_screen(): void
     {
         $user = User::factory()->create();
